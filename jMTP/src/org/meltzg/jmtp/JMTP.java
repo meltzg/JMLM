@@ -11,6 +11,7 @@ public class JMTP implements Closeable{
 	
 	public JMTP() {
 		initCOM();
+		int i = 0;
 	}
 	
 	@Override

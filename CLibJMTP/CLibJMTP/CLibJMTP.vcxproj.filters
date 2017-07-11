@@ -18,12 +18,27 @@
     <ClInclude Include="..\..\jMTP\bin\org_meltzg_jmtp_JMTP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="libJMTPHelpers.h">
+    <ClInclude Include="jniHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mtpHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mtpModels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="org_meltzg_jmtp_JMTP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jniHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mtpHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mtpModels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
