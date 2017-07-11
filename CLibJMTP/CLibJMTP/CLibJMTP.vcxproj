@@ -72,6 +72,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>C:\Program Files\Java\jdk1.8.0_131\include;C:\Program Files\Java\jdk1.8.0_131\include\win32;$(IncludePath)</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>libJMTP</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -118,6 +121,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\jMTP\bin\org_meltzg_jmtp_JMTP.h" />
+    <ClInclude Include="libJMTPHelpers.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="org_meltzg_jmtp_JMTP.cpp" />

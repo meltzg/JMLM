@@ -31,14 +31,12 @@ public class JMTP implements Closeable{
 		}
 	}
 	
-	public native void sayHello();
-	public native String getHello();
 	public native List<MTPDevice> getDevices();
 	
 	private native long initCOM();
 	private native void closeCOM();
 	
 	static {
-		System.loadLibrary("CLibJMTP");
+		System.loadLibrary("libJMTP");
 	}
 }

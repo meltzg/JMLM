@@ -44,14 +44,10 @@ public class MTPDevice {
 	public void setManufacturer(String manufacturer) {
 		this.manufacturer = manufacturer;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "{"
-				+ "\tid: " + deviceId + ",\n"
-				+ "\tfname: " + friendlyName + ",\n"
-				+ "\tdesc: " + description + ",\n"
-				+ "\tmanufacturer: " + manufacturer + ",\n"
-				+ "}";
-	}
+		return "MTPDevice [deviceId=" + deviceId + ", friendlyName=" + friendlyName + ", description=" + description
+				+ ", manufacturer=" + manufacturer + "]";
+	}	
 }

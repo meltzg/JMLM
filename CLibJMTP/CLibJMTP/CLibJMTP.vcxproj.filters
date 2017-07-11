@@ -18,6 +18,9 @@
     <ClInclude Include="..\..\jMTP\bin\org_meltzg_jmtp_JMTP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libJMTPHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="org_meltzg_jmtp_JMTP.cpp">

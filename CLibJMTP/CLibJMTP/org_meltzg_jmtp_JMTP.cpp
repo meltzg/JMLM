@@ -6,15 +6,16 @@
 #include <wrl/client.h>
 
 #include "../../jMTP/bin/org_meltzg_jmtp_JMTP.h"
+#include "libJMTPHelpers.h"
 
 #define JSTRING "Ljava/lang/String;"
 #define JARRLIST "Ljava/util/ArrayList;"
 #define JMTPDEV "Lorg/meltzg/jmtp/mtp/MTPDevice;"
 
-using std::cout;
+//using std::cout;
 using std::cerr;
 using std::endl;
-using std::wcout;
+//using std::wcout;
 using std::hex;
 using std::string;
 using std::wstring;
@@ -22,27 +23,6 @@ using std::ostringstream;
 using std::nothrow;
 
 using Microsoft::WRL::ComPtr;
-
-ComPtr<IPortableDeviceManager> getDeviceManager();
-string formatHR(HRESULT hr);
-PWSTR getDeviceDescription(PWSTR deviceId);
-PWSTR getDeviceFriendlyName(PWSTR deviceId);
-PWSTR getDeviceManufacturer(PWSTR deviceId);
-jstring wcharToJString(wchar_t* wstr, JNIEnv *env);
-jobject getNewArrayList(JNIEnv *env);
-void arrayListAdd(JNIEnv *env, jobject list, jobject element);
-jobject getNewMTPDevice(JNIEnv *env, PWSTR devId, PWSTR devFName, PWSTR devDesc, PWSTR devManu);
-
-JNIEXPORT void JNICALL Java_org_meltzg_jmtp_JMTP_sayHello
-(JNIEnv *env, jobject obj) {
-	cout << "Hello World" << endl;
-}
-
-JNIEXPORT jstring JNICALL Java_org_meltzg_jmtp_JMTP_getHello
-(JNIEnv *env, jobject obj) {
-	PWSTR hello = L"hello world";
-	return wcharToJString(hello, env);
-}
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDevices
 (JNIEnv *env, jobject obj) {
@@ -57,22 +37,22 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDevices
 			cerr << "!!! Unable to get device count: " << formatHR(hr) << endl;
 		}
 		else {
-			cout << "# Devices found: " << deviceCnt << endl;
+			//cout << "# Devices found: " << deviceCnt << endl;
 			if (SUCCEEDED(hr) && deviceCnt > 0) {
 				PWSTR * deviceIds = new (nothrow) PWSTR[deviceCnt];
 				hr = deviceManager->GetDevices(deviceIds, &deviceCnt);
 
 				if (SUCCEEDED(hr)) {
 					for (unsigned int i = 0; i < deviceCnt; i++) {
-						wcout << "\t- ID: " << deviceIds[i] << endl;
+						//wcout << "\t- ID: " << deviceIds[i] << endl;
 
 						PWSTR dDesc = getDeviceDescription(deviceIds[i]);
 						PWSTR dFName = getDeviceFriendlyName(deviceIds[i]);
 						PWSTR dManuf = getDeviceManufacturer(deviceIds[i]);
 
-						wcout << "\t\t- Description: " << dDesc << endl;
-						wcout << "\t\t- Friendly name: " << dFName << endl;
-						wcout << "\t\t- Manufacturer: " << dManuf << endl;
+						//wcout << "\t\t- Description: " << dDesc << endl;
+						//wcout << "\t\t- Friendly name: " << dFName << endl;
+						//wcout << "\t\t- Manufacturer: " << dManuf << endl;
 
 						// add to arraylist
 						jobject mtpd = getNewMTPDevice(env, deviceIds[i], dFName, dDesc, dManuf);
@@ -113,7 +93,7 @@ JNIEXPORT jlong JNICALL Java_org_meltzg_jmtp_JMTP_initCOM
 			cerr << "!!! Failed to CoInitialize: " << formatHR(hr) << endl;
 		}
 		else {
-			cout << "COM initialized" << endl;
+			//cout << "COM initialized" << endl;
 		}
 	}
 
@@ -123,7 +103,7 @@ JNIEXPORT jlong JNICALL Java_org_meltzg_jmtp_JMTP_initCOM
 JNIEXPORT void JNICALL Java_org_meltzg_jmtp_JMTP_closeCOM
 (JNIEnv *env, jobject obj) {
 	CoUninitialize();
-	cout << "COM closed" << endl;
+	//cout << "COM closed" << endl;
 }
 
 ComPtr<IPortableDeviceManager> getDeviceManager() {
@@ -142,7 +122,7 @@ ComPtr<IPortableDeviceManager> getDeviceManager() {
 			deviceManager = nullptr;
 		}
 		else {
-			cout << "Device Manager initialized" << endl;
+			//cout << "Device Manager initialized" << endl;
 		}
 	}
 
