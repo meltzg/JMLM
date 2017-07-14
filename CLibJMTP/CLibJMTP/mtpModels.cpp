@@ -1,9 +1,12 @@
 #include <PortableDeviceApi.h>
+#include <sstream>
 #include "mtpModels.h"
+
+using std::wstringstream;
 
 void wcsAllocCpy(wchar_t **destination, wchar_t* source) {
 	delete[] (*destination);
-	size_t size = wcslen(source) + 1;
+	size_t size = wcslen(source) << 1;
 	(*destination) = new wchar_t[size];
 	wcscpy_s(*destination, size, source);
 }
@@ -73,4 +76,12 @@ PWSTR MTPDevice::getManufacturer()
 void MTPDevice::setManufacturer(PWSTR newManu)
 {
 	manu = newManu;
+}
+
+wstring MTPDevice::toString() {
+	wstringstream wstr; 
+	wstr << L"MTPDevice [deviceId=" << id << L", friendlyName=" << fName << L", description=" << desc
+		<< L", manufacturer=" << manu << L"]";
+
+	return wstr.str();
 }

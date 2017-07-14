@@ -1,5 +1,6 @@
 #pragma once
 #include <PortableDeviceApi.h>
+#include <PortableDevice.h>
 #include <wrl/client.h>
 #include <string>
 #include <vector>
@@ -13,6 +14,8 @@ using Microsoft::WRL::ComPtr;
 HRESULT initCOM();
 void closeCOM();
 ComPtr<IPortableDeviceManager> getDeviceManager();
+ComPtr<IPortableDeviceValues> getClientInfo();
+ComPtr<IPortableDevice> getSelectedDevice(PWSTR id);
 vector<MTPDevice> getDevices();
 
 string formatHR(HRESULT hr);

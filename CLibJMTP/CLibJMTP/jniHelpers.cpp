@@ -2,6 +2,7 @@
 #include "jniHelpers.h"
 
 using std::string;
+using std::wstring;
 
 jstring wcharToJString(JNIEnv *env, wchar_t *wstr) {
 	size_t origSize = wcslen(wstr) + 1;
@@ -14,6 +15,19 @@ jstring wcharToJString(JNIEnv *env, wchar_t *wstr) {
 	delete newString;
 
 	return ret;
+}
+
+wchar_t* jStringToWchar(JNIEnv *env, jstring jStr)
+{
+	const jchar *raw = env->GetStringChars(jStr, 0);
+	jsize len = env->GetStringLength(jStr);
+	wstring wStr;
+	wchar_t *wStr_c = new wchar_t[len + 1];
+
+	wStr.assign(raw, raw + len);
+	wcscpy_s(wStr_c, len + 1, wStr.c_str());
+
+	return wStr_c;
 }
 
 jobject mtpdToJMptd(JNIEnv *env, MTPDevice mtpd)

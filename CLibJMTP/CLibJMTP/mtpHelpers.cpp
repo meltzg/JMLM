@@ -54,6 +54,61 @@ ComPtr<IPortableDeviceManager> getDeviceManager() {
 	return deviceManager;
 }
 
+ComPtr<IPortableDeviceValues> getClientInfo()
+{
+	static ComPtr<IPortableDeviceValues> info = nullptr;
+
+	if (info == nullptr) {
+		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&info));
+
+		if (FAILED(hr)) {
+			info = nullptr;
+			cerr << "!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: " << formatHR(hr) << endl;
+		}
+		else {
+			hr = info->SetUnsignedIntegerValue(WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE, SECURITY_IMPERSONATION);
+			if (FAILED(hr))
+			{
+				info = nullptr;
+				cerr << "!!! Failed to set WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE: " << formatHR(hr);
+			}
+		}
+	}
+
+	return info;
+}
+
+ComPtr<IPortableDevice> getSelectedDevice(PWSTR id)
+{
+	static ComPtr<IPortableDevice> device = nullptr;
+	auto manager = getDeviceManager();
+	auto info = getClientInfo();
+
+	if (device == nullptr && manager != nullptr && info != nullptr) {
+		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&device));
+
+		if (FAILED(hr)) {
+			device = nullptr;
+			cerr << "!!! Failed to CoCreateInstance CLSID_PortableDeviceFTM: " << formatHR(hr) << endl;
+		}
+		else {
+			hr = device->Open(id, info.Get());
+			if (FAILED(hr)) {
+				device = nullptr;
+				cerr << "!!! Failed to open device: " << formatHR(hr) << endl;
+			}
+		}
+	}
+
+	return device;
+}
+
 vector<MTPDevice> getDevices()
 {
 	auto deviceManager = getDeviceManager();

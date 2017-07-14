@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+
+using std::wstring;
 
 class MTPDevice {
 private:
@@ -23,4 +26,6 @@ public:
 	void setFriendlyName(PWSTR newFName);
 	PWSTR  getManufacturer();
 	void setManufacturer(PWSTR newManu);
+
+	wstring toString();
 };
