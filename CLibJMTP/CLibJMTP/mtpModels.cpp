@@ -38,44 +38,44 @@ MTPDevice::~MTPDevice()
 	delete[] manu;
 }
 
-PWSTR MTPDevice::getId()
+const PWSTR MTPDevice::getId()
 {
 	return id;
 }
 
 void MTPDevice::setId(PWSTR newId)
 {
-	id = newId;
+	wcsAllocCpy(&id, newId);
 }
 
-PWSTR MTPDevice::getDescription()
+const PWSTR MTPDevice::getDescription()
 {
 	return desc;
 }
 
 void MTPDevice::setDescription(PWSTR newDesc)
 {
-	desc = newDesc;
+	wcsAllocCpy(&desc, newDesc);
 }
 
-PWSTR MTPDevice::getFriendlyName()
+const PWSTR MTPDevice::getFriendlyName()
 {
 	return fName;
 }
 
 void MTPDevice::setFriendlyName(PWSTR newFName)
 {
-	fName = newFName;
+	wcsAllocCpy(&fName, newFName);
 }
 
-PWSTR MTPDevice::getManufacturer()
+const PWSTR MTPDevice::getManufacturer()
 {
 	return manu;
 }
 
 void MTPDevice::setManufacturer(PWSTR newManu)
 {
-	manu = newManu;
+	wcsAllocCpy(&manu, newManu);
 }
 
 wstring MTPDevice::toString() {
@@ -84,4 +84,38 @@ wstring MTPDevice::toString() {
 		<< L", manufacturer=" << manu << L"]";
 
 	return wstr.str();
+}
+
+void MTPObject::init(PWSTR id)
+{
+	wcsAllocCpy(&(this->id), id);
+}
+
+MTPObject::MTPObject(PWSTR id)
+{
+	init(id);
+}
+
+MTPObject::MTPObject(const MTPObject & other)
+{
+	init(other.id);
+}
+
+MTPObject::~MTPObject()
+{
+	delete[] id;
+}
+
+const PWSTR MTPObject::getId()
+{
+	return id;
+}
+
+void MTPObject::setId(PWSTR id)
+{
+}
+
+wstring MTPObject::toString()
+{
+	return wstring();
 }

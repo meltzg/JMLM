@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
+#include <vector>
 
 using std::wstring;
+using std::vector;
 
 class MTPDevice {
 private:
@@ -18,14 +20,33 @@ public:
 	MTPDevice(const MTPDevice &other);
 	~MTPDevice();
 
-	PWSTR  getId();
+	const PWSTR  getId();
 	void setId(PWSTR newId);
-	PWSTR  getDescription();
+	const PWSTR  getDescription();
 	void setDescription(PWSTR newDesc);
-	PWSTR  getFriendlyName();
+	const PWSTR  getFriendlyName();
 	void setFriendlyName(PWSTR newFName);
-	PWSTR  getManufacturer();
+	const PWSTR  getManufacturer();
 	void setManufacturer(PWSTR newManu);
+
+	wstring toString();
+};
+
+class MTPObject {
+private:
+	PWSTR id;
+	vector<MTPObject> children;
+
+	void init(PWSTR id);
+
+public:
+	MTPObject() : id(NULL) {};
+	MTPObject(PWSTR id);
+	MTPObject(const MTPObject &other);
+	~MTPObject();
+
+	const PWSTR getId();
+	void setId(PWSTR id);
 
 	wstring toString();
 };

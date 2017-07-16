@@ -87,7 +87,7 @@ ComPtr<IPortableDevice> getSelectedDevice(PWSTR id)
 	auto manager = getDeviceManager();
 	auto info = getClientInfo();
 
-	if (device == nullptr && manager != nullptr && info != nullptr) {
+	if ((device == nullptr || id != nullptr) && manager != nullptr && info != nullptr) {
 		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM,
 			nullptr,
 			CLSCTX_INPROC_SERVER,
