@@ -17,7 +17,8 @@ int main() {
 			cerr << "Device not open\n";
 		}
 		else {
-			wcout << getDeviceContent().toString() << endl;
+			auto content = getDeviceContent();
+			wcout << content.toString() << endl;
 		}
 	}
 }

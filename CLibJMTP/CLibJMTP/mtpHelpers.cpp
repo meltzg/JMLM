@@ -162,11 +162,27 @@ vector<MTPDevice> getDevices()
 MTPObjectTree getDeviceContent(PWSTR rootId, IPortableDeviceContent *content) {
 	MTPObjectTree oTree(rootId);
 
-	ComPtr<IEnumPortableDeviceObjectIDs> objIds;
-	HRESULT hr = content->EnumObjects(0, rootId, nullptr, &objIds);
+	ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
+	HRESULT hr = content->EnumObjects(0, rootId, nullptr, &objIdsEnum);
+
+	//std::wcout << rootId << endl;
 
 	if (FAILED(hr)) {
 		cerr << "!!! Failed to get IEnumPortableDeviceObjectIDs: " << formatHR(hr) << endl;
+	}
+
+	while (hr == S_OK) {
+		DWORD fetched = 0;
+		PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
+		hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
+			objIds,
+			&fetched);
+
+		if (SUCCEEDED(hr)) {
+			for (DWORD i = 0; i < fetched; i++) {
+				oTree.children.push_back(getDeviceContent(objIds[i], content));
+			}
+		}
 	}
 
 	return oTree;

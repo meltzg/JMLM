@@ -7,6 +7,8 @@
 
 #include "mtpModels.h"
 
+#define NUM_OBJECTS_TO_REQUEST 10
+
 using std::string;
 using std::vector;
 using Microsoft::WRL::ComPtr;
