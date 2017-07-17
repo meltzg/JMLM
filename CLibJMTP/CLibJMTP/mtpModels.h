@@ -29,24 +29,29 @@ public:
 	const PWSTR  getManufacturer();
 	void setManufacturer(PWSTR newManu);
 
+	MTPDevice& operator=(const MTPDevice &other);
+
 	wstring toString();
 };
 
-class MTPObject {
+class MTPObjectTree {
 private:
 	PWSTR id;
-	vector<MTPObject> children;
 
-	void init(PWSTR id);
+	void init(PWSTR id, vector<MTPObjectTree> children);
 
 public:
-	MTPObject() : id(NULL) {};
-	MTPObject(PWSTR id);
-	MTPObject(const MTPObject &other);
-	~MTPObject();
+	vector<MTPObjectTree> children;
+
+	MTPObjectTree() : id(nullptr) {};
+	MTPObjectTree(PWSTR id);
+	MTPObjectTree(const MTPObjectTree &other);
+	~MTPObjectTree();
 
 	const PWSTR getId();
 	void setId(PWSTR id);
+
+	MTPObjectTree& operator=(const MTPObjectTree &other);
 
 	wstring toString();
 };

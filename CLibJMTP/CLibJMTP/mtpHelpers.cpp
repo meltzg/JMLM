@@ -122,24 +122,17 @@ vector<MTPDevice> getDevices()
 			cerr << "!!! Unable to get device count: " << formatHR(hr) << endl;
 		}
 		else {
-			//cout << "# Devices found: " << deviceCnt << endl;
 			if (SUCCEEDED(hr) && deviceCnt > 0) {
 				PWSTR * deviceIds = new (nothrow) PWSTR[deviceCnt];
 				hr = deviceManager->GetDevices(deviceIds, &deviceCnt);
 
 				if (SUCCEEDED(hr)) {
 					for (unsigned int i = 0; i < deviceCnt; i++) {
-						//wcout << "\t- ID: " << deviceIds[i] << endl;
 
 						PWSTR dDesc = getDeviceDescription(deviceIds[i]);
 						PWSTR dFName = getDeviceFriendlyName(deviceIds[i]);
 						PWSTR dManuf = getDeviceManufacturer(deviceIds[i]);
 
-						//wcout << "\t\t- Description: " << dDesc << endl;
-						//wcout << "\t\t- Friendly name: " << dFName << endl;
-						//wcout << "\t\t- Manufacturer: " << dManuf << endl;
-
-						// add to arraylist
 						MTPDevice mtpd(deviceIds[i], dDesc, dFName, dManuf);
 						devList.push_back(mtpd);
 
@@ -164,6 +157,38 @@ vector<MTPDevice> getDevices()
 	}
 
 	return devList;
+}
+
+MTPObjectTree getDeviceContent(PWSTR rootId, IPortableDeviceContent *content) {
+	MTPObjectTree oTree(rootId);
+
+	ComPtr<IEnumPortableDeviceObjectIDs> objIds;
+	HRESULT hr = content->EnumObjects(0, rootId, nullptr, &objIds);
+
+	if (FAILED(hr)) {
+		cerr << "!!! Failed to get IEnumPortableDeviceObjectIDs: " << formatHR(hr) << endl;
+	}
+
+	return oTree;
+}
+
+MTPObjectTree getDeviceContent()
+{
+	auto device = getSelectedDevice(NULL);
+	MTPObjectTree oTree;
+	ComPtr<IPortableDeviceContent> content = nullptr;
+
+	if (device != nullptr) {
+		HRESULT hr = device->Content(&content);
+		if (FAILED(hr)) {
+			cerr << "!!! Failed to get IPortableDeviceContent: " << formatHR(hr) << endl;
+		}
+		else {
+			oTree = getDeviceContent(WPD_DEVICE_OBJECT_ID, content.Get());
+		}
+	}
+
+	return oTree;
 }
 
 string formatHR(HRESULT hr) {

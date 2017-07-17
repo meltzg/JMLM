@@ -17,6 +17,7 @@ ComPtr<IPortableDeviceManager> getDeviceManager();
 ComPtr<IPortableDeviceValues> getClientInfo();
 ComPtr<IPortableDevice> getSelectedDevice(PWSTR id);
 vector<MTPDevice> getDevices();
+MTPObjectTree getDeviceContent();
 
 string formatHR(HRESULT hr);
 PWSTR getDeviceDescription(PWSTR deviceId);

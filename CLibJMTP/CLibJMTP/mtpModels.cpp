@@ -78,6 +78,12 @@ void MTPDevice::setManufacturer(PWSTR newManu)
 	wcsAllocCpy(&manu, newManu);
 }
 
+MTPDevice & MTPDevice::operator=(const MTPDevice & other)
+{
+	init(other.id, other.desc, other.fName, other.manu);
+	return *this;
+}
+
 wstring MTPDevice::toString() {
 	wstringstream wstr; 
 	wstr << L"MTPDevice [deviceId=" << id << L", friendlyName=" << fName << L", description=" << desc
@@ -86,36 +92,55 @@ wstring MTPDevice::toString() {
 	return wstr.str();
 }
 
-void MTPObject::init(PWSTR id)
+void MTPObjectTree::init(PWSTR id, vector<MTPObjectTree> children)
 {
+	this->id = NULL;
 	wcsAllocCpy(&(this->id), id);
+	this->children.clear();
+	for (auto child : children) {
+		this->children.push_back(child);
+	}
 }
 
-MTPObject::MTPObject(PWSTR id)
+MTPObjectTree::MTPObjectTree(PWSTR id)
 {
-	init(id);
+	init(id, vector<MTPObjectTree>());
 }
 
-MTPObject::MTPObject(const MTPObject & other)
+MTPObjectTree::MTPObjectTree(const MTPObjectTree & other)
 {
-	init(other.id);
+	init(other.id, other.children);
 }
 
-MTPObject::~MTPObject()
+MTPObjectTree::~MTPObjectTree()
 {
 	delete[] id;
 }
 
-const PWSTR MTPObject::getId()
+const PWSTR MTPObjectTree::getId()
 {
 	return id;
 }
 
-void MTPObject::setId(PWSTR id)
+void MTPObjectTree::setId(PWSTR id)
 {
+	wcsAllocCpy(&(this->id), id);
 }
 
-wstring MTPObject::toString()
+MTPObjectTree & MTPObjectTree::operator=(const MTPObjectTree & other)
 {
-	return wstring();
+	init(other.id, other.children);
+	return *this;
+}
+
+wstring MTPObjectTree::toString()
+{
+	wstringstream wstr;
+	wstr << L"MTPObjectTree [id=" << id << L", children=[";
+	for (auto child : children) {
+		wstr << child.toString() << ", ";
+	}
+	wstr << "]]";
+
+	return wstr.str();
 }
