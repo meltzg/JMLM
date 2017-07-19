@@ -1,5 +1,6 @@
 #include <iostream>
-#include<sstream>
+#include <sstream>
+#include <map>
 
 #include "mtpHelpers.h"
 
@@ -8,6 +9,7 @@ using std::endl;
 using std::nothrow;
 using std::ostringstream;
 using std::hex;
+using std::map;
 
 HRESULT initCOM() {
 	static HRESULT hr = E_FAIL;
@@ -16,7 +18,7 @@ HRESULT initCOM() {
 		hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
 		if (FAILED(hr)) {
-			cerr << "!!! Failed to CoInitialize: " << formatHR(hr) << endl;
+			logErr("!!! Failed to CoInitialize: ", hr);
 		}
 		else {
 			//cout << "COM initialized" << endl;
@@ -43,7 +45,7 @@ ComPtr<IPortableDeviceManager> getDeviceManager() {
 			IID_PPV_ARGS(&deviceManager));
 
 		if (FAILED(hr)) {
-			cerr << "!!! Failed to get CoCreateInstance: " << formatHR(hr) << endl;
+			logErr("!!! Failed to get CoCreateInstance: ", hr);
 			deviceManager = nullptr;
 		}
 		else {
@@ -66,14 +68,14 @@ ComPtr<IPortableDeviceValues> getClientInfo()
 
 		if (FAILED(hr)) {
 			info = nullptr;
-			cerr << "!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: " << formatHR(hr) << endl;
+			logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
 		}
 		else {
 			hr = info->SetUnsignedIntegerValue(WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE, SECURITY_IMPERSONATION);
 			if (FAILED(hr))
 			{
 				info = nullptr;
-				cerr << "!!! Failed to set WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE: " << formatHR(hr);
+				logErr("!!! Failed to set WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE: ", hr);
 			}
 		}
 	}
@@ -95,13 +97,13 @@ ComPtr<IPortableDevice> getSelectedDevice(PWSTR id)
 
 		if (FAILED(hr)) {
 			device = nullptr;
-			cerr << "!!! Failed to CoCreateInstance CLSID_PortableDeviceFTM: " << formatHR(hr) << endl;
+			logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceFTM: ", hr);
 		}
 		else {
 			hr = device->Open(id, info.Get());
 			if (FAILED(hr)) {
 				device = nullptr;
-				cerr << "!!! Failed to open device: " << formatHR(hr) << endl;
+				logErr("!!! Failed to open device: ", hr);
 			}
 		}
 	}
@@ -119,7 +121,7 @@ vector<MTPDevice> getDevices()
 
 		HRESULT hr = deviceManager->GetDevices(nullptr, &deviceCnt);
 		if (FAILED(hr)) {
-			cerr << "!!! Unable to get device count: " << formatHR(hr) << endl;
+			logErr("!!! Unable to get device count: ", hr);
 		}
 		else {
 			if (SUCCEEDED(hr) && deviceCnt > 0) {
@@ -147,7 +149,7 @@ vector<MTPDevice> getDevices()
 					}
 				}
 				else {
-					cerr << "!!! Failed to retrieve device IDs: " << formatHR(hr) << endl;
+					logErr("!!! Failed to retrieve device IDs: ", hr);
 				}
 
 				delete[] deviceIds;
@@ -159,16 +161,98 @@ vector<MTPDevice> getDevices()
 	return devList;
 }
 
-MTPObjectTree getDeviceContent(PWSTR rootId, IPortableDeviceContent *content) {
-	MTPObjectTree oTree(rootId);
+MTPObjectTree getNode(PWSTR id, IPortableDeviceContent *content) {
+	MTPObjectTree node;
+	node.setId(id);
 
+	//auto device = getSelectedDevice(nullptr);
+
+	if (content != nullptr && id != nullptr) {
+		ComPtr<IPortableDeviceValues> objVals;
+		ComPtr<IPortableDeviceProperties> props;
+		ComPtr<IPortableDeviceKeyCollection> propsToRead;
+
+		HRESULT hr = content->Properties(&props);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceProperties: ", hr);
+		}
+		else {
+			hr = CoCreateInstance(CLSID_PortableDeviceKeyCollection,
+				nullptr,
+				CLSCTX_INPROC_SERVER,
+				IID_PPV_ARGS(&propsToRead));
+
+			if (FAILED(hr)) {
+				logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceKeyCollection: ", hr);
+			}
+			else {
+				HRESULT tmpHr = propsToRead->Add(WPD_OBJECT_PARENT_ID);
+				if (FAILED(tmpHr)) {
+					logErr("!!! Failed to add WPD_OBJECT_PARENT_ID to IPortableDeviceKeyCollection: ", tmpHr);
+				}
+
+				tmpHr = propsToRead->Add(WPD_OBJECT_NAME);
+				if (FAILED(tmpHr)) {
+					logErr("!!! Failed to add WPD_OBJECT_NAME to IPortableDeviceKeyCollection: ", tmpHr);
+				}
+
+				tmpHr = propsToRead->Add(WPD_OBJECT_ORIGINAL_FILE_NAME);
+				if (FAILED(tmpHr)) {
+					logErr("!!! Failed to add WPD_OBJECT_ORIGINAL_FILE_NAME to IPortableDeviceKeyCollection: ", tmpHr);
+				}
+
+				tmpHr = propsToRead->Add(WPD_OBJECT_SIZE);
+				if (FAILED(tmpHr)) {
+					logErr("!!! Failed to add WPD_OBJECT_SIZE to IPortableDeviceKeyCollection: ", tmpHr);
+				}
+
+				hr = props->GetValues(id,
+					propsToRead.Get(),
+					&objVals);
+
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get all properties for object: ", hr);
+				}
+				else {
+					PWSTR parentId = nullptr;
+					PWSTR name = nullptr;
+					PWSTR origName = nullptr;
+					ULONGLONG size = 0;
+
+					getStringProperty(objVals.Get(), WPD_OBJECT_PARENT_ID, &parentId);
+					getStringProperty(objVals.Get(), WPD_OBJECT_NAME, &name);
+					getStringProperty(objVals.Get(), WPD_OBJECT_ORIGINAL_FILE_NAME, &origName);
+					getULongLongProperty(objVals.Get(), WPD_OBJECT_SIZE, &size);
+
+					node.setParentId(parentId);
+					node.setName(name);
+					node.setOrigName(origName);
+					node.setSize(size);
+					delete[] parentId;
+					delete[] name;
+					delete[] origName;
+				}
+			}
+		}
+	}
+
+	return node;
+}
+
+MTPObjectTree constructTree(const vector<MTPObjectTree> & nodes) {
+	return MTPObjectTree();
+}
+
+void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, vector<MTPObjectTree> &mtpObjs) {
 	ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
 	HRESULT hr = content->EnumObjects(0, rootId, nullptr, &objIdsEnum);
 
-	//std::wcout << rootId << endl;
+	MTPObjectTree oTree = getNode(rootId, content);
+	std::wcout << oTree.toString() << endl;
+	mtpObjs.push_back(oTree);
 
 	if (FAILED(hr)) {
-		cerr << "!!! Failed to get IEnumPortableDeviceObjectIDs: " << formatHR(hr) << endl;
+		logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
 	}
 
 	while (hr == S_OK) {
@@ -180,27 +264,26 @@ MTPObjectTree getDeviceContent(PWSTR rootId, IPortableDeviceContent *content) {
 
 		if (SUCCEEDED(hr)) {
 			for (DWORD i = 0; i < fetched; i++) {
-				oTree.children.push_back(getDeviceContent(objIds[i], content));
+				getDeviceContent(objIds[i], content, mtpObjs);
 			}
 		}
 	}
-
-	return oTree;
 }
 
 MTPObjectTree getDeviceContent()
 {
 	auto device = getSelectedDevice(NULL);
+	vector<MTPObjectTree> oTreeNodes;
 	MTPObjectTree oTree;
 	ComPtr<IPortableDeviceContent> content = nullptr;
 
 	if (device != nullptr) {
 		HRESULT hr = device->Content(&content);
 		if (FAILED(hr)) {
-			cerr << "!!! Failed to get IPortableDeviceContent: " << formatHR(hr) << endl;
+			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
 		}
 		else {
-			oTree = getDeviceContent(WPD_DEVICE_OBJECT_ID, content.Get());
+			getDeviceContent(WPD_DEVICE_OBJECT_ID, content.Get(), oTreeNodes);
 		}
 	}
 
@@ -214,6 +297,11 @@ string formatHR(HRESULT hr) {
 	return strStream.str();
 }
 
+void logErr(char * msg, HRESULT hr)
+{
+	logErr(msg, hr);
+}
+
 PWSTR getDeviceDescription(PWSTR deviceId) {
 	DWORD descLength = 0;
 	PWSTR description = nullptr;
@@ -221,7 +309,7 @@ PWSTR getDeviceDescription(PWSTR deviceId) {
 
 	HRESULT hr = deviceManager->GetDeviceDescription(deviceId, nullptr, &descLength);
 	if (FAILED(hr)) {
-		cerr << "!!! Failed to get device description length for ID=" << deviceId << ", " << formatHR(hr) << endl;
+		logErr("!!! Failed to get device description length: ", hr);
 	}
 	else if (descLength > 0) {
 		description = new (nothrow) WCHAR[descLength];
@@ -230,7 +318,7 @@ PWSTR getDeviceDescription(PWSTR deviceId) {
 		if (FAILED(hr)) {
 			delete[] description;
 			description = nullptr;
-			cerr << "!!! Failed to get device description for ID=" << deviceId << ", " << formatHR(hr) << endl;
+			logErr("!!! Failed to get device description: ", hr);
 		}
 	}
 
@@ -244,7 +332,7 @@ PWSTR getDeviceFriendlyName(PWSTR deviceId) {
 
 	HRESULT hr = deviceManager->GetDeviceFriendlyName(deviceId, nullptr, &fNameLength);
 	if (FAILED(hr)) {
-		cerr << "!!! Failed to get device friendly name length for ID=" << deviceId << ", " << formatHR(hr) << endl;
+		logErr("!!! Failed to get device friendly name length: ", hr);
 	}
 	else if (fNameLength > 0) {
 		friendlyName = new (nothrow) WCHAR[fNameLength];
@@ -253,7 +341,7 @@ PWSTR getDeviceFriendlyName(PWSTR deviceId) {
 		if (FAILED(hr)) {
 			delete[] friendlyName;
 			friendlyName = nullptr;
-			cerr << "!!! Failed to get device friendly name for ID=" << deviceId << ", " << formatHR(hr) << endl;
+			logErr("!!! Failed to get device friendly name: ", hr);
 		}
 	}
 
@@ -267,7 +355,7 @@ PWSTR getDeviceManufacturer(PWSTR deviceId) {
 
 	HRESULT hr = deviceManager->GetDeviceManufacturer(deviceId, nullptr, &manuLength);
 	if (FAILED(hr)) {
-		cerr << "!!! Failed to get device manufacturer length for ID=" << deviceId << ", " << formatHR(hr) << endl;
+		logErr("!!! Failed to get device manufacturer length: ", hr);
 	}
 	else if (manuLength > 0) {
 		manufacturer = new (nothrow) WCHAR[manuLength];
@@ -276,9 +364,32 @@ PWSTR getDeviceManufacturer(PWSTR deviceId) {
 		if (FAILED(hr)) {
 			delete[] manufacturer;
 			manufacturer = nullptr;
-			cerr << "!!! Failed to get device manufacturer for ID=" << deviceId << ", " << formatHR(hr) << endl;
+			logErr("!!! Failed to get device manufacturer: ", hr);
 		}
 	}
 
 	return manufacturer;
+}
+
+void getStringProperty(IPortableDeviceValues * values, REFPROPERTYKEY key, PWSTR * destination)
+{
+	PWSTR value = nullptr;
+	HRESULT hr = values->GetStringValue(key, &value);
+
+	if (SUCCEEDED(hr)) {
+		wcsAllocCpy(destination, value);
+	}
+
+	CoTaskMemFree(value);
+	value = nullptr;
+}
+
+void getULongLongProperty(IPortableDeviceValues * values, REFPROPERTYKEY key, ULONGLONG * destination)
+{
+	ULONGLONG value = 0;
+	HRESULT hr = values->GetUnsignedLargeIntegerValue(key, &value);
+
+	if (SUCCEEDED(hr)) {
+		*destination = value;
+	}
 }

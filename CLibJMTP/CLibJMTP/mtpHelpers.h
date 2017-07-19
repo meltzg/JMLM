@@ -22,6 +22,10 @@ vector<MTPDevice> getDevices();
 MTPObjectTree getDeviceContent();
 
 string formatHR(HRESULT hr);
+void logErr(char *msg, HRESULT hr);
 PWSTR getDeviceDescription(PWSTR deviceId);
 PWSTR getDeviceFriendlyName(PWSTR deviceId);
 PWSTR getDeviceManufacturer(PWSTR deviceId);
+
+void getStringProperty(IPortableDeviceValues *values, REFPROPERTYKEY key, PWSTR *destination);void getStringProperty(IPortableDeviceValues *values, REFPROPERTYKEY key, PWSTR *destination);
+void getULongLongProperty(IPortableDeviceValues *values, REFPROPERTYKEY key, ULONGLONG *destination); void getStringProperty(IPortableDeviceValues *values, REFPROPERTYKEY key, ULONGLONG *destination);

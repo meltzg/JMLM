@@ -6,9 +6,12 @@ using std::wstringstream;
 
 void wcsAllocCpy(wchar_t **destination, wchar_t* source) {
 	delete[] (*destination);
-	size_t size = wcslen(source) << 1;
-	(*destination) = new wchar_t[size];
-	wcscpy_s(*destination, size, source);
+	*destination = nullptr;
+	if (source != nullptr) {
+		size_t size = wcslen(source) + 1;
+		(*destination) = new wchar_t[size];
+		wcscpy_s(*destination, size, source);
+	}
 }
 
 void MTPDevice::init(PWSTR dId, PWSTR dDesc, PWSTR dFName, PWSTR dManu)
@@ -92,10 +95,14 @@ wstring MTPDevice::toString() {
 	return wstr.str();
 }
 
-void MTPObjectTree::init(PWSTR id, vector<MTPObjectTree> children)
+void MTPObjectTree::init(PWSTR id, PWSTR parentId, PWSTR name, PWSTR origName, ULONGLONG size, vector<MTPObjectTree> children)
 {
-	this->id = NULL;
+	this->id = this->parentId = this->name = this->origName = NULL;
+	this->size = size;
 	wcsAllocCpy(&(this->id), id);
+	wcsAllocCpy(&(this->parentId), parentId);
+	wcsAllocCpy(&(this->name), name);
+	wcsAllocCpy(&(this->origName), origName);
 	this->children.clear();
 	for (auto child : children) {
 		this->children.push_back(child);
@@ -104,17 +111,20 @@ void MTPObjectTree::init(PWSTR id, vector<MTPObjectTree> children)
 
 MTPObjectTree::MTPObjectTree(PWSTR id)
 {
-	init(id, vector<MTPObjectTree>());
+	init(id, nullptr, nullptr, nullptr, 0, vector<MTPObjectTree>());
 }
 
 MTPObjectTree::MTPObjectTree(const MTPObjectTree & other)
 {
-	init(other.id, other.children);
+	init(other.id, other.parentId, other.name, other.origName, other.size, other.children);
 }
 
 MTPObjectTree::~MTPObjectTree()
 {
 	delete[] id;
+	delete[] parentId;
+	delete[] name;
+	delete[] origName;
 }
 
 const PWSTR MTPObjectTree::getId()
@@ -127,16 +137,61 @@ void MTPObjectTree::setId(PWSTR id)
 	wcsAllocCpy(&(this->id), id);
 }
 
+const PWSTR MTPObjectTree::getParentId()
+{
+	return parentId;
+}
+
+void MTPObjectTree::setParentId(PWSTR parentId)
+{
+	wcsAllocCpy(&(this->parentId), parentId);
+}
+
+const PWSTR MTPObjectTree::getName()
+{
+	return name;
+}
+
+void MTPObjectTree::setName(PWSTR name)
+{
+	wcsAllocCpy(&(this->name), name);
+}
+
+const PWSTR MTPObjectTree::getOrigName()
+{
+	return origName;
+}
+
+void MTPObjectTree::setOrigName(PWSTR origName)
+{
+	wcsAllocCpy(&(this->origName), origName);
+}
+
+ULONGLONG MTPObjectTree::getSize()
+{
+	return size;
+}
+
+void MTPObjectTree::setSize(ULONGLONG size)
+{
+	this->size = size;
+}
+
 MTPObjectTree & MTPObjectTree::operator=(const MTPObjectTree & other)
 {
-	init(other.id, other.children);
+	init(other.id, other.parentId, other.name, other.origName, other.size, other.children);
 	return *this;
 }
 
 wstring MTPObjectTree::toString()
 {
 	wstringstream wstr;
-	wstr << L"MTPObjectTree [id=" << id << L", children=[";
+	wstr << L"MTPObjectTree [id=" << (id != nullptr ? id : L"NULL")
+		<< L", parentId=" << (parentId != nullptr ? parentId : L"NULL")
+		<< L", name=" << (name != nullptr ? name : L"NULL")
+		<< L", origName=" << (origName != nullptr ? origName : L"NULL")
+		<< L", size=" << size
+		<< L", children=[";
 	for (auto child : children) {
 		wstr << child.toString() << ", ";
 	}

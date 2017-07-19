@@ -5,6 +5,8 @@
 using std::wstring;
 using std::vector;
 
+void wcsAllocCpy(wchar_t **destination, wchar_t* source);
+
 class MTPDevice {
 private:
 	PWSTR id;
@@ -37,19 +39,32 @@ public:
 class MTPObjectTree {
 private:
 	PWSTR id;
+	PWSTR parentId;
+	PWSTR name;
+	PWSTR origName;
+	ULONGLONG size;
 
-	void init(PWSTR id, vector<MTPObjectTree> children);
+	void init(PWSTR id, PWSTR parentId, PWSTR name, PWSTR origName, ULONGLONG size, vector<MTPObjectTree> children);
 
 public:
 	vector<MTPObjectTree> children;
 
-	MTPObjectTree() : id(nullptr) {};
+	MTPObjectTree() : id(nullptr), parentId(nullptr), name(nullptr), origName(nullptr), size(0) {};
 	MTPObjectTree(PWSTR id);
 	MTPObjectTree(const MTPObjectTree &other);
 	~MTPObjectTree();
 
 	const PWSTR getId();
 	void setId(PWSTR id);
+	const PWSTR getParentId();
+	void setParentId(PWSTR parentId);
+	const PWSTR getName();
+	void setName(PWSTR name);
+	const PWSTR getOrigName();
+	void setOrigName(PWSTR origName);
+
+	ULONGLONG getSize();
+	void setSize(ULONGLONG size);
 
 	MTPObjectTree& operator=(const MTPObjectTree &other);
 
