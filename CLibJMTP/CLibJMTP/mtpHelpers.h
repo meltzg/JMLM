@@ -17,9 +17,9 @@ HRESULT initCOM();
 void closeCOM();
 ComPtr<IPortableDeviceManager> getDeviceManager();
 ComPtr<IPortableDeviceValues> getClientInfo();
-ComPtr<IPortableDevice> getSelectedDevice(PWSTR id);
+ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id);
 vector<MTPDevice> getDevices();
-MTPObjectTree getDeviceContent();
+MTPObjectTree* getDeviceContent();
 
 string formatHR(HRESULT hr);
 void logErr(char *msg, HRESULT hr);

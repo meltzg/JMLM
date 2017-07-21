@@ -4,7 +4,7 @@
 using std::string;
 using std::wstring;
 
-jstring wcharToJString(JNIEnv *env, wchar_t *wstr) {
+jstring wcharToJString(JNIEnv *env, const wchar_t *wstr) {
 	size_t origSize = wcslen(wstr) + 1;
 	size_t convertedChars = 0;
 	const size_t newSize = origSize * 2;
@@ -33,10 +33,10 @@ wchar_t* jStringToWchar(JNIEnv *env, jstring jStr)
 jobject mtpdToJMptd(JNIEnv *env, MTPDevice mtpd)
 {
 	return getNewMTPDevice(env,
-		mtpd.getId(),
-		mtpd.getFriendlyName(),
-		mtpd.getDescription(),
-		mtpd.getManufacturer());
+		mtpd.getId().c_str(),
+		mtpd.getFriendlyName().c_str(),
+		mtpd.getDescription().c_str(),
+		mtpd.getManufacturer().c_str());
 }
 
 jobject getNewArrayList(JNIEnv *env) {
@@ -51,7 +51,7 @@ void arrayListAdd(JNIEnv *env, jobject list, jobject element) {
 	env->CallBooleanMethod(list, arrayListAdd, element);
 }
 
-jobject getNewMTPDevice(JNIEnv *env, wchar_t *devId, wchar_t *devFName, wchar_t *devDesc, wchar_t *devManu) {
+jobject getNewMTPDevice(JNIEnv *env, const wchar_t *devId, const wchar_t *devFName, const wchar_t *devDesc, const wchar_t *devManu) {
 	jclass mtpDeviceClass = env->FindClass(JMTPDEV);
 
 	// (js, js, js)V

@@ -5,30 +5,28 @@
 using std::wstring;
 using std::vector;
 
-void wcsAllocCpy(wchar_t **destination, wchar_t* source);
-
 class MTPDevice {
 private:
-	PWSTR id;
-	PWSTR desc;
-	PWSTR fName;
-	PWSTR manu;
+	wstring id;
+	wstring desc;
+	wstring fName;
+	wstring manu;
 
-	void init(PWSTR dId, PWSTR dDesc, PWSTR dFName, PWSTR dManu);
+	void init(const wchar_t* dId, const wchar_t* dDesc, const wchar_t* dFName, const wchar_t* dManu);
 
 public:
-	MTPDevice() : id(NULL), desc(NULL), fName(NULL), manu(NULL) {};
+	MTPDevice() {};
 	MTPDevice(PWSTR dId, PWSTR dDesc, PWSTR dFName, PWSTR dManu);
 	MTPDevice(const MTPDevice &other);
 	~MTPDevice();
 
-	const PWSTR  getId();
+	const wstring  getId();
 	void setId(PWSTR newId);
-	const PWSTR  getDescription();
+	const wstring  getDescription();
 	void setDescription(PWSTR newDesc);
-	const PWSTR  getFriendlyName();
+	const wstring  getFriendlyName();
 	void setFriendlyName(PWSTR newFName);
-	const PWSTR  getManufacturer();
+	const wstring  getManufacturer();
 	void setManufacturer(PWSTR newManu);
 
 	MTPDevice& operator=(const MTPDevice &other);
@@ -38,29 +36,29 @@ public:
 
 class MTPObjectTree {
 private:
-	PWSTR id;
-	PWSTR parentId;
-	PWSTR name;
-	PWSTR origName;
+	wstring id;
+	wstring parentId;
+	wstring name;
+	wstring origName;
 	ULONGLONG size;
 
-	void init(PWSTR id, PWSTR parentId, PWSTR name, PWSTR origName, ULONGLONG size, vector<MTPObjectTree> children);
+	void init(const wchar_t* id, const wchar_t* parentId, const wchar_t* name, const wchar_t* origName, ULONGLONG size, vector<MTPObjectTree*> children);
 
 public:
-	vector<MTPObjectTree> children;
+	vector<MTPObjectTree*> children;
 
-	MTPObjectTree() : id(nullptr), parentId(nullptr), name(nullptr), origName(nullptr), size(0) {};
+	MTPObjectTree() {};
 	MTPObjectTree(PWSTR id);
 	MTPObjectTree(const MTPObjectTree &other);
 	~MTPObjectTree();
 
-	const PWSTR getId();
+	const wstring getId();
 	void setId(PWSTR id);
-	const PWSTR getParentId();
+	const wstring getParentId();
 	void setParentId(PWSTR parentId);
-	const PWSTR getName();
+	const wstring getName();
 	void setName(PWSTR name);
-	const PWSTR getOrigName();
+	const wstring getOrigName();
 	void setOrigName(PWSTR origName);
 
 	ULONGLONG getSize();

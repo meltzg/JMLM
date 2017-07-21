@@ -3,6 +3,7 @@
 #include <map>
 
 #include "mtpHelpers.h"
+#include "commonHelpers.h"
 
 using std::cerr;
 using std::endl;
@@ -83,7 +84,7 @@ ComPtr<IPortableDeviceValues> getClientInfo()
 	return info;
 }
 
-ComPtr<IPortableDevice> getSelectedDevice(PWSTR id)
+ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id)
 {
 	static ComPtr<IPortableDevice> device = nullptr;
 	auto manager = getDeviceManager();
@@ -161,9 +162,8 @@ vector<MTPDevice> getDevices()
 	return devList;
 }
 
-MTPObjectTree getNode(PWSTR id, IPortableDeviceContent *content) {
-	MTPObjectTree node;
-	node.setId(id);
+MTPObjectTree* getNode(PWSTR id, IPortableDeviceContent *content) {
+	MTPObjectTree* node = new MTPObjectTree(id);
 
 	//auto device = getSelectedDevice(nullptr);
 
@@ -224,10 +224,10 @@ MTPObjectTree getNode(PWSTR id, IPortableDeviceContent *content) {
 					getStringProperty(objVals.Get(), WPD_OBJECT_ORIGINAL_FILE_NAME, &origName);
 					getULongLongProperty(objVals.Get(), WPD_OBJECT_SIZE, &size);
 
-					node.setParentId(parentId);
-					node.setName(name);
-					node.setOrigName(origName);
-					node.setSize(size);
+					node->setParentId(parentId);
+					node->setName(name);
+					node->setOrigName(origName);
+					node->setSize(size);
 					delete[] parentId;
 					delete[] name;
 					delete[] origName;
@@ -239,17 +239,40 @@ MTPObjectTree getNode(PWSTR id, IPortableDeviceContent *content) {
 	return node;
 }
 
-MTPObjectTree constructTree(const vector<MTPObjectTree> & nodes) {
-	return MTPObjectTree();
+void constructTree(MTPObjectTree* root, const map<wstring, vector<wstring>> & idToCIds, const map<wstring, MTPObjectTree*> & idToNodes) {
+	const vector<wstring> children = idToCIds.at(root->getId());
+	for (auto cId : children) {
+		MTPObjectTree* cNode = idToNodes.at(cId);
+		constructTree(cNode, idToCIds, idToNodes);
+		root->children.push_back(cNode);
+	}
 }
 
-void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, vector<MTPObjectTree> &mtpObjs) {
+MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
+	map<wstring, vector<wstring>> idToCIds;
+	MTPObjectTree* root = nullptr;
+	for (auto node : idToNodes) {
+		idToCIds[node.second->getId()];
+		if (node.second->getParentId().length() == 0) {
+			root = node.second;
+		}
+	}
+	for (auto node : idToNodes) {
+		idToCIds[node.second->getParentId()].push_back(node.second->getId());
+	}
+	constructTree(root, idToCIds, idToNodes);
+
+	return root;
+}
+
+void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, map<wstring, MTPObjectTree*> &idToObj) {
 	ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
 	HRESULT hr = content->EnumObjects(0, rootId, nullptr, &objIdsEnum);
 
-	MTPObjectTree oTree = getNode(rootId, content);
-	std::wcout << oTree.toString() << endl;
-	mtpObjs.push_back(oTree);
+	MTPObjectTree* oTree = getNode(rootId, content);
+	std::wcout << oTree->toString() << endl;
+	std::wcout.flush();
+	idToObj[oTree->getId()] = oTree;
 
 	if (FAILED(hr)) {
 		logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
@@ -264,17 +287,17 @@ void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, vector<MTPO
 
 		if (SUCCEEDED(hr)) {
 			for (DWORD i = 0; i < fetched; i++) {
-				getDeviceContent(objIds[i], content, mtpObjs);
+				getDeviceContent(objIds[i], content, idToObj);
 			}
 		}
 	}
 }
 
-MTPObjectTree getDeviceContent()
+MTPObjectTree* getDeviceContent()
 {
 	auto device = getSelectedDevice(NULL);
-	vector<MTPObjectTree> oTreeNodes;
-	MTPObjectTree oTree;
+	map<wstring, MTPObjectTree*> oTreeNodes;
+	MTPObjectTree* oTree = nullptr;
 	ComPtr<IPortableDeviceContent> content = nullptr;
 
 	if (device != nullptr) {
@@ -284,6 +307,7 @@ MTPObjectTree getDeviceContent()
 		}
 		else {
 			getDeviceContent(WPD_DEVICE_OBJECT_ID, content.Get(), oTreeNodes);
+			oTree = constructTree(oTreeNodes);
 		}
 	}
 

@@ -122,11 +122,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\jMTP\bin\org_meltzg_jmtp_JMTP.h" />
+    <ClInclude Include="commonHelpers.h" />
     <ClInclude Include="jniHelpers.h" />
     <ClInclude Include="mtpHelpers.h" />
     <ClInclude Include="mtpModels.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="commonHelpers.cpp" />
     <ClCompile Include="jniHelpers.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mtpHelpers.cpp" />

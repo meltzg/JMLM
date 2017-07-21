@@ -1,26 +1,16 @@
 #include <PortableDeviceApi.h>
 #include <sstream>
 #include "mtpModels.h"
+#include "commonHelpers.h"
 
 using std::wstringstream;
 
-void wcsAllocCpy(wchar_t **destination, wchar_t* source) {
-	delete[] (*destination);
-	*destination = nullptr;
-	if (source != nullptr) {
-		size_t size = wcslen(source) + 1;
-		(*destination) = new wchar_t[size];
-		wcscpy_s(*destination, size, source);
-	}
-}
-
-void MTPDevice::init(PWSTR dId, PWSTR dDesc, PWSTR dFName, PWSTR dManu)
+void MTPDevice::init(const wchar_t* dId, const wchar_t* dDesc, const wchar_t* dFName, const wchar_t* dManu)
 {
-	id = desc = fName = manu = NULL;
-	wcsAllocCpy(&id, dId);
-	wcsAllocCpy(&desc, dDesc);
-	wcsAllocCpy(&fName, dFName);
-	wcsAllocCpy(&manu, dManu);
+	id.assign(dId ? dId : L"");
+	desc.assign(dDesc ? dDesc : L"");
+	fName.assign(dFName ? dFName : L"");
+	manu.assign(dManu ? dManu : L"");
 }
 
 MTPDevice::MTPDevice(PWSTR dId, PWSTR dDesc, PWSTR dFName, PWSTR dManu)
@@ -30,60 +20,56 @@ MTPDevice::MTPDevice(PWSTR dId, PWSTR dDesc, PWSTR dFName, PWSTR dManu)
 
 MTPDevice::MTPDevice(const MTPDevice & other)
 {
-	init(other.id, other.desc, other.fName, other.manu);
+	init(other.id.c_str(), other.desc.c_str(), other.fName.c_str(), other.manu.c_str());
 }
 
 MTPDevice::~MTPDevice()
 {
-	delete[] id;
-	delete[] desc;
-	delete[] fName;
-	delete[] manu;
 }
 
-const PWSTR MTPDevice::getId()
+const wstring MTPDevice::getId()
 {
 	return id;
 }
 
 void MTPDevice::setId(PWSTR newId)
 {
-	wcsAllocCpy(&id, newId);
+	id.assign(newId ? newId : L"");
 }
 
-const PWSTR MTPDevice::getDescription()
+const wstring MTPDevice::getDescription()
 {
 	return desc;
 }
 
 void MTPDevice::setDescription(PWSTR newDesc)
 {
-	wcsAllocCpy(&desc, newDesc);
+	desc.assign(newDesc ? newDesc : L"");
 }
 
-const PWSTR MTPDevice::getFriendlyName()
+const wstring MTPDevice::getFriendlyName()
 {
 	return fName;
 }
 
 void MTPDevice::setFriendlyName(PWSTR newFName)
 {
-	wcsAllocCpy(&fName, newFName);
+	fName.assign(newFName ? newFName : L"");
 }
 
-const PWSTR MTPDevice::getManufacturer()
+const wstring MTPDevice::getManufacturer()
 {
 	return manu;
 }
 
 void MTPDevice::setManufacturer(PWSTR newManu)
 {
-	wcsAllocCpy(&manu, newManu);
+	manu.assign(newManu ? newManu : L"");
 }
 
 MTPDevice & MTPDevice::operator=(const MTPDevice & other)
 {
-	init(other.id, other.desc, other.fName, other.manu);
+	init(other.id.c_str(), other.desc.c_str(), other.fName.c_str(), other.manu.c_str());
 	return *this;
 }
 
@@ -95,14 +81,13 @@ wstring MTPDevice::toString() {
 	return wstr.str();
 }
 
-void MTPObjectTree::init(PWSTR id, PWSTR parentId, PWSTR name, PWSTR origName, ULONGLONG size, vector<MTPObjectTree> children)
+void MTPObjectTree::init(const wchar_t* id, const wchar_t* parentId, const wchar_t* name, const wchar_t* origName, ULONGLONG size, vector<MTPObjectTree*> children)
 {
-	this->id = this->parentId = this->name = this->origName = NULL;
 	this->size = size;
-	wcsAllocCpy(&(this->id), id);
-	wcsAllocCpy(&(this->parentId), parentId);
-	wcsAllocCpy(&(this->name), name);
-	wcsAllocCpy(&(this->origName), origName);
+	this->id.assign(id ? id : L"");
+	this->parentId.assign(parentId ? parentId : L"");
+	this->name.assign(name ? name : L"");
+	this->origName.assign(origName ? origName : L"");
 	this->children.clear();
 	for (auto child : children) {
 		this->children.push_back(child);
@@ -111,60 +96,60 @@ void MTPObjectTree::init(PWSTR id, PWSTR parentId, PWSTR name, PWSTR origName, U
 
 MTPObjectTree::MTPObjectTree(PWSTR id)
 {
-	init(id, nullptr, nullptr, nullptr, 0, vector<MTPObjectTree>());
+	init(id, nullptr, nullptr, nullptr, 0, vector<MTPObjectTree*>());
 }
 
 MTPObjectTree::MTPObjectTree(const MTPObjectTree & other)
 {
-	init(other.id, other.parentId, other.name, other.origName, other.size, other.children);
+	init(other.id.c_str(), other.parentId.c_str(), other.name.c_str(), other.origName.c_str(), other.size, other.children);
 }
 
 MTPObjectTree::~MTPObjectTree()
 {
-	delete[] id;
-	delete[] parentId;
-	delete[] name;
-	delete[] origName;
+	for (unsigned int i = 0; i < children.size(); i++) {
+		delete children[i];
+		children[i] = nullptr;
+	}
 }
 
-const PWSTR MTPObjectTree::getId()
+const wstring MTPObjectTree::getId()
 {
 	return id;
 }
 
 void MTPObjectTree::setId(PWSTR id)
 {
-	wcsAllocCpy(&(this->id), id);
+	this->id.assign(id ? id : L"");
 }
 
-const PWSTR MTPObjectTree::getParentId()
+const wstring MTPObjectTree::getParentId()
 {
 	return parentId;
 }
 
 void MTPObjectTree::setParentId(PWSTR parentId)
 {
-	wcsAllocCpy(&(this->parentId), parentId);
+	this->parentId.assign(parentId ? parentId : L"");
 }
 
-const PWSTR MTPObjectTree::getName()
+const wstring MTPObjectTree::getName()
 {
 	return name;
 }
 
 void MTPObjectTree::setName(PWSTR name)
 {
-	wcsAllocCpy(&(this->name), name);
+	this->name.assign(name ? name : L"");
 }
 
-const PWSTR MTPObjectTree::getOrigName()
+const wstring MTPObjectTree::getOrigName()
 {
 	return origName;
 }
 
 void MTPObjectTree::setOrigName(PWSTR origName)
 {
-	wcsAllocCpy(&(this->origName), origName);
+	this->origName.assign(origName ? origName : L"");
 }
 
 ULONGLONG MTPObjectTree::getSize()
@@ -179,21 +164,21 @@ void MTPObjectTree::setSize(ULONGLONG size)
 
 MTPObjectTree & MTPObjectTree::operator=(const MTPObjectTree & other)
 {
-	init(other.id, other.parentId, other.name, other.origName, other.size, other.children);
+	init(other.id.c_str(), other.parentId.c_str(), other.name.c_str(), other.origName.c_str(), other.size, other.children);
 	return *this;
 }
 
 wstring MTPObjectTree::toString()
 {
 	wstringstream wstr;
-	wstr << L"MTPObjectTree [id=" << (id != nullptr ? id : L"NULL")
-		<< L", parentId=" << (parentId != nullptr ? parentId : L"NULL")
-		<< L", name=" << (name != nullptr ? name : L"NULL")
-		<< L", origName=" << (origName != nullptr ? origName : L"NULL")
+	wstr << L"MTPObjectTree [id=" << (id.length() > 0 ? id : L"NULL")
+		<< L", parentId=" << (parentId.length() > 0 ? parentId : L"NULL")
+		<< L", name=" << (name.length() > 0 ? name : L"NULL")
+		<< L", origName=" << (origName.length() > 0 ? origName : L"NULL")
 		<< L", size=" << size
 		<< L", children=[";
 	for (auto child : children) {
-		wstr << child.toString() << ", ";
+		wstr << child->toString() << ", ";
 	}
 	wstr << "]]";
 
