@@ -1,4 +1,4 @@
-package org.meltzg.jmtp.mtp;
+package org.meltzg.jmtp.models;
 
 public class MTPDevice {
 	private String deviceId;

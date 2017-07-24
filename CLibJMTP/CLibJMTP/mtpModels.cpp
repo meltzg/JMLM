@@ -102,9 +102,7 @@ wstring MTPObjectTree::toPrettyString(unsigned int level)
 	for (unsigned int i = 0; i < level; i++) {
 		wstr << L"\t";
 	}
-	if (name.find(L"Money", 0) == 0) {
-		int i = 0;
-	}
+	
 	wstr << L"MTPObjectTree [id=" << (id.length() > 0 ? id : L"NULL")
 		<< L", parentId=" << (parentId.length() > 0 ? parentId : L"NULL")
 		<< L", persistId=" << (persistId.length() > 0 ? persistId : L"NULL")

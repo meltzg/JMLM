@@ -5,7 +5,7 @@
 
 #define JSTRING "Ljava/lang/String;"
 #define JARRLIST "Ljava/util/ArrayList;"
-#define JMTPDEV "Lorg/meltzg/jmtp/mtp/MTPDevice;"
+#define JMTPDEV "Lorg/meltzg/jmtp/models/MTPDevice;"
 
 jstring wcharToJString(JNIEnv *env, const wchar_t* wstr);
 wchar_t * jStringToWchar(JNIEnv *env, jstring jStr);

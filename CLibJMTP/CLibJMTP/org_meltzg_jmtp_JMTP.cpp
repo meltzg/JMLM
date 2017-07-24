@@ -26,8 +26,14 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDevices
 JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_selectDevice
 (JNIEnv *env, jobject obj, jstring id) {
 	PWSTR cId = jStringToWchar(env, id);
+	auto device = getSelectedDevice(cId);
 	delete[] cId;
-	return true;
+	return device != nullptr;
+}
+
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDeviceContent
+(JNIEnv *env, jobject obj) {
+	return NULL;
 }
 
 JNIEXPORT jlong JNICALL Java_org_meltzg_jmtp_JMTP_initCOM

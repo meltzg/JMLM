@@ -4,14 +4,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
-import org.meltzg.jmtp.mtp.MTPDevice;
+import org.meltzg.jmtp.models.MTPDevice;
+import org.meltzg.jmtp.models.MTPObjectTree;
 
 public class JMTP implements Closeable{
 	private boolean closed = false;
 	
 	public JMTP() {
 		initCOM();
-		int i = 0;
 	}
 	
 	@Override
@@ -33,6 +33,8 @@ public class JMTP implements Closeable{
 	}
 	
 	public native List<MTPDevice> getDevices();
+	public native boolean selectDevice(String id);
+	public native MTPObjectTree getDeviceContent();
 	
 	private native long initCOM();
 	private native void closeCOM();
