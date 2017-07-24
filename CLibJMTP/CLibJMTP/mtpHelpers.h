@@ -7,7 +7,7 @@
 
 #include "mtpModels.h"
 
-#define NUM_OBJECTS_TO_REQUEST 10
+#define NUM_OBJECTS_TO_REQUEST 100
 
 using std::string;
 using std::vector;

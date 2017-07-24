@@ -191,6 +191,11 @@ MTPObjectTree* getNode(PWSTR id, IPortableDeviceContent *content) {
 					logErr("!!! Failed to add WPD_OBJECT_PARENT_ID to IPortableDeviceKeyCollection: ", tmpHr);
 				}
 
+				tmpHr = propsToRead->Add(WPD_OBJECT_PERSISTENT_UNIQUE_ID);
+				if (FAILED(tmpHr)) {
+					logErr("!!! Failed to add WPD_OBJECT_PERSISTENT_UNIQUE_ID to IPortableDeviceKeyCollection: ", tmpHr);
+				}
+
 				tmpHr = propsToRead->Add(WPD_OBJECT_NAME);
 				if (FAILED(tmpHr)) {
 					logErr("!!! Failed to add WPD_OBJECT_NAME to IPortableDeviceKeyCollection: ", tmpHr);
@@ -206,6 +211,11 @@ MTPObjectTree* getNode(PWSTR id, IPortableDeviceContent *content) {
 					logErr("!!! Failed to add WPD_OBJECT_SIZE to IPortableDeviceKeyCollection: ", tmpHr);
 				}
 
+				tmpHr = propsToRead->Add(WPD_STORAGE_CAPACITY);
+				if (FAILED(tmpHr)) {
+					logErr("!!! Failed to add WPD_STORAGE_CAPACITY to IPortableDeviceKeyCollection: ", tmpHr);
+				}
+
 				hr = props->GetValues(id,
 					propsToRead.Get(),
 					&objVals);
@@ -215,19 +225,25 @@ MTPObjectTree* getNode(PWSTR id, IPortableDeviceContent *content) {
 				}
 				else {
 					PWSTR parentId = nullptr;
+					PWSTR persistId = nullptr;
 					PWSTR name = nullptr;
 					PWSTR origName = nullptr;
 					ULONGLONG size = 0;
+					ULONGLONG cap = 0;
 
 					getStringProperty(objVals.Get(), WPD_OBJECT_PARENT_ID, &parentId);
+					getStringProperty(objVals.Get(), WPD_OBJECT_PERSISTENT_UNIQUE_ID, &persistId);
 					getStringProperty(objVals.Get(), WPD_OBJECT_NAME, &name);
 					getStringProperty(objVals.Get(), WPD_OBJECT_ORIGINAL_FILE_NAME, &origName);
 					getULongLongProperty(objVals.Get(), WPD_OBJECT_SIZE, &size);
+					getULongLongProperty(objVals.Get(), WPD_STORAGE_CAPACITY, &cap);
 
 					node->setParentId(parentId);
+					node->setPersistId(persistId);
 					node->setName(name);
 					node->setOrigName(origName);
 					node->setSize(size);
+					node->setCapacity(cap);
 					delete[] parentId;
 					delete[] name;
 					delete[] origName;
@@ -270,8 +286,6 @@ void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, map<wstring
 	HRESULT hr = content->EnumObjects(0, rootId, nullptr, &objIdsEnum);
 
 	MTPObjectTree* oTree = getNode(rootId, content);
-	std::wcout << oTree->toString() << endl;
-	std::wcout.flush();
 	idToObj[oTree->getId()] = oTree;
 
 	if (FAILED(hr)) {
@@ -323,7 +337,7 @@ string formatHR(HRESULT hr) {
 
 void logErr(char * msg, HRESULT hr)
 {
-	logErr(msg, hr);
+	cerr << msg << formatHR(hr) << std::endl;
 }
 
 PWSTR getDeviceDescription(PWSTR deviceId) {

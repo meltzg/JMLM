@@ -81,11 +81,13 @@ wstring MTPDevice::toString() {
 	return wstr.str();
 }
 
-void MTPObjectTree::init(const wchar_t* id, const wchar_t* parentId, const wchar_t* name, const wchar_t* origName, ULONGLONG size, vector<MTPObjectTree*> children)
+void MTPObjectTree::init(const wchar_t* id, const wchar_t* parentId, const wchar_t* persistId, const wchar_t* name, const wchar_t* origName, ULONGLONG size, ULONGLONG capacity, vector<MTPObjectTree*> children)
 {
 	this->size = size;
+	this->capacity = capacity;
 	this->id.assign(id ? id : L"");
 	this->parentId.assign(parentId ? parentId : L"");
+	this->persistId.assign(persistId ? persistId : L"");
 	this->name.assign(name ? name : L"");
 	this->origName.assign(origName ? origName : L"");
 	this->children.clear();
@@ -94,14 +96,37 @@ void MTPObjectTree::init(const wchar_t* id, const wchar_t* parentId, const wchar
 	}
 }
 
+wstring MTPObjectTree::toPrettyString(unsigned int level)
+{
+	wstringstream wstr;
+	for (unsigned int i = 0; i < level; i++) {
+		wstr << L"\t";
+	}
+	if (name.find(L"Money", 0) == 0) {
+		int i = 0;
+	}
+	wstr << L"MTPObjectTree [id=" << (id.length() > 0 ? id : L"NULL")
+		<< L", parentId=" << (parentId.length() > 0 ? parentId : L"NULL")
+		<< L", persistId=" << (persistId.length() > 0 ? persistId : L"NULL")
+		<< L", name=" << (name.length() > 0 ? name : L"NULL")
+		<< L", origName=" << (origName.length() > 0 ? origName : L"NULL")
+		<< L", size=" << size
+		<< L", capacity=" << capacity << "]" << std::endl;
+	for (auto child : children) {
+		wstr << child->toPrettyString(level + 1);
+	}
+
+	return wstr.str();
+}
+
 MTPObjectTree::MTPObjectTree(PWSTR id)
 {
-	init(id, nullptr, nullptr, nullptr, 0, vector<MTPObjectTree*>());
+	init(id, nullptr, nullptr, nullptr, nullptr, 0, 0, vector<MTPObjectTree*>());
 }
 
 MTPObjectTree::MTPObjectTree(const MTPObjectTree & other)
 {
-	init(other.id.c_str(), other.parentId.c_str(), other.name.c_str(), other.origName.c_str(), other.size, other.children);
+	init(other.id.c_str(), other.parentId.c_str(), other.persistId.c_str(), other.name.c_str(), other.origName.c_str(), other.size, other.capacity, other.children);
 }
 
 MTPObjectTree::~MTPObjectTree()
@@ -130,6 +155,16 @@ const wstring MTPObjectTree::getParentId()
 void MTPObjectTree::setParentId(PWSTR parentId)
 {
 	this->parentId.assign(parentId ? parentId : L"");
+}
+
+const wstring MTPObjectTree::getPersistId()
+{
+	return persistId;
+}
+
+void MTPObjectTree::setPersistId(PWSTR persistId)
+{
+	this->persistId.assign(persistId ? persistId : L"");
 }
 
 const wstring MTPObjectTree::getName()
@@ -162,9 +197,19 @@ void MTPObjectTree::setSize(ULONGLONG size)
 	this->size = size;
 }
 
+ULONGLONG MTPObjectTree::getCapacity()
+{
+	return capacity;
+}
+
+void MTPObjectTree::setCapacity(ULONGLONG capacity)
+{
+	this->capacity = capacity;
+}
+
 MTPObjectTree & MTPObjectTree::operator=(const MTPObjectTree & other)
 {
-	init(other.id.c_str(), other.parentId.c_str(), other.name.c_str(), other.origName.c_str(), other.size, other.children);
+	init(other.id.c_str(), other.parentId.c_str(), other.persistId.c_str(), other.name.c_str(), other.origName.c_str(), other.size, other.capacity, other.children);
 	return *this;
 }
 
@@ -173,9 +218,11 @@ wstring MTPObjectTree::toString()
 	wstringstream wstr;
 	wstr << L"MTPObjectTree [id=" << (id.length() > 0 ? id : L"NULL")
 		<< L", parentId=" << (parentId.length() > 0 ? parentId : L"NULL")
+		<< L", persistId=" << (persistId.length() > 0 ? persistId : L"NULL")
 		<< L", name=" << (name.length() > 0 ? name : L"NULL")
 		<< L", origName=" << (origName.length() > 0 ? origName : L"NULL")
 		<< L", size=" << size
+		<< L", capacity=" << capacity
 		<< L", children=[";
 	for (auto child : children) {
 		wstr << child->toString() << ", ";
@@ -183,4 +230,9 @@ wstring MTPObjectTree::toString()
 	wstr << "]]";
 
 	return wstr.str();
+}
+
+wstring MTPObjectTree::toPrettyString()
+{
+	return toPrettyString(0);
 }
