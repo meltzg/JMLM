@@ -1,5 +1,6 @@
 package org.meltzg.jmtp.models;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public class MTPObjectTree {
@@ -8,12 +9,12 @@ public class MTPObjectTree {
 	private String persistId;
 	private String name;
 	private String origName;
-	private long size;
-	private long capacity;
+	private BigInteger size;
+	private BigInteger capacity;
 	private List<MTPObjectTree> children;
 	
-	public MTPObjectTree(String id, String parentId, String persistId, String name, String origName, long size,
-			long capacity, List<MTPObjectTree> children) {
+	public MTPObjectTree(String id, String parentId, String persistId, String name, String origName, BigInteger size,
+			BigInteger capacity, List<MTPObjectTree> children) {
 		this.id = id;
 		this.parentId = parentId;
 		this.persistId = persistId;
@@ -54,16 +55,16 @@ public class MTPObjectTree {
 	public void setOrigName(String origName) {
 		this.origName = origName;
 	}
-	public long getSize() {
+	public BigInteger getSize() {
 		return size;
 	}
-	public void setSize(long size) {
+	public void setSize(BigInteger size) {
 		this.size = size;
 	}
-	public long getCapacity() {
+	public BigInteger getCapacity() {
 		return capacity;
 	}
-	public void setCapacity(long capacity) {
+	public void setCapacity(BigInteger capacity) {
 		this.capacity = capacity;
 	}
 	public List<MTPObjectTree> getChildren() {
@@ -72,6 +73,27 @@ public class MTPObjectTree {
 	public void setChildren(List<MTPObjectTree> children) {
 		this.children = children;
 	}
+	
+	private String toPrettyString(int level) {
+		String str = "";
+		for (int i = 0; i < level; i++) {
+			str += "\t";
+		}
+		
+		str += "MTPObjectTree [id=" + id + ", parentId=" + parentId + ", persistId=" + persistId + ", name=" + name
+				+ ", origName=" + origName + ", size=" + size + ", capacity=" + capacity + "]\n";
+		
+		for (MTPObjectTree oTree : children) {
+			str += oTree.toPrettyString(level + 1);
+		}
+		
+		return str;
+	}
+	
+	public String toPrettyString() {
+		return toPrettyString(0);
+	}
+
 	@Override
 	public String toString() {
 		return "MTPObjectTree [id=" + id + ", parentId=" + parentId + ", persistId=" + persistId + ", name=" + name

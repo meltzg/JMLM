@@ -17,7 +17,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDevices
 	jobject jDevList = getNewArrayList(env);
 
 	for (int i = 0; i < devList.size(); i++) {
-		arrayListAdd(env, jDevList, mtpdToJMptd(env, devList[i]));
+		arrayListAdd(env, jDevList, mtpdToJMtpd(env, devList[i]));
 	}
 
 	return jDevList;
@@ -33,7 +33,10 @@ JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_selectDevice
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDeviceContent
 (JNIEnv *env, jobject obj) {
-	return NULL;
+	MTPObjectTree *content = getDeviceContent();
+	jobject jContent = mtpotToJMtpot(env, content);
+	delete content;
+	return jContent;
 }
 
 JNIEXPORT jlong JNICALL Java_org_meltzg_jmtp_JMTP_initCOM

@@ -5,11 +5,18 @@
 
 #define JSTRING "Ljava/lang/String;"
 #define JARRLIST "Ljava/util/ArrayList;"
+#define JLIST "Ljava/util/List;"
+#define JBIGINT "Ljava/math/BigInteger;"
 #define JMTPDEV "Lorg/meltzg/jmtp/models/MTPDevice;"
+#define JMTPOTREE "Lorg/meltzg/jmtp/models/MTPObjectTree;"
+
+#define JCONSTRUCTOR "<init>"
 
 jstring wcharToJString(JNIEnv *env, const wchar_t* wstr);
+jobject ulonglongToJBigInt(JNIEnv *env, unsigned long long num);
 wchar_t * jStringToWchar(JNIEnv *env, jstring jStr);
-jobject mtpdToJMptd(JNIEnv *env, MTPDevice mtpd);
+jobject mtpdToJMtpd(JNIEnv *env, MTPDevice mtpd);
+jobject mtpotToJMtpot(JNIEnv *env, MTPObjectTree *mtpot);
 jobject getNewArrayList(JNIEnv *env);
 void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 jobject getNewMTPDevice(JNIEnv *env, const wchar_t *devId, const wchar_t *devFName, const wchar_t *devDesc, const wchar_t *devManu);
