@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <stack>
 
 #include "mtpHelpers.h"
 #include "commonHelpers.h"
@@ -11,6 +12,7 @@ using std::nothrow;
 using std::ostringstream;
 using std::hex;
 using std::map;
+using std::stack;
 
 ComPtr<IPortableDeviceManager> getDeviceManager(bool close);
 ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close);
@@ -265,6 +267,7 @@ MTPObjectTree* getNode(PWSTR id, IPortableDeviceContent *content) {
 					node->setSize(size);
 					node->setCapacity(cap);
 					delete[] parentId;
+					delete[] persistId;
 					delete[] name;
 					delete[] origName;
 				}
