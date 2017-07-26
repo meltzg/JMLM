@@ -12,6 +12,9 @@ using std::ostringstream;
 using std::hex;
 using std::map;
 
+ComPtr<IPortableDeviceManager> getDeviceManager(bool close);
+ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close);
+
 HRESULT initCOM() {
 	static HRESULT hr = E_FAIL;
 
@@ -30,15 +33,20 @@ HRESULT initCOM() {
 }
 
 void closeCOM() {
+	getDeviceManager(true);
+	getSelectedDevice(nullptr, true);
 	CoUninitialize();
 	//cout << "COM closed" << endl;
 }
 
-ComPtr<IPortableDeviceManager> getDeviceManager() {
+ComPtr<IPortableDeviceManager> getDeviceManager(bool close) {
 
 	static ComPtr<IPortableDeviceManager> deviceManager = nullptr;
 
-	if (deviceManager == nullptr) {
+	if (close) {
+		deviceManager = nullptr;
+	}
+	else if (deviceManager == nullptr) {
 		HRESULT hr = CoCreateInstance(
 			CLSID_PortableDeviceManager,
 			nullptr,
@@ -57,59 +65,71 @@ ComPtr<IPortableDeviceManager> getDeviceManager() {
 	return deviceManager;
 }
 
+ComPtr<IPortableDeviceManager> getDeviceManager() {
+	return getDeviceManager(false);
+}
+
 ComPtr<IPortableDeviceValues> getClientInfo()
 {
-	static ComPtr<IPortableDeviceValues> info = nullptr;
+	ComPtr<IPortableDeviceValues> info = nullptr;
 
-	if (info == nullptr) {
-		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
-			nullptr,
-			CLSCTX_INPROC_SERVER,
-			IID_PPV_ARGS(&info));
+	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
+		nullptr,
+		CLSCTX_INPROC_SERVER,
+		IID_PPV_ARGS(&info));
 
-		if (FAILED(hr)) {
+	if (FAILED(hr)) {
+		info = nullptr;
+		logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
+	}
+	else {
+		hr = info->SetUnsignedIntegerValue(WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE, SECURITY_IMPERSONATION);
+		if (FAILED(hr))
+		{
 			info = nullptr;
-			logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
-		}
-		else {
-			hr = info->SetUnsignedIntegerValue(WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE, SECURITY_IMPERSONATION);
-			if (FAILED(hr))
-			{
-				info = nullptr;
-				logErr("!!! Failed to set WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE: ", hr);
-			}
+			logErr("!!! Failed to set WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE: ", hr);
 		}
 	}
 
 	return info;
 }
 
-ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id)
+ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close)
 {
 	static ComPtr<IPortableDevice> device = nullptr;
-	auto manager = getDeviceManager();
-	auto info = getClientInfo();
+	
+	if (close) {
+		device = nullptr;
+	}
+	else {
+		auto manager = getDeviceManager();
+		auto info = getClientInfo();
 
-	if ((device == nullptr || id != nullptr) && manager != nullptr && info != nullptr) {
-		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM,
-			nullptr,
-			CLSCTX_INPROC_SERVER,
-			IID_PPV_ARGS(&device));
+		if ((device == nullptr || id != nullptr) && manager != nullptr && info != nullptr) {
+			HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM,
+				nullptr,
+				CLSCTX_INPROC_SERVER,
+				IID_PPV_ARGS(&device));
 
-		if (FAILED(hr)) {
-			device = nullptr;
-			logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceFTM: ", hr);
-		}
-		else {
-			hr = device->Open(id, info.Get());
 			if (FAILED(hr)) {
 				device = nullptr;
-				logErr("!!! Failed to open device: ", hr);
+				logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceFTM: ", hr);
+			}
+			else {
+				hr = device->Open(id, info.Get());
+				if (FAILED(hr)) {
+					device = nullptr;
+					logErr("!!! Failed to open device: ", hr);
+				}
 			}
 		}
 	}
-
+	
 	return device;
+}
+
+ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id) {
+	return getSelectedDevice(id, false);
 }
 
 vector<MTPDevice> getDevices()
