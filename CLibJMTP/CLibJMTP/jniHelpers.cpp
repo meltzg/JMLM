@@ -1,9 +1,15 @@
 #include <string>
+#include <stack>
+#include <map>
+#include <vector>
 #include "jniHelpers.h"
 
 using std::string;
 using std::wstring;
 using std::to_wstring;
+using std::stack;
+using std::map;
+using std::vector;
 
 jstring wcharToJString(JNIEnv *env, const wchar_t *wstr) {
 	size_t origSize = wcslen(wstr) + 1;
@@ -57,10 +63,18 @@ jobject mtpdToJMtpd(JNIEnv *env, MTPDevice mtpd)
 		mtpd.getManufacturer().c_str());
 }
 
-jobject mtpotToJMtpot(JNIEnv * env, MTPObjectTree *mtpot)
-{
+jobject jMtpotGetChildren(JNIEnv *env, jobject jmtpot) {
 	jclass mtpObjectTreeClass = env->FindClass(JMTPOTREE);
 
+	string sig = "()";
+	sig += JLIST;
+
+	jmethodID mtpObjectTreeGetChildren = env->GetMethodID(mtpObjectTreeClass, "getChildren", sig.c_str());
+	return env->CallObjectMethod(jmtpot, mtpObjectTreeGetChildren);
+}
+
+jobject getJMTPotNode(JNIEnv *env, MTPObjectTree *mtpot) {
+	jclass mtpObjectTreeClass = env->FindClass(JMTPOTREE);
 	string sig = "(";
 	sig += JSTRING;
 	sig += JSTRING;
@@ -71,9 +85,8 @@ jobject mtpotToJMtpot(JNIEnv * env, MTPObjectTree *mtpot)
 	sig += JBIGINT;
 	sig += JLIST;
 	sig += ")V";
-
 	jmethodID mtpObjectTreeConstructor = env->GetMethodID(mtpObjectTreeClass, JCONSTRUCTOR, sig.c_str());
-	
+
 	jstring jId = wcharToJString(env, mtpot->getId().c_str());
 	jstring jParentId = wcharToJString(env, mtpot->getParentId().c_str());
 	jstring jPersistId = wcharToJString(env, mtpot->getPersistId().c_str());
@@ -85,11 +98,43 @@ jobject mtpotToJMtpot(JNIEnv * env, MTPObjectTree *mtpot)
 
 	jobject jChildren = getNewArrayList(env);
 
-	for (auto child : mtpot->children) {
-		arrayListAdd(env, jChildren, mtpotToJMtpot(env, child));
+	/*for (auto child : mtpot->children) {
+	arrayListAdd(env, jChildren, mtpotToJMtpot(env, child));
+	}*/
+
+	return env->NewObject(mtpObjectTreeClass, mtpObjectTreeConstructor, jId, jParentId, jPersistId, jName, jOrigName, jSize, jCapacity, jChildren);
+}
+
+jobject mtpotToJMtpot(JNIEnv * env, MTPObjectTree *mtpot)
+{	
+	stack<MTPObjectTree*> nodes;
+	map<wstring, vector<wstring>> idToCIds;
+	map<wstring, jobject> idToJNodes;
+	nodes.push(mtpot);
+
+	while (!nodes.empty()) {
+		auto node = nodes.top();
+		nodes.pop();
+
+		idToJNodes[node->getId()] = getJMTPotNode(env, node);
+		idToCIds[node->getId()];
+		for (auto child : node->children) {
+			nodes.push(child);
+			idToCIds[node->getId()].push_back(child->getId());
+		}
 	}
 	
-	return env->NewObject(mtpObjectTreeClass, mtpObjectTreeConstructor, jId, jParentId, jPersistId, jName, jOrigName, jSize, jCapacity, jChildren);
+	for (auto node : idToJNodes) {
+		wstring id = node.first;
+		jobject jNode = node.second;
+		jobject childList = jMtpotGetChildren(env, jNode);
+		const vector<wstring> children = idToCIds.at(id);
+		for (auto cId : children) {
+			arrayListAdd(env, childList, idToJNodes.at(cId));
+		}
+	}
+
+	return idToJNodes.at(mtpot->getId());
 }
 
 jobject getNewArrayList(JNIEnv *env) {
