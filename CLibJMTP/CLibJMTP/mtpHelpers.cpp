@@ -278,15 +278,6 @@ MTPObjectTree* getNode(PWSTR id, IPortableDeviceContent *content) {
 	return node;
 }
 
-void constructTree(MTPObjectTree* root, const map<wstring, vector<wstring>> & idToCIds, const map<wstring, MTPObjectTree*> & idToNodes) {
-	const vector<wstring> children = idToCIds.at(root->getId());
-	for (auto cId : children) {
-		MTPObjectTree* cNode = idToNodes.at(cId);
-		constructTree(cNode, idToCIds, idToNodes);
-		root->children.push_back(cNode);
-	}
-}
-
 MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
 	map<wstring, vector<wstring>> idToCIds;
 	MTPObjectTree* root = nullptr;
@@ -299,32 +290,48 @@ MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
 	for (auto node : idToNodes) {
 		idToCIds[node.second->getParentId()].push_back(node.second->getId());
 	}
-	constructTree(root, idToCIds, idToNodes);
+
+	for (auto pNode : idToNodes) {
+		MTPObjectTree *node = pNode.second;
+		const vector<wstring> children = idToCIds.at(node->getId());
+		for (auto cId : children) {
+			MTPObjectTree* cNode = idToNodes.at(cId);
+			node->children.push_back(cNode);
+		}
+	}
 
 	return root;
 }
 
 void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, map<wstring, MTPObjectTree*> &idToObj) {
-	ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
-	HRESULT hr = content->EnumObjects(0, rootId, nullptr, &objIdsEnum);
+	stack<PWSTR> ids;
+	ids.push(rootId);
 
-	MTPObjectTree* oTree = getNode(rootId, content);
-	idToObj[oTree->getId()] = oTree;
+	while (!ids.empty()) {
+		PWSTR id = ids.top();
+		ids.pop();
 
-	if (FAILED(hr)) {
-		logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
-	}
+		ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
+		HRESULT hr = content->EnumObjects(0, id, nullptr, &objIdsEnum);
 
-	while (hr == S_OK) {
-		DWORD fetched = 0;
-		PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
-		hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
-			objIds,
-			&fetched);
+		MTPObjectTree* oTree = getNode(id, content);
+		idToObj[oTree->getId()] = oTree;
 
-		if (SUCCEEDED(hr)) {
-			for (DWORD i = 0; i < fetched; i++) {
-				getDeviceContent(objIds[i], content, idToObj);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
+		}
+
+		while (hr == S_OK) {
+			DWORD fetched = 0;
+			PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
+			hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
+				objIds,
+				&fetched);
+
+			if (SUCCEEDED(hr)) {
+				for (DWORD i = 0; i < fetched; i++) {
+					ids.push(objIds[i]);
+				}
 			}
 		}
 	}
