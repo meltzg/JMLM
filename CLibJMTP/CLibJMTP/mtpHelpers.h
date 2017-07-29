@@ -29,3 +29,9 @@ PWSTR getDeviceManufacturer(PWSTR deviceId);
 
 void getStringProperty(IPortableDeviceValues *values, REFPROPERTYKEY key, PWSTR *destination);void getStringProperty(IPortableDeviceValues *values, REFPROPERTYKEY key, PWSTR *destination);
 void getULongLongProperty(IPortableDeviceValues *values, REFPROPERTYKEY key, ULONGLONG *destination); void getStringProperty(IPortableDeviceValues *values, REFPROPERTYKEY key, ULONGLONG *destination);
+
+bool hasChildren(const wchar_t *id);
+const wchar_t* getObjByOrigName(const wchar_t *parentId, const wchar_t *origName);
+const wchar_t* createFolder(const wchar_t *destId, const wchar_t *path);
+bool transferToDevice(const wchar_t *destId, const wchar_t *filepath);
+bool removeFromDevice(const wchar_t *id, const wchar_t *stopId);

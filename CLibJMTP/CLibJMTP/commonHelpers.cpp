@@ -11,6 +11,15 @@ void wcsAllocCpy(wchar_t **destination, wchar_t* source) {
 	}
 }
 
+inline const wchar_t * pathDelimiter()
+{
+#ifdef _WIN32
+	return L"\\";
+#else
+	return L"/";
+#endif
+}
+
 bool cmp_wstr::operator()(const wchar_t * a, const wchar_t * b) const
 {
 	int cmp = std::wcscmp(a, b);

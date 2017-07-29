@@ -286,9 +286,9 @@ MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
 		if (node.second->getParentId().length() == 0) {
 			root = node.second;
 		}
-	}
-	for (auto node : idToNodes) {
-		idToCIds[node.second->getParentId()].push_back(node.second->getId());
+		else {
+			idToCIds[node.second->getParentId()].push_back(node.second->getId());
+		}
 	}
 
 	for (auto pNode : idToNodes) {
@@ -460,4 +460,99 @@ void getULongLongProperty(IPortableDeviceValues * values, REFPROPERTYKEY key, UL
 	if (SUCCEEDED(hr)) {
 		*destination = value;
 	}
+}
+
+bool hasChildren(const wchar_t * id)
+{
+	auto device = getSelectedDevice(NULL);
+
+	if (device != nullptr) {
+		ComPtr<IPortableDeviceContent> content = nullptr;
+		HRESULT hr = device->Content(&content);
+
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
+		}
+		else {
+			ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
+			HRESULT hr = content->EnumObjects(0, id, nullptr, &objIdsEnum);
+
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
+			}
+
+			if (SUCCEEDED(hr)) {
+				DWORD fetched = 0;
+				PWSTR objIds[1] = { nullptr };
+				hr = objIdsEnum->Next(1,
+					objIds,
+					&fetched);
+
+				if (fetched > 0) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+const wchar_t * getObjByOrigName(const wchar_t * parentId, const wchar_t * origName)
+{
+	auto device = getSelectedDevice(NULL);
+	const wchar_t *objId = nullptr;
+
+	if (device != nullptr) {
+		ComPtr<IPortableDeviceContent> content = nullptr;
+		HRESULT hr = device->Content(&content);
+
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
+		}
+		else {
+			ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
+			HRESULT hr = content->EnumObjects(0, parentId, nullptr, &objIdsEnum);
+
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
+			}
+
+			while (hr == S_OK && objId == nullptr) {
+				DWORD fetched = 0;
+				PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
+				hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
+					objIds,
+					&fetched);
+
+				if (SUCCEEDED(hr)) {
+					for (DWORD i = 0; i < fetched; i++) {
+						MTPObjectTree *node = getNode(objIds[i], content.Get());
+						if (node->getOrigName().compare(origName) == 0) {
+							objId = node->getId().c_str();
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	return objId;
+}
+
+const wchar_t * createFolder(const wchar_t * destId, const wchar_t * path)
+{
+	auto device = getSelectedDevice(NULL);
+	wchar_t *currId = (wchar_t*)destId;
+	wchar_t *tailId = nullptr;
+
+	if (device != nullptr) {
+		ComPtr<IPortableDeviceValues> objProps;
+		ComPtr<IPortableDeviceContent> content;
+
+		HRESULT hr = device->Content(&content);
+
+	}
+
+	return tailId;
 }
