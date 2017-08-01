@@ -498,10 +498,10 @@ bool hasChildren(const wchar_t * id)
 	return false;
 }
 
-const wchar_t * getObjByOrigName(const wchar_t * parentId, const wchar_t * origName)
+wstring getObjByOrigName(const wchar_t * parentId, const wchar_t * origName)
 {
 	auto device = getSelectedDevice(NULL);
-	const wchar_t *objId = nullptr;
+	wstring objId = L"";
 
 	if (device != nullptr) {
 		ComPtr<IPortableDeviceContent> content = nullptr;
@@ -518,7 +518,7 @@ const wchar_t * getObjByOrigName(const wchar_t * parentId, const wchar_t * origN
 				logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
 			}
 
-			while (hr == S_OK && objId == nullptr) {
+			while (hr == S_OK && objId == L"") {
 				DWORD fetched = 0;
 				PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
 				hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
@@ -529,7 +529,7 @@ const wchar_t * getObjByOrigName(const wchar_t * parentId, const wchar_t * origN
 					for (DWORD i = 0; i < fetched; i++) {
 						MTPObjectTree *node = getNode(objIds[i], content.Get());
 						if (node->getOrigName().compare(origName) == 0) {
-							objId = node->getId().c_str();
+							objId = node->getId();
 							break;
 						}
 					}
@@ -587,10 +587,10 @@ const wchar_t * createFolder(const wchar_t * destId, wchar_t * path)
 		wchar_t *buffer;
 		const wchar_t *subPath = wcstok_s(pathCpy, L"/", &buffer);
 		while (subPath != NULL) {
-			const wchar_t *existingId = getObjByOrigName(currId, subPath);
+			wstring existingId = getObjByOrigName(currId, subPath);
 			PWSTR folderId = nullptr;
 
-			if (existingId == nullptr) {
+			if (existingId == L"") {
 				objProps = getFolderProps(currId, subPath);
 				if (objProps == nullptr) {
 					currId = nullptr;
@@ -603,11 +603,14 @@ const wchar_t * createFolder(const wchar_t * destId, wchar_t * path)
 					currId = nullptr;
 					break;
 				}
-			}
 
-			wcsAllocCpy(&currId, folderId);
-			CoTaskMemFree(folderId);
-			folderId = nullptr;
+				wcsAllocCpy(&currId, folderId);
+				CoTaskMemFree(folderId);
+				folderId = nullptr;
+			}
+			else {
+				wcsAllocCpy(&currId, existingId.c_str());
+			}
 
 			subPath = wcstok_s(NULL, L"/", &buffer);
 		}

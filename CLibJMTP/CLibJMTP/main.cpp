@@ -18,10 +18,12 @@ int main() {
 		}
 		else {
 			auto content = getDeviceContent();
-			wcout << content->toPrettyString() << endl;
+			// wcout << content->toPrettyString() << endl;
 			delete content;
 
-			createFolder(L"o2", L"this/is/a/test");
+			auto fId = createFolder(L"o2", L"this/is/a/test");
+			wcout << L"new folder ID: " << fId << endl;
+			delete[] fId;
 		}
 	}
 }
