@@ -1,7 +1,7 @@
 #include <string>
 #include "commonHelpers.h"
 
-void wcsAllocCpy(wchar_t **destination, wchar_t* source) {
+void wcsAllocCpy(wchar_t **destination, const wchar_t* source) {
 	delete[](*destination);
 	*destination = nullptr;
 	if (source != nullptr) {
@@ -11,7 +11,7 @@ void wcsAllocCpy(wchar_t **destination, wchar_t* source) {
 	}
 }
 
-inline const wchar_t * pathDelimiter()
+const wchar_t * pathDelimiter()
 {
 #ifdef _WIN32
 	return L"\\";

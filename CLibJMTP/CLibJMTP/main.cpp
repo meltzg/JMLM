@@ -20,6 +20,8 @@ int main() {
 			auto content = getDeviceContent();
 			wcout << content->toPrettyString() << endl;
 			delete content;
+
+			createFolder(L"o2", L"this/is/a/test");
 		}
 	}
 }

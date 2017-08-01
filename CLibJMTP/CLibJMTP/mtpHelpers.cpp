@@ -530,6 +530,7 @@ const wchar_t * getObjByOrigName(const wchar_t * parentId, const wchar_t * origN
 						MTPObjectTree *node = getNode(objIds[i], content.Get());
 						if (node->getOrigName().compare(origName) == 0) {
 							objId = node->getId().c_str();
+							break;
 						}
 					}
 				}
@@ -540,11 +541,42 @@ const wchar_t * getObjByOrigName(const wchar_t * parentId, const wchar_t * origN
 	return objId;
 }
 
-const wchar_t * createFolder(const wchar_t * destId, const wchar_t * path)
+ComPtr<IPortableDeviceValues> getFolderProps(const wchar_t *parentId, const wchar_t *folderName) {
+	ComPtr<IPortableDeviceValues> folderProps = nullptr;
+
+	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
+		nullptr,
+		CLSCTX_INPROC_SERVER,
+		IID_PPV_ARGS(&folderProps));
+
+	if (SUCCEEDED(hr)) {
+		hr = folderProps->SetStringValue(WPD_OBJECT_PARENT_ID, parentId);
+	}
+	if (SUCCEEDED(hr)) {
+		hr = folderProps->SetStringValue(WPD_OBJECT_NAME, folderName);
+	}
+	if (SUCCEEDED(hr)) {
+		hr = folderProps->SetGuidValue(WPD_OBJECT_CONTENT_TYPE, WPD_CONTENT_TYPE_FOLDER);
+	}
+
+	if (SUCCEEDED(hr)) {
+		return folderProps;
+	}
+	else {
+		logErr("!!! Failed to retrieve folder properties: ", hr);
+		return nullptr;
+	}
+}
+
+const wchar_t * createFolder(const wchar_t * destId, wchar_t * path)
 {
 	auto device = getSelectedDevice(NULL);
-	wchar_t *currId = (wchar_t*)destId;
-	wchar_t *tailId = nullptr;
+	wchar_t *currId = nullptr;
+	wchar_t *pathCpy = nullptr;
+
+	wcsAllocCpy(&currId, destId);
+	wcsAllocCpy(&pathCpy, path);
+	//wchar_t *tailId = nullptr;
 
 	if (device != nullptr) {
 		ComPtr<IPortableDeviceValues> objProps;
@@ -552,7 +584,35 @@ const wchar_t * createFolder(const wchar_t * destId, const wchar_t * path)
 
 		HRESULT hr = device->Content(&content);
 
-	}
+		wchar_t *buffer;
+		const wchar_t *subPath = wcstok_s(pathCpy, L"/", &buffer);
+		while (subPath != NULL) {
+			const wchar_t *existingId = getObjByOrigName(currId, subPath);
+			PWSTR folderId = nullptr;
 
-	return tailId;
+			if (existingId == nullptr) {
+				objProps = getFolderProps(currId, subPath);
+				if (objProps == nullptr) {
+					currId = nullptr;
+					break;
+				}
+
+				hr = content->CreateObjectWithPropertiesOnly(objProps.Get(), &folderId);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to create folder: ", hr);
+					currId = nullptr;
+					break;
+				}
+			}
+
+			wcsAllocCpy(&currId, folderId);
+			CoTaskMemFree(folderId);
+			folderId = nullptr;
+
+			subPath = wcstok_s(NULL, L"/", &buffer);
+		}
+	}
+	delete[] pathCpy;
+
+	return currId;
 }
