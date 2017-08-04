@@ -11,12 +11,12 @@ void wcsAllocCpy(wchar_t **destination, const wchar_t* source) {
 	}
 }
 
-const wchar_t * pathDelimiter()
+const wchar_t pathDelimiter()
 {
 #ifdef _WIN32
-	return L"\\";
+	return L'\\';
 #else
-	return L"/";
+	return L'/';
 #endif
 }
 

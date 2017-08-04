@@ -2,6 +2,7 @@
 #include <sstream>
 #include <map>
 #include <stack>
+#include <shlwapi.h>
 
 #include "mtpHelpers.h"
 #include "commonHelpers.h"
@@ -498,7 +499,7 @@ bool hasChildren(const wchar_t * id)
 	return false;
 }
 
-wstring getObjByOrigName(const wchar_t * parentId, const wchar_t * origName)
+wstring getObjIdByOrigName(const wchar_t * parentId, const wchar_t * origName)
 {
 	auto device = getSelectedDevice(NULL);
 	wstring objId = L"";
@@ -568,7 +569,7 @@ ComPtr<IPortableDeviceValues> getFolderProps(const wchar_t *parentId, const wcha
 	}
 }
 
-const wchar_t * createFolder(const wchar_t * destId, wchar_t * path)
+const wchar_t * createFolder(const wchar_t * destId, const wchar_t * path)
 {
 	auto device = getSelectedDevice(NULL);
 	wchar_t *currId = nullptr;
@@ -576,7 +577,6 @@ const wchar_t * createFolder(const wchar_t * destId, wchar_t * path)
 
 	wcsAllocCpy(&currId, destId);
 	wcsAllocCpy(&pathCpy, path);
-	//wchar_t *tailId = nullptr;
 
 	if (device != nullptr) {
 		ComPtr<IPortableDeviceValues> objProps;
@@ -587,7 +587,7 @@ const wchar_t * createFolder(const wchar_t * destId, wchar_t * path)
 		wchar_t *buffer;
 		const wchar_t *subPath = wcstok_s(pathCpy, L"/", &buffer);
 		while (subPath != NULL) {
-			wstring existingId = getObjByOrigName(currId, subPath);
+			wstring existingId = getObjIdByOrigName(currId, subPath);
 			PWSTR folderId = nullptr;
 
 			if (existingId == L"") {
@@ -618,4 +618,208 @@ const wchar_t * createFolder(const wchar_t * destId, wchar_t * path)
 	delete[] pathCpy;
 
 	return currId;
+}
+
+ComPtr<IPortableDeviceValues> getFileProps(const wchar_t *parentId, const wchar_t *filename, IStream *fileStream) {
+	ComPtr<IPortableDeviceValues> fileProps = nullptr;
+
+	wstring strFile(filename);
+	size_t dotIndex = strFile.rfind(L".");
+
+	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
+		nullptr,
+		CLSCTX_INPROC_SERVER,
+		IID_PPV_ARGS(&fileProps));
+
+	if (FAILED(hr) && fileProps != nullptr) {
+		logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
+	}
+	else {
+		// Parent ID
+		hr = fileProps->SetStringValue(WPD_OBJECT_PARENT_ID, parentId);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to set WPD_OBJECT_PARENT_ID: ", hr);
+		}
+		else {
+			// File Size
+			STATSTG statstg = { 0 };
+			hr = fileStream->Stat(&statstg, STATFLAG_NONAME);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get file's total size: ", hr);
+			}
+			else {
+				hr = fileProps->SetUnsignedLargeIntegerValue(WPD_OBJECT_SIZE, statstg.cbSize.QuadPart);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to set WPD_OBJECT_SIZE: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				// Original file name
+				hr = fileProps->SetStringValue(WPD_OBJECT_ORIGINAL_FILE_NAME, filename);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to set WPD_OBJECT_ORIGINAL_FILE_NAME: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				// File name
+				wstring strName;
+
+				if (dotIndex == wstring::npos) {
+					strName = strFile;
+				}
+				else {
+					strName = strFile.substr(0, dotIndex - 1);
+				}
+
+				hr = fileProps->SetStringValue(WPD_OBJECT_NAME, strName.c_str());
+				if (FAILED(hr)) {
+					logErr("!!! Failed to set WPD_OBJECT_NAME: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				// Content type
+				hr = fileProps->SetGuidValue(WPD_OBJECT_CONTENT_TYPE, WPD_CONTENT_TYPE_AUDIO);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to set WPD_OBJECT_CONTENT_TYPE to WPD_CONTENT_TYPE_AUDIO: ", hr);
+				}
+				else if (dotIndex == wstring::npos) {
+					hr = E_FAIL;
+					logErr("!!! File has no extension: ", hr);
+				}
+				else {
+					GUID format;
+					wstring extension = strFile.substr(dotIndex, strFile.length());
+
+					if (_wcsicmp(extension.c_str(), L"flac") == 0) {
+						format = WPD_OBJECT_FORMAT_FLAC;
+					}
+					else if (_wcsicmp(extension.c_str(), L"mp3") == 0) {
+						format = WPD_OBJECT_FORMAT_MP3;
+					}
+					else if (_wcsicmp(extension.c_str(), L"wma") == 0) {
+						format = WPD_OBJECT_FORMAT_WMA;
+					}
+					else if (_wcsicmp(extension.c_str(), L"m4a") == 0) {
+						format = WPD_OBJECT_FORMAT_M4A;
+					}
+					else {
+						format = WPD_OBJECT_FORMAT_UNSPECIFIED;
+					}
+
+					hr = fileProps->SetGuidValue(WPD_OBJECT_FORMAT, format);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to set WPD_OBJECT_FORMAT: ", hr);
+					}
+				}
+			}
+		}
+	}
+
+	if (FAILED(hr)) {
+		fileProps = nullptr;
+	}
+	return fileProps;
+}
+
+HRESULT streamCopy(IStream *source, IStream *dest, DWORD transferSize) {
+	HRESULT hr = E_FAIL;
+
+	BYTE *objData = new (nothrow) BYTE[transferSize];
+	if (objData == nullptr) {
+		logErr("!!! Failed to allocate transfer buffer: ", hr);
+	}
+	else {
+		DWORD bytesRead = 0;
+		DWORD bytesWritten = 0;
+
+		do {
+			hr = source->Read(objData, transferSize, &bytesRead);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to read from source stream: ", hr);
+			}
+			else {
+				hr = dest->Write(objData, bytesRead, &bytesWritten);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to write to destination stream: ", hr);
+				}
+			}
+		} while (SUCCEEDED(hr) && bytesRead > 0);
+	}
+
+	delete[] objData;
+	objData = nullptr;
+
+	return hr;
+}
+
+bool transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wchar_t * destName)
+{
+	wstring strDestName(destName);
+	size_t lastSlash = strDestName.rfind(L'/');
+	wstring strDestFileName = strDestName.substr(lastSlash + 1, strDestName.length());
+	wstring strDestPath = strDestName.substr(0, lastSlash);
+
+	HRESULT hr = E_FAIL;
+
+	const wchar_t *fullDestId = createFolder(destId, strDestPath.c_str());
+
+	if (fullDestId != nullptr) {
+		auto device = getSelectedDevice(NULL);
+		if (device != nullptr) {
+			ComPtr<IPortableDeviceContent> content = nullptr;
+			hr = device->Content(&content);
+
+			wstring fileExists = getObjIdByOrigName(fullDestId, strDestFileName.c_str());
+			if (fileExists.length() != 0) {
+				std::wcerr << L"!!! File already exists: " << strDestFileName << endl;
+			}
+			else {
+				ComPtr<IStream> fileStream;
+				hr = SHCreateStreamOnFileEx(filepath, STGM_READ, FILE_ATTRIBUTE_NORMAL, FALSE, nullptr, &fileStream);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to open file for transfer: ", hr);
+				}
+				else {
+					ComPtr<IPortableDeviceValues> fileProps = getFileProps(fullDestId, strDestFileName.c_str(), fileStream.Get());
+					ComPtr<IStream> tmpStream;
+					ComPtr<IPortableDeviceDataStream> objStream;
+					DWORD optimalTransferSizeBytes = 0;
+
+					if (fileProps != nullptr) {
+						hr = content->CreateObjectWithPropertiesAndData(fileProps.Get(),
+							&tmpStream,
+							&optimalTransferSizeBytes,
+							nullptr);
+
+						if (SUCCEEDED(hr)) {
+							hr = tmpStream.As(&objStream);
+							if (FAILED(hr)) {
+								logErr("!!! Failed to QueryInterface for IPortableDeviceDataStream: ", hr);
+							}
+						}
+
+						if (SUCCEEDED(hr)) {
+							DWORD bytesWritten = 0;
+							hr = streamCopy(fileStream.Get(), objStream.Get(), optimalTransferSizeBytes);
+							if (FAILED(hr)) {
+								logErr("!!! Failed to transfer object to device: ", hr);
+							}
+						}
+					}
+
+					if (SUCCEEDED(hr)) {
+						hr = objStream->Commit(STGC_DEFAULT);
+						if (FAILED(hr)) {
+							logErr("!!! Failed to commit object to device: ", hr);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return SUCCEEDED(hr);
 }

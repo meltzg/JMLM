@@ -21,9 +21,8 @@ int main() {
 			// wcout << content->toPrettyString() << endl;
 			delete content;
 
-			auto fId = createFolder(L"o2", L"this/is/a/test");
-			wcout << L"new folder ID: " << fId << endl;
-			delete[] fId;
+			bool ret = transferToDevice(L"D:\\Users\\vader\\Desktop\\test space.mp3", L"o2", L"this/is/a/test.mp3");
+			cout << "Transfer successful: " << ret << endl;
 		}
 	}
 }
