@@ -21,7 +21,7 @@ int main() {
 			// wcout << content->toPrettyString() << endl;
 			delete content;
 
-			bool ret = transferToDevice(L"D:\\Users\\vader\\Desktop\\test space.mp3", L"o2", L"this/is/a/test.mp3");
+			bool ret = transferToDevice(L"D:/Users/vader/Desktop/test space.mp3", L"o2", L"this/is/a/test.mp3");
 			cout << "Transfer successful: " << ret << endl;
 		}
 	}

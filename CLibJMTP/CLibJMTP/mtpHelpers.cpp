@@ -823,3 +823,8 @@ bool transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wc
 
 	return SUCCEEDED(hr);
 }
+
+bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
+{
+	return false;
+}
