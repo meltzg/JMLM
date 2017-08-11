@@ -3,6 +3,7 @@
 #include <map>
 #include <stack>
 #include <shlwapi.h>
+#include <propvarutil.h>
 
 #include "mtpHelpers.h"
 #include "commonHelpers.h"
@@ -100,7 +101,7 @@ ComPtr<IPortableDeviceValues> getClientInfo()
 ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close)
 {
 	static ComPtr<IPortableDevice> device = nullptr;
-	
+
 	if (close) {
 		device = nullptr;
 	}
@@ -127,7 +128,7 @@ ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close)
 			}
 		}
 	}
-	
+
 	return device;
 }
 
@@ -304,6 +305,41 @@ MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
 	return root;
 }
 
+stack<PWSTR> getContentIDStack(wchar_t *rootId, IPortableDeviceContent *content) {
+	stack<wchar_t*> tmpIds, ids;
+	ids.push(rootId);
+	tmpIds.push(rootId);
+
+	while (!tmpIds.empty()) {
+		PWSTR id = tmpIds.top();
+		tmpIds.pop();
+
+		ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
+		HRESULT hr = content->EnumObjects(0, id, nullptr, &objIdsEnum);
+
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
+		}
+
+		while (hr == S_OK) {
+			DWORD fetched = 0;
+			PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
+			hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
+				objIds,
+				&fetched);
+
+			if (SUCCEEDED(hr)) {
+				for (DWORD i = 0; i < fetched; i++) {
+					tmpIds.push(objIds[i]);
+					ids.push(objIds[i]);
+				}
+			}
+		}
+	}
+
+	return ids;
+}
+
 void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, map<wstring, MTPObjectTree*> &idToObj) {
 	stack<PWSTR> ids;
 	ids.push(rootId);
@@ -334,6 +370,11 @@ void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, map<wstring
 					ids.push(objIds[i]);
 				}
 			}
+		}
+
+		if (wcscmp(id, rootId) != 0) {
+			CoTaskMemFree(id);
+			id = nullptr;
 		}
 	}
 }
@@ -538,7 +579,7 @@ wstring getObjIdByOrigName(const wchar_t * parentId, const wchar_t * origName)
 			}
 		}
 	}
-	
+
 	return objId;
 }
 
@@ -824,7 +865,87 @@ bool transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wc
 	return SUCCEEDED(hr);
 }
 
+bool removeFromDevice(const wchar_t * id) {
+	auto device = getSelectedDevice(NULL);
+	bool ret = false;
+
+	if (device != nullptr) {
+		ComPtr<IPortableDeviceContent> content;
+		HRESULT hr = device->Content(&content);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
+		}
+		else {
+			ComPtr<IPortableDevicePropVariantCollection> objsToDelete;
+
+			hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection,
+				nullptr,
+				CLSCTX_INPROC_SERVER,
+				IID_PPV_ARGS(&objsToDelete));
+
+			if (FAILED(hr)) {
+				logErr("!!! Failed to CoCreateInstance CLSID_PortableDevicePropVariantCollection: ", hr);
+			}
+			else {
+				PROPVARIANT pv = { 0 };
+				hr = InitPropVariantFromString(id, &pv);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to InitPropVariantFromString: ", hr);
+				}
+				else {
+					hr = objsToDelete->Add(&pv);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to add object to IPortableDevicePropVariantCollection: ", hr);
+					}
+					else {
+						hr = content->Delete(PORTABLE_DEVICE_DELETE_NO_RECURSION,
+							objsToDelete.Get(),
+							nullptr);
+
+						if (hr == S_OK) {
+							ret = true;
+						}
+						else {
+							logErr("!!! Failed to dete object: ", hr);
+						}
+					}
+				}
+
+				PropVariantClear(&pv);
+			}
+		}
+	}
+
+	return ret;
+}
+
 bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 {
+	auto device = getSelectedDevice(NULL);
+	ComPtr<IPortableDeviceContent> content = nullptr;
+	wchar_t *idCpy = nullptr;
+	wcsAllocCpy(&idCpy, id);
+
+	if (device != nullptr) {
+		HRESULT hr = device->Content(&content);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
+		}
+		else {
+			stack<PWSTR> idsToDelete = getContentIDStack(idCpy, content.Get());
+
+			while (!idsToDelete.empty()) {
+				PWSTR tmpId = idsToDelete.top();
+				idsToDelete.pop();
+
+				removeFromDevice(tmpId);
+
+				CoTaskMemFree(tmpId);
+				tmpId = nullptr;
+			}
+		}
+	}
+
+	delete[] idCpy;
 	return false;
 }
