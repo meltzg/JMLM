@@ -891,13 +891,13 @@ wstring transferToDevice(const wchar_t * filepath, const wchar_t * destId, const
 	return newIdStr;
 }
 
-bool removeFromDevice(const wchar_t * id) {
+HRESULT removeFromDevice(const wchar_t * id) {
 	auto device = getSelectedDevice(NULL);
-	bool ret = false;
+	HRESULT hr = E_FAIL;
 
 	if (device != nullptr) {
 		ComPtr<IPortableDeviceContent> content;
-		HRESULT hr = device->Content(&content);
+		hr = device->Content(&content);
 		if (FAILED(hr)) {
 			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
 		}
@@ -928,11 +928,8 @@ bool removeFromDevice(const wchar_t * id) {
 							objsToDelete.Get(),
 							nullptr);
 
-						if (hr == S_OK) {
-							ret = true;
-						}
-						else {
-							logErr("!!! Failed to dete object: ", hr);
+						if (hr != S_OK) {
+							logErr("!!! Failed to delete object: ", hr);
 						}
 					}
 				}
@@ -942,7 +939,7 @@ bool removeFromDevice(const wchar_t * id) {
 		}
 	}
 
-	return ret;
+	return hr;
 }
 
 bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
@@ -951,9 +948,10 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 	ComPtr<IPortableDeviceContent> content = nullptr;
 	wchar_t *idCpy = nullptr;
 	wcsAllocCpy(&idCpy, id);
+	HRESULT hr = E_FAIL;
 
 	if (device != nullptr) {
-		HRESULT hr = device->Content(&content);
+		hr = device->Content(&content);
 		if (FAILED(hr)) {
 			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
 		}
@@ -986,12 +984,11 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 
 			stack<PWSTR> idsToDelete = getContentIDStack(idCpy, content.Get());	// stack of children objects to delete
 
-			bool ret = true;
-			while (!idsToDelete.empty() && ret) {
+			while (!idsToDelete.empty() && hr == S_OK) {
 				PWSTR tmpId = idsToDelete.top();
 				idsToDelete.pop();
 
-				ret = ret && removeFromDevice(tmpId);
+				hr = removeFromDevice(tmpId);
 
 				if (wcscmp(tmpId, id) != 0) {
 					CoTaskMemFree(tmpId);
@@ -999,12 +996,11 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 				}
 			}
 
-			ret = true;
-			while (!parentIdsToDelete.empty() && ret) {
+			while (!parentIdsToDelete.empty() && hr == S_OK) {
 				wstring tmpId = parentIdsToDelete.front();
 				parentIdsToDelete.pop();
 				if (!hasChildren(tmpId.c_str())) {
-					ret = ret && removeFromDevice(tmpId.c_str());
+					hr = removeFromDevice(tmpId.c_str());
 				}
 				else {
 					break;
@@ -1014,5 +1010,5 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 	}
 
 	delete[] idCpy;
-	return false;
+	return hr == S_OK;
 }
