@@ -2,6 +2,7 @@
 #include <sstream>
 #include <map>
 #include <stack>
+#include <queue>
 #include <shlwapi.h>
 #include <propvarutil.h>
 
@@ -15,6 +16,7 @@ using std::ostringstream;
 using std::hex;
 using std::map;
 using std::stack;
+using std::queue;
 
 ComPtr<IPortableDeviceManager> getDeviceManager(bool close);
 ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close);
@@ -186,7 +188,7 @@ vector<MTPDevice> getDevices()
 	return devList;
 }
 
-MTPObjectTree* getNode(PWSTR id, IPortableDeviceContent *content) {
+MTPObjectTree* getNode(PCWSTR id, IPortableDeviceContent *content) {
 	MTPObjectTree* node = new MTPObjectTree(id);
 
 	//auto device = getSelectedDevice(nullptr);
@@ -531,6 +533,10 @@ bool hasChildren(const wchar_t * id)
 					&fetched);
 
 				if (fetched > 0) {
+					for (int i = 0; i < fetched; i++) {
+						CoTaskMemFree(objIds[i]);
+						objIds[i] = nullptr;
+					}
 					return true;
 				}
 			}
@@ -574,6 +580,9 @@ wstring getObjIdByOrigName(const wchar_t * parentId, const wchar_t * origName)
 							objId = node->getId();
 							break;
 						}
+
+						CoTaskMemFree(objIds[i]);
+						objIds[i] = nullptr;
 					}
 				}
 			}
@@ -610,7 +619,7 @@ ComPtr<IPortableDeviceValues> getFolderProps(const wchar_t *parentId, const wcha
 	}
 }
 
-const wchar_t * createFolder(const wchar_t * destId, const wchar_t * path)
+wstring createFolder(const wchar_t * destId, const wchar_t * path)
 {
 	auto device = getSelectedDevice(NULL);
 	wchar_t *currId = nullptr;
@@ -658,7 +667,10 @@ const wchar_t * createFolder(const wchar_t * destId, const wchar_t * path)
 	}
 	delete[] pathCpy;
 
-	return currId;
+	wstring ret(currId);
+	delete[] currId;
+
+	return ret;
 }
 
 ComPtr<IPortableDeviceValues> getFileProps(const wchar_t *parentId, const wchar_t *filename, IStream *fileStream) {
@@ -796,24 +808,25 @@ HRESULT streamCopy(IStream *source, IStream *dest, DWORD transferSize) {
 	return hr;
 }
 
-bool transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wchar_t * destName)
+wstring transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wchar_t * destName)
 {
 	wstring strDestName(destName);
 	size_t lastSlash = strDestName.rfind(L'/');
 	wstring strDestFileName = strDestName.substr(lastSlash + 1, strDestName.length());
 	wstring strDestPath = strDestName.substr(0, lastSlash);
+	wstring newIdStr;
 
 	HRESULT hr = E_FAIL;
 
-	const wchar_t *fullDestId = createFolder(destId, strDestPath.c_str());
+	wstring fullDestId = createFolder(destId, strDestPath.c_str());
 
-	if (fullDestId != nullptr) {
+	if (!fullDestId.empty()) {
 		auto device = getSelectedDevice(NULL);
 		if (device != nullptr) {
 			ComPtr<IPortableDeviceContent> content = nullptr;
 			hr = device->Content(&content);
 
-			wstring fileExists = getObjIdByOrigName(fullDestId, strDestFileName.c_str());
+			wstring fileExists = getObjIdByOrigName(fullDestId.c_str(), strDestFileName.c_str());
 			if (fileExists.length() != 0) {
 				std::wcerr << L"!!! File already exists: " << strDestFileName << endl;
 			}
@@ -824,7 +837,7 @@ bool transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wc
 					logErr("!!! Failed to open file for transfer: ", hr);
 				}
 				else {
-					ComPtr<IPortableDeviceValues> fileProps = getFileProps(fullDestId, strDestFileName.c_str(), fileStream.Get());
+					ComPtr<IPortableDeviceValues> fileProps = getFileProps(fullDestId.c_str(), strDestFileName.c_str(), fileStream.Get());
 					ComPtr<IStream> tmpStream;
 					ComPtr<IPortableDeviceDataStream> objStream;
 					DWORD optimalTransferSizeBytes = 0;
@@ -857,12 +870,25 @@ bool transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wc
 							logErr("!!! Failed to commit object to device: ", hr);
 						}
 					}
+
+					if (SUCCEEDED(hr)) {
+						PWSTR newId = nullptr;
+						hr = objStream->GetObjectID(&newId);
+						if (FAILED(hr)) {
+							logErr("!!! Failed to get newly transferred object's ID: ", hr);
+						}
+						else {
+							newIdStr.assign(newId);
+						}
+						CoTaskMemFree(newId);
+						newId = nullptr;
+					}
 				}
 			}
 		}
 	}
 
-	return SUCCEEDED(hr);
+	return newIdStr;
 }
 
 bool removeFromDevice(const wchar_t * id) {
@@ -932,16 +958,57 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
 		}
 		else {
-			stack<PWSTR> idsToDelete = getContentIDStack(idCpy, content.Get());
+			queue<wstring> parentIdsToDelete;	// Queue for parent objects to delete
+			
+			if (stopId != nullptr) {
+				MTPObjectTree *node = getNode(idCpy, content.Get());
+				bool stopFound = false;
+				while (!stopFound && !node->getParentId().empty()) {
+					if (node->getParentId().compare(stopId) == 0) {
+						stopFound = true;
+					}
+					else {
+						parentIdsToDelete.push(node->getParentId());
+					}
 
-			while (!idsToDelete.empty()) {
+					MTPObjectTree *tmpNode = getNode(node->getParentId().c_str(), content.Get());
+					delete node;
+					node = tmpNode;
+				}
+				delete node;
+
+				if (!stopFound) {
+					logErr("!!! Failed to find stopId.  No parent objects will be deleted: ", S_FALSE);
+					queue<wstring> empty;
+					std::swap(parentIdsToDelete, empty);
+				}
+			}
+
+			stack<PWSTR> idsToDelete = getContentIDStack(idCpy, content.Get());	// stack of children objects to delete
+
+			bool ret = true;
+			while (!idsToDelete.empty() && ret) {
 				PWSTR tmpId = idsToDelete.top();
 				idsToDelete.pop();
 
-				removeFromDevice(tmpId);
+				ret = ret && removeFromDevice(tmpId);
 
-				CoTaskMemFree(tmpId);
-				tmpId = nullptr;
+				if (wcscmp(tmpId, id) != 0) {
+					CoTaskMemFree(tmpId);
+					tmpId = nullptr;
+				}
+			}
+
+			ret = true;
+			while (!parentIdsToDelete.empty() && ret) {
+				wstring tmpId = parentIdsToDelete.front();
+				parentIdsToDelete.pop();
+				if (!hasChildren(tmpId.c_str())) {
+					ret = ret && removeFromDevice(tmpId.c_str());
+				}
+				else {
+					break;
+				}
 			}
 		}
 	}

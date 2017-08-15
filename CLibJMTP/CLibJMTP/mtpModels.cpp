@@ -117,7 +117,7 @@ wstring MTPObjectTree::toPrettyString(unsigned int level)
 	return wstr.str();
 }
 
-MTPObjectTree::MTPObjectTree(PWSTR id)
+MTPObjectTree::MTPObjectTree(PCWSTR id)
 {
 	init(id, nullptr, nullptr, nullptr, nullptr, 0, 0, vector<MTPObjectTree*>());
 }

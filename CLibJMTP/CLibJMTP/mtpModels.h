@@ -51,7 +51,7 @@ public:
 	vector<MTPObjectTree*> children;
 
 	MTPObjectTree() {};
-	MTPObjectTree(PWSTR id);
+	MTPObjectTree(PCWSTR id);
 	MTPObjectTree(const MTPObjectTree &other);
 	~MTPObjectTree();
 
