@@ -35,3 +35,4 @@ wstring getObjIdByOrigName(const wchar_t *parentId, const wchar_t *origName);
 wstring createFolder(const wchar_t *destId, const wchar_t *path);
 wstring transferToDevice(const wchar_t *filepath, const wchar_t *destId, const wchar_t *destName);
 bool removeFromDevice(const wchar_t *id, const wchar_t *stopId);
+bool transferFromDevice(const wchar_t *id, const wchar_t *destFilepath);

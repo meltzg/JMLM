@@ -3,6 +3,7 @@
 #include <map>
 #include <stack>
 #include <queue>
+#include <algorithm>
 #include <shlwapi.h>
 #include <propvarutil.h>
 
@@ -17,6 +18,7 @@ using std::hex;
 using std::map;
 using std::stack;
 using std::queue;
+using std::max;
 
 ComPtr<IPortableDeviceManager> getDeviceManager(bool close);
 ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close);
@@ -533,7 +535,7 @@ bool hasChildren(const wchar_t * id)
 					&fetched);
 
 				if (fetched > 0) {
-					for (int i = 0; i < fetched; i++) {
+					for (unsigned int i = 0; i < fetched; i++) {
 						CoTaskMemFree(objIds[i]);
 						objIds[i] = nullptr;
 					}
@@ -1010,5 +1012,90 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 	}
 
 	delete[] idCpy;
+	return hr == S_OK;
+}
+
+bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)
+{
+	auto device = getSelectedDevice(NULL);
+	HRESULT hr = E_FAIL;
+
+	if (device != nullptr) {
+		ComPtr<IPortableDeviceContent> content;
+		hr = device->Content(&content);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
+		}
+		else {
+			ComPtr<IPortableDeviceResources> resources;
+			ComPtr<IStream> objStream;
+			ComPtr<IStream> fileStream;
+
+			DWORD optimalTransferSizeBytes = 0;
+
+			hr = content->Transfer(&resources);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get IPortableDeviceResources from IPortableDeviceContent: ", hr);
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = resources->GetStream(id,
+					WPD_RESOURCE_DEFAULT,
+					STGM_READ,
+					&optimalTransferSizeBytes,
+					&objStream);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IStream for the object data", hr);
+				}
+			}
+
+			// create intermediate folders
+			if (SUCCEEDED(hr)) {
+				wchar_t *buffer;
+				wchar_t *pathCpy = nullptr;
+				wcsAllocCpy(&pathCpy, destFilepath);
+
+				for (unsigned int i = 0; i < wcslen(pathCpy); i++) {
+					if (pathCpy[i] == L'\0') {
+						break;
+					}
+					else if (pathCpy[i] == L'\\' || pathCpy[i] == L'/') {
+						pathCpy[i] = L'\0';
+						if (!CreateDirectoryW(pathCpy, NULL)) {
+							DWORD lastError = GetLastError();
+							if (lastError != ERROR_ALREADY_EXISTS) {
+								hr = HRESULT_FROM_WIN32(lastError);
+								logErr("!!! Failed to create intermediate directory: ", hr);
+								break;
+							}
+						}
+						pathCpy[i] = L'\\';
+					}
+				}
+
+				delete[] pathCpy;
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = SHCreateStreamOnFileEx(destFilepath,
+					STGM_CREATE | STGM_WRITE,
+					FILE_ATTRIBUTE_NORMAL,
+					FALSE,
+					nullptr,
+					&fileStream);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to create temporary file to transfer object: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = streamCopy(objStream.Get(), fileStream.Get(), optimalTransferSizeBytes);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to transfer object from device: ", hr);
+				}
+			}
+		}
+	}
+
 	return hr == S_OK;
 }
