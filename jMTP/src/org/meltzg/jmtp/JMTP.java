@@ -35,6 +35,9 @@ public class JMTP implements Closeable{
 	public native List<MTPDevice> getDevices();
 	public native boolean selectDevice(String id);
 	public native MTPObjectTree getDeviceContent();
+	public native String transferToDevice(String filepath, String destId, String destName);
+	public native boolean removeFromDevice(String id, String stopId);
+	public native boolean transferFromDevice(String id, String destFilepath);
 	
 	private native long initCOM();
 	private native void closeCOM();
