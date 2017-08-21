@@ -65,9 +65,6 @@ ComPtr<IPortableDeviceManager> getDeviceManager(bool close) {
 			logErr("!!! Failed to get CoCreateInstance: ", hr);
 			deviceManager = nullptr;
 		}
-		else {
-			//cout << "Device Manager initialized" << endl;
-		}
 	}
 
 	return deviceManager;
@@ -106,29 +103,28 @@ ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close)
 {
 	static ComPtr<IPortableDevice> device = nullptr;
 
-	if (close) {
+	if (close || id != nullptr) {
 		device = nullptr;
 	}
-	else {
-		auto manager = getDeviceManager();
-		auto info = getClientInfo();
 
-		if ((device == nullptr || id != nullptr) && manager != nullptr && info != nullptr) {
-			HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM,
-				nullptr,
-				CLSCTX_INPROC_SERVER,
-				IID_PPV_ARGS(&device));
+	auto manager = getDeviceManager();
+	auto info = getClientInfo();
 
+	if (id != nullptr && manager != nullptr && info != nullptr) {
+		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceFTM,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&device));
+
+		if (FAILED(hr)) {
+			device = nullptr;
+			logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceFTM: ", hr);
+		}
+		else {
+			hr = device->Open(id, info.Get());
 			if (FAILED(hr)) {
 				device = nullptr;
-				logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceFTM: ", hr);
-			}
-			else {
-				hr = device->Open(id, info.Get());
-				if (FAILED(hr)) {
-					device = nullptr;
-					logErr("!!! Failed to open device: ", hr);
-				}
+				logErr("!!! Failed to open device: ", hr);
 			}
 		}
 	}
@@ -192,8 +188,6 @@ vector<MTPDevice> getDevices()
 
 MTPObjectTree* getNode(PCWSTR id, IPortableDeviceContent *content) {
 	MTPObjectTree* node = new MTPObjectTree(id);
-
-	//auto device = getSelectedDevice(nullptr);
 
 	if (content != nullptr && id != nullptr) {
 		ComPtr<IPortableDeviceValues> objVals;
@@ -311,8 +305,11 @@ MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
 
 stack<PWSTR> getContentIDStack(wchar_t *rootId, IPortableDeviceContent *content) {
 	stack<wchar_t*> tmpIds, ids;
-	ids.push(rootId);
-	tmpIds.push(rootId);
+
+	if (rootId != nullptr && content != nullptr) {
+		ids.push(rootId);
+		tmpIds.push(rootId);
+	}
 
 	while (!tmpIds.empty()) {
 		PWSTR id = tmpIds.top();
@@ -341,12 +338,16 @@ stack<PWSTR> getContentIDStack(wchar_t *rootId, IPortableDeviceContent *content)
 		}
 	}
 
+
 	return ids;
 }
 
 void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, map<wstring, MTPObjectTree*> &idToObj) {
 	stack<PWSTR> ids;
-	ids.push(rootId);
+	
+	if (rootId != nullptr && content != nullptr) {
+		ids.push(rootId);
+	}
 
 	while (!ids.empty()) {
 		PWSTR id = ids.top();
@@ -419,20 +420,23 @@ void logErr(char * msg, HRESULT hr)
 PWSTR getDeviceDescription(PWSTR deviceId) {
 	DWORD descLength = 0;
 	PWSTR description = nullptr;
-	auto deviceManager = getDeviceManager();
 
-	HRESULT hr = deviceManager->GetDeviceDescription(deviceId, nullptr, &descLength);
-	if (FAILED(hr)) {
-		logErr("!!! Failed to get device description length: ", hr);
-	}
-	else if (descLength > 0) {
-		description = new (nothrow) WCHAR[descLength];
-		hr = deviceManager->GetDeviceDescription(deviceId, description, &descLength);
+	if (deviceId != nullptr) {
+		auto deviceManager = getDeviceManager();
 
+		HRESULT hr = deviceManager->GetDeviceDescription(deviceId, nullptr, &descLength);
 		if (FAILED(hr)) {
-			delete[] description;
-			description = nullptr;
-			logErr("!!! Failed to get device description: ", hr);
+			logErr("!!! Failed to get device description length: ", hr);
+		}
+		else if (descLength > 0) {
+			description = new (nothrow) WCHAR[descLength];
+			hr = deviceManager->GetDeviceDescription(deviceId, description, &descLength);
+
+			if (FAILED(hr)) {
+				delete[] description;
+				description = nullptr;
+				logErr("!!! Failed to get device description: ", hr);
+			}
 		}
 	}
 
@@ -442,20 +446,23 @@ PWSTR getDeviceDescription(PWSTR deviceId) {
 PWSTR getDeviceFriendlyName(PWSTR deviceId) {
 	DWORD fNameLength = 0;
 	PWSTR friendlyName = nullptr;
-	auto deviceManager = getDeviceManager();
 
-	HRESULT hr = deviceManager->GetDeviceFriendlyName(deviceId, nullptr, &fNameLength);
-	if (FAILED(hr)) {
-		logErr("!!! Failed to get device friendly name length: ", hr);
-	}
-	else if (fNameLength > 0) {
-		friendlyName = new (nothrow) WCHAR[fNameLength];
-		hr = deviceManager->GetDeviceFriendlyName(deviceId, friendlyName, &fNameLength);
+	if (deviceId != nullptr) {
+		auto deviceManager = getDeviceManager();
 
+		HRESULT hr = deviceManager->GetDeviceFriendlyName(deviceId, nullptr, &fNameLength);
 		if (FAILED(hr)) {
-			delete[] friendlyName;
-			friendlyName = nullptr;
-			logErr("!!! Failed to get device friendly name: ", hr);
+			logErr("!!! Failed to get device friendly name length: ", hr);
+		}
+		else if (fNameLength > 0) {
+			friendlyName = new (nothrow) WCHAR[fNameLength];
+			hr = deviceManager->GetDeviceFriendlyName(deviceId, friendlyName, &fNameLength);
+
+			if (FAILED(hr)) {
+				delete[] friendlyName;
+				friendlyName = nullptr;
+				logErr("!!! Failed to get device friendly name: ", hr);
+			}
 		}
 	}
 
@@ -465,20 +472,23 @@ PWSTR getDeviceFriendlyName(PWSTR deviceId) {
 PWSTR getDeviceManufacturer(PWSTR deviceId) {
 	DWORD manuLength = 0;
 	PWSTR manufacturer = nullptr;
-	auto deviceManager = getDeviceManager();
+	
+	if (deviceId != nullptr) {
+		auto deviceManager = getDeviceManager();
 
-	HRESULT hr = deviceManager->GetDeviceManufacturer(deviceId, nullptr, &manuLength);
-	if (FAILED(hr)) {
-		logErr("!!! Failed to get device manufacturer length: ", hr);
-	}
-	else if (manuLength > 0) {
-		manufacturer = new (nothrow) WCHAR[manuLength];
-		hr = deviceManager->GetDeviceManufacturer(deviceId, manufacturer, &manuLength);
-
+		HRESULT hr = deviceManager->GetDeviceManufacturer(deviceId, nullptr, &manuLength);
 		if (FAILED(hr)) {
-			delete[] manufacturer;
-			manufacturer = nullptr;
-			logErr("!!! Failed to get device manufacturer: ", hr);
+			logErr("!!! Failed to get device manufacturer length: ", hr);
+		}
+		else if (manuLength > 0) {
+			manufacturer = new (nothrow) WCHAR[manuLength];
+			hr = deviceManager->GetDeviceManufacturer(deviceId, manufacturer, &manuLength);
+
+			if (FAILED(hr)) {
+				delete[] manufacturer;
+				manufacturer = nullptr;
+				logErr("!!! Failed to get device manufacturer: ", hr);
+			}
 		}
 	}
 
@@ -512,7 +522,7 @@ bool hasChildren(const wchar_t * id)
 {
 	auto device = getSelectedDevice(NULL);
 
-	if (device != nullptr) {
+	if (device != nullptr && id != nullptr) {
 		ComPtr<IPortableDeviceContent> content = nullptr;
 		HRESULT hr = device->Content(&content);
 
@@ -553,7 +563,7 @@ wstring getObjIdByOrigName(const wchar_t * parentId, const wchar_t * origName)
 	auto device = getSelectedDevice(NULL);
 	wstring objId = L"";
 
-	if (device != nullptr) {
+	if (device != nullptr && parentId != nullptr && origName != nullptr) {
 		ComPtr<IPortableDeviceContent> content = nullptr;
 		HRESULT hr = device->Content(&content);
 
@@ -627,49 +637,55 @@ wstring createFolder(const wchar_t * destId, const wchar_t * path)
 	wchar_t *currId = nullptr;
 	wchar_t *pathCpy = nullptr;
 
-	wcsAllocCpy(&currId, destId);
-	wcsAllocCpy(&pathCpy, path);
+	if (destId != nullptr && path != nullptr) {
+		wcsAllocCpy(&currId, destId);
+		wcsAllocCpy(&pathCpy, path);
 
-	if (device != nullptr) {
-		ComPtr<IPortableDeviceValues> objProps;
-		ComPtr<IPortableDeviceContent> content;
+		if (device != nullptr) {
+			ComPtr<IPortableDeviceValues> objProps;
+			ComPtr<IPortableDeviceContent> content;
 
-		HRESULT hr = device->Content(&content);
+			HRESULT hr = device->Content(&content);
 
-		wchar_t *buffer;
-		const wchar_t *subPath = wcstok_s(pathCpy, L"/", &buffer);
-		while (subPath != NULL) {
-			wstring existingId = getObjIdByOrigName(currId, subPath);
-			PWSTR folderId = nullptr;
+			wchar_t *buffer;
+			const wchar_t *subPath = wcstok_s(pathCpy, L"/", &buffer);
+			while (subPath != NULL) {
+				wstring existingId = getObjIdByOrigName(currId, subPath);
+				PWSTR folderId = nullptr;
 
-			if (existingId == L"") {
-				objProps = getFolderProps(currId, subPath);
-				if (objProps == nullptr) {
-					currId = nullptr;
-					break;
+				if (existingId == L"") {
+					objProps = getFolderProps(currId, subPath);
+					if (objProps == nullptr) {
+						currId = nullptr;
+						break;
+					}
+
+					hr = content->CreateObjectWithPropertiesOnly(objProps.Get(), &folderId);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to create folder: ", hr);
+						currId = nullptr;
+						break;
+					}
+
+					wcsAllocCpy(&currId, folderId);
+					CoTaskMemFree(folderId);
+					folderId = nullptr;
+				}
+				else {
+					wcsAllocCpy(&currId, existingId.c_str());
 				}
 
-				hr = content->CreateObjectWithPropertiesOnly(objProps.Get(), &folderId);
-				if (FAILED(hr)) {
-					logErr("!!! Failed to create folder: ", hr);
-					currId = nullptr;
-					break;
-				}
-
-				wcsAllocCpy(&currId, folderId);
-				CoTaskMemFree(folderId);
-				folderId = nullptr;
+				subPath = wcstok_s(NULL, L"/", &buffer);
 			}
-			else {
-				wcsAllocCpy(&currId, existingId.c_str());
-			}
-
-			subPath = wcstok_s(NULL, L"/", &buffer);
 		}
+		delete[] pathCpy;
 	}
-	delete[] pathCpy;
 
-	wstring ret(currId);
+	wstring ret;
+
+	if (currId != nullptr) {
+		ret.assign(currId);
+	}
 	delete[] currId;
 
 	return ret;
@@ -678,212 +694,220 @@ wstring createFolder(const wchar_t * destId, const wchar_t * path)
 ComPtr<IPortableDeviceValues> getFileProps(const wchar_t *parentId, const wchar_t *filename, IStream *fileStream) {
 	ComPtr<IPortableDeviceValues> fileProps = nullptr;
 
-	wstring strFile(filename);
-	size_t dotIndex = strFile.rfind(L".");
+	if (filename != nullptr && fileStream != nullptr && parentId != nullptr) {
+		wstring strFile(filename);
+		size_t dotIndex = strFile.rfind(L".");
 
-	HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
-		nullptr,
-		CLSCTX_INPROC_SERVER,
-		IID_PPV_ARGS(&fileProps));
+		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&fileProps));
 
-	if (FAILED(hr) && fileProps != nullptr) {
-		logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
-	}
-	else {
-		// Parent ID
-		hr = fileProps->SetStringValue(WPD_OBJECT_PARENT_ID, parentId);
-		if (FAILED(hr)) {
-			logErr("!!! Failed to set WPD_OBJECT_PARENT_ID: ", hr);
+		if (FAILED(hr) && fileProps != nullptr) {
+			logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
 		}
 		else {
-			// File Size
-			STATSTG statstg = { 0 };
-			hr = fileStream->Stat(&statstg, STATFLAG_NONAME);
+			// Parent ID
+			hr = fileProps->SetStringValue(WPD_OBJECT_PARENT_ID, parentId);
 			if (FAILED(hr)) {
-				logErr("!!! Failed to get file's total size: ", hr);
+				logErr("!!! Failed to set WPD_OBJECT_PARENT_ID: ", hr);
 			}
 			else {
-				hr = fileProps->SetUnsignedLargeIntegerValue(WPD_OBJECT_SIZE, statstg.cbSize.QuadPart);
+				// File Size
+				STATSTG statstg = { 0 };
+				hr = fileStream->Stat(&statstg, STATFLAG_NONAME);
 				if (FAILED(hr)) {
-					logErr("!!! Failed to set WPD_OBJECT_SIZE: ", hr);
-				}
-			}
-
-			if (SUCCEEDED(hr)) {
-				// Original file name
-				hr = fileProps->SetStringValue(WPD_OBJECT_ORIGINAL_FILE_NAME, filename);
-				if (FAILED(hr)) {
-					logErr("!!! Failed to set WPD_OBJECT_ORIGINAL_FILE_NAME: ", hr);
-				}
-			}
-
-			if (SUCCEEDED(hr)) {
-				// File name
-				wstring strName;
-
-				if (dotIndex == wstring::npos) {
-					strName = strFile;
+					logErr("!!! Failed to get file's total size: ", hr);
 				}
 				else {
-					strName = strFile.substr(0, dotIndex - 1);
+					hr = fileProps->SetUnsignedLargeIntegerValue(WPD_OBJECT_SIZE, statstg.cbSize.QuadPart);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to set WPD_OBJECT_SIZE: ", hr);
+					}
 				}
 
-				hr = fileProps->SetStringValue(WPD_OBJECT_NAME, strName.c_str());
-				if (FAILED(hr)) {
-					logErr("!!! Failed to set WPD_OBJECT_NAME: ", hr);
+				if (SUCCEEDED(hr)) {
+					// Original file name
+					hr = fileProps->SetStringValue(WPD_OBJECT_ORIGINAL_FILE_NAME, filename);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to set WPD_OBJECT_ORIGINAL_FILE_NAME: ", hr);
+					}
 				}
-			}
 
-			if (SUCCEEDED(hr)) {
-				// Content type
-				hr = fileProps->SetGuidValue(WPD_OBJECT_CONTENT_TYPE, WPD_CONTENT_TYPE_AUDIO);
-				if (FAILED(hr)) {
-					logErr("!!! Failed to set WPD_OBJECT_CONTENT_TYPE to WPD_CONTENT_TYPE_AUDIO: ", hr);
-				}
-				else if (dotIndex == wstring::npos) {
-					hr = E_FAIL;
-					logErr("!!! File has no extension: ", hr);
-				}
-				else {
-					GUID format;
-					wstring extension = strFile.substr(dotIndex, strFile.length());
+				if (SUCCEEDED(hr)) {
+					// File name
+					wstring strName;
 
-					if (_wcsicmp(extension.c_str(), L"flac") == 0) {
-						format = WPD_OBJECT_FORMAT_FLAC;
-					}
-					else if (_wcsicmp(extension.c_str(), L"mp3") == 0) {
-						format = WPD_OBJECT_FORMAT_MP3;
-					}
-					else if (_wcsicmp(extension.c_str(), L"wma") == 0) {
-						format = WPD_OBJECT_FORMAT_WMA;
-					}
-					else if (_wcsicmp(extension.c_str(), L"m4a") == 0) {
-						format = WPD_OBJECT_FORMAT_M4A;
+					if (dotIndex == wstring::npos) {
+						strName = strFile;
 					}
 					else {
-						format = WPD_OBJECT_FORMAT_UNSPECIFIED;
+						strName = strFile.substr(0, dotIndex - 1);
 					}
 
-					hr = fileProps->SetGuidValue(WPD_OBJECT_FORMAT, format);
+					hr = fileProps->SetStringValue(WPD_OBJECT_NAME, strName.c_str());
 					if (FAILED(hr)) {
-						logErr("!!! Failed to set WPD_OBJECT_FORMAT: ", hr);
+						logErr("!!! Failed to set WPD_OBJECT_NAME: ", hr);
+					}
+				}
+
+				if (SUCCEEDED(hr)) {
+					// Content type
+					hr = fileProps->SetGuidValue(WPD_OBJECT_CONTENT_TYPE, WPD_CONTENT_TYPE_AUDIO);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to set WPD_OBJECT_CONTENT_TYPE to WPD_CONTENT_TYPE_AUDIO: ", hr);
+					}
+					else if (dotIndex == wstring::npos) {
+						hr = E_FAIL;
+						logErr("!!! File has no extension: ", hr);
+					}
+					else {
+						GUID format;
+						wstring extension = strFile.substr(dotIndex, strFile.length());
+
+						if (_wcsicmp(extension.c_str(), L"flac") == 0) {
+							format = WPD_OBJECT_FORMAT_FLAC;
+						}
+						else if (_wcsicmp(extension.c_str(), L"mp3") == 0) {
+							format = WPD_OBJECT_FORMAT_MP3;
+						}
+						else if (_wcsicmp(extension.c_str(), L"wma") == 0) {
+							format = WPD_OBJECT_FORMAT_WMA;
+						}
+						else if (_wcsicmp(extension.c_str(), L"m4a") == 0) {
+							format = WPD_OBJECT_FORMAT_M4A;
+						}
+						else {
+							format = WPD_OBJECT_FORMAT_UNSPECIFIED;
+						}
+
+						hr = fileProps->SetGuidValue(WPD_OBJECT_FORMAT, format);
+						if (FAILED(hr)) {
+							logErr("!!! Failed to set WPD_OBJECT_FORMAT: ", hr);
+						}
 					}
 				}
 			}
 		}
+
+		if (FAILED(hr)) {
+			fileProps = nullptr;
+		}
 	}
 
-	if (FAILED(hr)) {
-		fileProps = nullptr;
-	}
 	return fileProps;
 }
 
 HRESULT streamCopy(IStream *source, IStream *dest, DWORD transferSize) {
 	HRESULT hr = E_FAIL;
 
-	BYTE *objData = new (nothrow) BYTE[transferSize];
-	if (objData == nullptr) {
-		logErr("!!! Failed to allocate transfer buffer: ", hr);
-	}
-	else {
-		DWORD bytesRead = 0;
-		DWORD bytesWritten = 0;
+	if (source != nullptr && dest != nullptr) {
+		BYTE *objData = new (nothrow) BYTE[transferSize];
+		if (objData == nullptr) {
+			logErr("!!! Failed to allocate transfer buffer: ", hr);
+		}
+		else {
+			DWORD bytesRead = 0;
+			DWORD bytesWritten = 0;
 
-		do {
-			hr = source->Read(objData, transferSize, &bytesRead);
-			if (FAILED(hr)) {
-				logErr("!!! Failed to read from source stream: ", hr);
-			}
-			else {
-				hr = dest->Write(objData, bytesRead, &bytesWritten);
+			do {
+				hr = source->Read(objData, transferSize, &bytesRead);
 				if (FAILED(hr)) {
-					logErr("!!! Failed to write to destination stream: ", hr);
+					logErr("!!! Failed to read from source stream: ", hr);
 				}
-			}
-		} while (SUCCEEDED(hr) && bytesRead > 0);
-	}
+				else {
+					hr = dest->Write(objData, bytesRead, &bytesWritten);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to write to destination stream: ", hr);
+					}
+				}
+			} while (SUCCEEDED(hr) && bytesRead > 0);
+		}
 
-	delete[] objData;
-	objData = nullptr;
+		delete[] objData;
+		objData = nullptr;
+	}
 
 	return hr;
 }
 
 wstring transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wchar_t * destName)
 {
-	wstring strDestName(destName);
-	size_t lastSlash = strDestName.rfind(L'/');
-	wstring strDestFileName = strDestName.substr(lastSlash + 1, strDestName.length());
-	wstring strDestPath = strDestName.substr(0, lastSlash);
 	wstring newIdStr;
 
-	HRESULT hr = E_FAIL;
+	if (filepath != nullptr && destId != nullptr && destName != nullptr) {
+		wstring strDestName(destName);
+		size_t lastSlash = strDestName.rfind(L'/');
+		wstring strDestFileName = strDestName.substr(lastSlash + 1, strDestName.length());
+		wstring strDestPath = strDestName.substr(0, lastSlash);
 
-	wstring fullDestId = createFolder(destId, strDestPath.c_str());
+		HRESULT hr = E_FAIL;
 
-	if (!fullDestId.empty()) {
-		auto device = getSelectedDevice(NULL);
-		if (device != nullptr) {
-			ComPtr<IPortableDeviceContent> content = nullptr;
-			hr = device->Content(&content);
+		wstring fullDestId = createFolder(destId, strDestPath.c_str());
 
-			wstring fileExists = getObjIdByOrigName(fullDestId.c_str(), strDestFileName.c_str());
-			if (fileExists.length() != 0) {
-				std::wcerr << L"!!! File already exists: " << strDestFileName << endl;
-			}
-			else {
-				ComPtr<IStream> fileStream;
-				hr = SHCreateStreamOnFileEx(filepath, STGM_READ, FILE_ATTRIBUTE_NORMAL, FALSE, nullptr, &fileStream);
-				if (FAILED(hr)) {
-					logErr("!!! Failed to open file for transfer: ", hr);
+		if (!fullDestId.empty()) {
+			auto device = getSelectedDevice(NULL);
+			if (device != nullptr) {
+				ComPtr<IPortableDeviceContent> content = nullptr;
+				hr = device->Content(&content);
+
+				wstring fileExists = getObjIdByOrigName(fullDestId.c_str(), strDestFileName.c_str());
+				if (fileExists.length() != 0) {
+					std::wcerr << L"!!! File already exists: " << strDestFileName << endl;
 				}
 				else {
-					ComPtr<IPortableDeviceValues> fileProps = getFileProps(fullDestId.c_str(), strDestFileName.c_str(), fileStream.Get());
-					ComPtr<IStream> tmpStream;
-					ComPtr<IPortableDeviceDataStream> objStream;
-					DWORD optimalTransferSizeBytes = 0;
+					ComPtr<IStream> fileStream;
+					hr = SHCreateStreamOnFileEx(filepath, STGM_READ, FILE_ATTRIBUTE_NORMAL, FALSE, nullptr, &fileStream);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to open file for transfer: ", hr);
+					}
+					else {
+						ComPtr<IPortableDeviceValues> fileProps = getFileProps(fullDestId.c_str(), strDestFileName.c_str(), fileStream.Get());
+						ComPtr<IStream> tmpStream;
+						ComPtr<IPortableDeviceDataStream> objStream;
+						DWORD optimalTransferSizeBytes = 0;
 
-					if (fileProps != nullptr) {
-						hr = content->CreateObjectWithPropertiesAndData(fileProps.Get(),
-							&tmpStream,
-							&optimalTransferSizeBytes,
-							nullptr);
+						if (fileProps != nullptr) {
+							hr = content->CreateObjectWithPropertiesAndData(fileProps.Get(),
+								&tmpStream,
+								&optimalTransferSizeBytes,
+								nullptr);
 
-						if (SUCCEEDED(hr)) {
-							hr = tmpStream.As(&objStream);
-							if (FAILED(hr)) {
-								logErr("!!! Failed to QueryInterface for IPortableDeviceDataStream: ", hr);
+							if (SUCCEEDED(hr)) {
+								hr = tmpStream.As(&objStream);
+								if (FAILED(hr)) {
+									logErr("!!! Failed to QueryInterface for IPortableDeviceDataStream: ", hr);
+								}
+							}
+
+							if (SUCCEEDED(hr)) {
+								DWORD bytesWritten = 0;
+								hr = streamCopy(fileStream.Get(), objStream.Get(), optimalTransferSizeBytes);
+								if (FAILED(hr)) {
+									logErr("!!! Failed to transfer object to device: ", hr);
+								}
 							}
 						}
 
 						if (SUCCEEDED(hr)) {
-							DWORD bytesWritten = 0;
-							hr = streamCopy(fileStream.Get(), objStream.Get(), optimalTransferSizeBytes);
+							hr = objStream->Commit(STGC_DEFAULT);
 							if (FAILED(hr)) {
-								logErr("!!! Failed to transfer object to device: ", hr);
+								logErr("!!! Failed to commit object to device: ", hr);
 							}
 						}
-					}
 
-					if (SUCCEEDED(hr)) {
-						hr = objStream->Commit(STGC_DEFAULT);
-						if (FAILED(hr)) {
-							logErr("!!! Failed to commit object to device: ", hr);
+						if (SUCCEEDED(hr)) {
+							PWSTR newId = nullptr;
+							hr = objStream->GetObjectID(&newId);
+							if (FAILED(hr)) {
+								logErr("!!! Failed to get newly transferred object's ID: ", hr);
+							}
+							else {
+								newIdStr.assign(newId);
+							}
+							CoTaskMemFree(newId);
+							newId = nullptr;
 						}
-					}
-
-					if (SUCCEEDED(hr)) {
-						PWSTR newId = nullptr;
-						hr = objStream->GetObjectID(&newId);
-						if (FAILED(hr)) {
-							logErr("!!! Failed to get newly transferred object's ID: ", hr);
-						}
-						else {
-							newIdStr.assign(newId);
-						}
-						CoTaskMemFree(newId);
-						newId = nullptr;
 					}
 				}
 			}
@@ -897,7 +921,7 @@ HRESULT removeFromDevice(const wchar_t * id) {
 	auto device = getSelectedDevice(NULL);
 	HRESULT hr = E_FAIL;
 
-	if (device != nullptr) {
+	if (device != nullptr && id != nullptr) {
 		ComPtr<IPortableDeviceContent> content;
 		hr = device->Content(&content);
 		if (FAILED(hr)) {
@@ -949,17 +973,17 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 	auto device = getSelectedDevice(NULL);
 	ComPtr<IPortableDeviceContent> content = nullptr;
 	wchar_t *idCpy = nullptr;
-	wcsAllocCpy(&idCpy, id);
 	HRESULT hr = E_FAIL;
 
-	if (device != nullptr) {
+	if (device != nullptr && id != nullptr) {
+		wcsAllocCpy(&idCpy, id);
 		hr = device->Content(&content);
 		if (FAILED(hr)) {
 			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
 		}
 		else {
 			queue<wstring> parentIdsToDelete;	// Queue for parent objects to delete
-			
+
 			if (stopId != nullptr) {
 				MTPObjectTree *node = getNode(idCpy, content.Get());
 				bool stopFound = false;
@@ -1020,7 +1044,7 @@ bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)
 	auto device = getSelectedDevice(NULL);
 	HRESULT hr = E_FAIL;
 
-	if (device != nullptr) {
+	if (device != nullptr && id != nullptr && destFilepath != nullptr) {
 		ComPtr<IPortableDeviceContent> content;
 		hr = device->Content(&content);
 		if (FAILED(hr)) {
@@ -1051,7 +1075,6 @@ bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)
 
 			// create intermediate folders
 			if (SUCCEEDED(hr)) {
-				wchar_t *buffer;
 				wchar_t *pathCpy = nullptr;
 				wcsAllocCpy(&pathCpy, destFilepath);
 

@@ -34,7 +34,10 @@ JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_selectDevice
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDeviceContent
 (JNIEnv *env, jobject obj) {
 	MTPObjectTree *content = getDeviceContent();
-	jobject jContent = mtpotToJMtpot(env, content);
+	jobject jContent = nullptr;
+	if (content != nullptr) {
+		jContent = mtpotToJMtpot(env, content);
+	}
 	delete content;
 	return jContent;
 }

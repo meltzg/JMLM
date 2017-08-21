@@ -8,7 +8,7 @@ import org.meltzg.jmtp.models.MTPObjectTree;
 
 public class Main {
 	public static void main(String[] args) {		
-		JMTP j = new JMTP();
+		JMTP j = JMTP.getInstance();
 		List<MTPDevice> devices = j.getDevices();
 		
 		for (int i = 0; i < devices.size(); i++) {
@@ -23,18 +23,23 @@ public class Main {
 		}
 		in.close();
 		
-		System.out.println("Connected? " + j.selectDevice(devices.get(selection).getDeviceId()));
-//		MTPObjectTree oTree = j.getDeviceContent();
-//		System.out.println(oTree.toPrettyString());
+		boolean connected = j.selectDevice(devices.get(selection).getDeviceId());
+//		boolean connected = j.selectDevice("not_real");
+		System.out.println("Connected? " + connected);
 		
-		String newId = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test.mp3");
-		System.out.println("transfer to device successful: " + newId);
-		
-		boolean transSuccess = j.transferFromDevice(newId, "D:/Users/vader/Desktop/test/transfer.mp3");
-		System.out.println("transfer from device successful: " + transSuccess);
-		
-		boolean removeSuccess = j.removeFromDevice(newId, "o2");
-		System.out.println("remove from device successful: " + removeSuccess);
+		if (connected) {
+			MTPObjectTree oTree = j.getDeviceContent();
+			System.out.println(oTree.toPrettyString());
+			
+			String newId = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test.mp3");
+			System.out.println("transfer to device successful: " + newId);
+			
+			boolean transSuccess = j.transferFromDevice(newId, "D:/Users/vader/Desktop/test/transfer.mp3");
+			System.out.println("transfer from device successful: " + transSuccess);
+			
+			boolean removeSuccess = j.removeFromDevice(newId, "o2");
+			System.out.println("remove from device successful: " + removeSuccess);
+		}
 
 		try {
 			j.close();
