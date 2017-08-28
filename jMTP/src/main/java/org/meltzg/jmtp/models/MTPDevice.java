@@ -1,89 +1,42 @@
 package org.meltzg.jmtp.models;
 
+import org.meltzg.jmlm.device.models.ContentDevice;
+import org.meltzg.jmlm.device.models.ContentRoot;
+import org.meltzg.jmtp.JMTP;
+
 /**
  * Represents an MTP device
  * 
  * @author Greg Meltzer
  *
  */
-public class MTPDevice {
-	private String deviceId;
-	private String friendlyName;
-	private String description;
-	private String manufacturer;
+public class MTPDevice extends ContentDevice {
 	
 	/**
-	 * @param deviceId
-	 * @param friendlyName
-	 * @param description
-	 * @param manufacturer
+	 * 
 	 */
+	private static final long serialVersionUID = -3647677976999328571L;
+	JMTP j;
+
 	public MTPDevice(String deviceId, String friendlyName, String description, String manufacturer) {
-		this.deviceId = deviceId;
-		this.friendlyName = friendlyName;
-		this.description = description;
-		this.manufacturer = manufacturer;
-	}
-
-	/**
-	 * @return
-	 */
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	/**
-	 * @param deviceId
-	 */
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-
-	/**
-	 * @return
-	 */
-	public String getFriendlyName() {
-		return friendlyName;
-	}
-
-	/**
-	 * @param friendlyName
-	 */
-	public void setFriendlyName(String friendlyName) {
-		this.friendlyName = friendlyName;
-	}
-
-	/**
-	 * @return
-	 */
-	public String getDescription() {
-		return description;
-	}
-
-	/**
-	 * @param description
-	 */
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	/**
-	 * @return
-	 */
-	public String getManufacturer() {
-		return manufacturer;
-	}
-
-	/**
-	 * @param manufacturer
-	 */
-	public void setManufacturer(String manufacturer) {
-		this.manufacturer = manufacturer;
+		super(deviceId, friendlyName, description, manufacturer);
+		
+		j = JMTP.getInstance();
 	}
 
 	@Override
 	public String toString() {
 		return "MTPDevice [deviceId=" + deviceId + ", friendlyName=" + friendlyName + ", description=" + description
 				+ ", manufacturer=" + manufacturer + "]";
+	}
+
+	@Override
+	public void buildContentRoot() {
+		if (j.selectDevice(this.deviceId)) {
+			MTPObjectTree oTree = j.getDeviceContent();
+			if (oTree != null) {
+				this.contentRoot = new ContentRoot(oTree);
+			}
+		}		
 	}	
 }

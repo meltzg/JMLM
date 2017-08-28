@@ -1,9 +1,10 @@
 package org.meltzg.jmtp;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
+import org.meltzg.jmlm.device.access.ContentInterface;
+import org.meltzg.jmlm.device.models.ContentDevice;
 import org.meltzg.jmtp.models.MTPDevice;
 import org.meltzg.jmtp.models.MTPObjectTree;
 
@@ -13,7 +14,7 @@ import org.meltzg.jmtp.models.MTPObjectTree;
  * @author Greg Meltzer
  *
  */
-public class JMTP implements Closeable{
+public class JMTP extends ContentInterface {
 	
 	private static JMTP singleton;
 	
@@ -54,7 +55,7 @@ public class JMTP implements Closeable{
 	/**
 	 * @return a List of {@link MTPDevice}s currently attached to the machine
 	 */
-	public native List<MTPDevice> getDevices();
+	public native List<ContentDevice> getDevices();
 	/**
 	 * Selects a device by ID to operate on.  All subsequent content access method calls will use the selected device
 	 * 

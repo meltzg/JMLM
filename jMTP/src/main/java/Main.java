@@ -2,14 +2,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
+import org.meltzg.jmlm.device.models.ContentDevice;
+import org.meltzg.jmlm.device.models.ContentRoot;
 import org.meltzg.jmtp.JMTP;
 import org.meltzg.jmtp.models.MTPDevice;
-import org.meltzg.jmtp.models.MTPObjectRoot;
 
 public class Main {
 	public static void main(String[] args) {		
 		JMTP j = JMTP.getInstance();
-		List<MTPDevice> devices = j.getDevices();
+		List<ContentDevice> devices = j.getDevices();
 		
 		for (int i = 0; i < devices.size(); i++) {
 			System.out.println("[" + i + "] " + devices.get(i).getFriendlyName());
@@ -28,8 +29,9 @@ public class Main {
 		System.out.println("Connected? " + connected);
 		
 		if (connected) {
-			MTPObjectRoot oTree = new MTPObjectRoot(j.getDeviceContent());
-			System.out.println(oTree.toPrettyString());
+			ContentDevice device = devices.get(selection);
+			device.buildContentRoot();
+			System.out.println(device.getContentRoot().toPrettyString());
 			
 			String newId = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test.mp3");
 			System.out.println("transfer to device successful: " + newId);
