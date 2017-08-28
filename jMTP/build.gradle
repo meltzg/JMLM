@@ -21,12 +21,16 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-task generateHeader(type:Exec) {
+task makeBinDir() {
+    project.file('./bin').mkdirs()
+}
+
+task generateHeader(type:Exec, dependsOn:makeBinDir) {
     workingDir './bin'
     commandLine 'cmd', '/c', 'javah', '-jni', '-verbose', '-classpath', '../src/main/java', 'org.meltzg.jmtp.JMTP'
 }
 
-task buildLibJMTP(type:Exec, dependsOn:'generateHeader') {
+task buildLibJMTP(type:Exec, dependsOn:generateHeader) {
     workingDir '../CLibJMTP'
     commandLine 'cmd', '/c', 'MSbuild', './CLibJMTP.sln'
 }
