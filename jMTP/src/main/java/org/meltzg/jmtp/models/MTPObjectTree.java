@@ -31,6 +31,15 @@ public class MTPObjectTree {
 	 */
 	public MTPObjectTree(String id, String parentId, String persistId, String name, String origName, BigInteger size,
 			BigInteger capacity, List<MTPObjectTree> children) {
+		init(id, parentId, persistId, name, origName, size, capacity, children);
+	}
+	
+	public MTPObjectTree(MTPObjectTree other) {
+		init(other.id, other.parentId, other.persistId, other.name, other.origName, other.size, other.capacity, other.children);
+	}
+	
+	protected void init(String id, String parentId, String persistId, String name, String origName, BigInteger size,
+			BigInteger capacity, List<MTPObjectTree> children) {
 		this.id = id;
 		this.parentId = parentId;
 		this.persistId = persistId;
@@ -40,7 +49,7 @@ public class MTPObjectTree {
 		this.capacity = capacity;
 		this.children = children;
 	}
-	
+
 	/**
 	 * @return
 	 */

@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import org.meltzg.jmtp.JMTP;
 import org.meltzg.jmtp.models.MTPDevice;
-import org.meltzg.jmtp.models.MTPObjectTree;
+import org.meltzg.jmtp.models.MTPObjectRoot;
 
 public class Main {
 	public static void main(String[] args) {		
@@ -28,7 +28,7 @@ public class Main {
 		System.out.println("Connected? " + connected);
 		
 		if (connected) {
-			MTPObjectTree oTree = j.getDeviceContent();
+			MTPObjectRoot oTree = new MTPObjectRoot(j.getDeviceContent());
 			System.out.println(oTree.toPrettyString());
 			
 			String newId = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test.mp3");
