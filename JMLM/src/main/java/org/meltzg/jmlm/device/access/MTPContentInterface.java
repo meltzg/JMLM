@@ -1,9 +1,8 @@
-package org.meltzg.jmtp;
+package org.meltzg.jmlm.device.access;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.meltzg.jmlm.device.access.ContentInterface;
 import org.meltzg.jmlm.device.models.ContentDevice;
 import org.meltzg.jmtp.models.MTPDevice;
 import org.meltzg.jmtp.models.MTPObjectTree;
@@ -14,13 +13,13 @@ import org.meltzg.jmtp.models.MTPObjectTree;
  * @author Greg Meltzer
  *
  */
-public class JMTP extends ContentInterface {
+public class MTPContentInterface extends AbstractContentInterface {
 	
-	private static JMTP singleton;
+	private static MTPContentInterface singleton;
 	
 	private boolean closed = false;
 	
-	private JMTP() {
+	private MTPContentInterface() {
 		initCOM();
 	}
 	
@@ -30,7 +29,7 @@ public class JMTP extends ContentInterface {
 	 * Since the underlying native implementation maintains certain information at runtime, only a single instance of JMTP can be instantiated
 	 * @return The JMTP singleton
 	 */
-	public static JMTP getInstance() {
+	public static MTPContentInterface getInstance() {
 		return singleton;
 	}
 	
@@ -110,6 +109,6 @@ public class JMTP extends ContentInterface {
 	
 	static {
 		System.loadLibrary("libJMTP");
-		singleton = new JMTP();
+		singleton = new MTPContentInterface();
 	}
 }

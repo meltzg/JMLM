@@ -14,13 +14,13 @@ import org.meltzg.jmlm.device.models.ContentTree;
  * @author vader
  *
  */
-public abstract class ContentInterface implements Closeable {
+public abstract class AbstractContentInterface implements Closeable {
 
-	protected static ContentInterface singleton;
+	protected static AbstractContentInterface singleton;
 	
-	protected ContentInterface() {}
+	protected AbstractContentInterface() {}
 	
-	public static ContentInterface getInstance()  {
+	public static AbstractContentInterface getInstance()  {
 		return singleton;
 	}
 	

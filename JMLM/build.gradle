@@ -27,7 +27,7 @@ task makeBinDir() {
 
 task generateHeader(type:Exec, dependsOn:makeBinDir) {
     workingDir './bin'
-    commandLine 'cmd', '/c', 'javah', '-jni', '-verbose', '-classpath', '../src/main/java', 'org.meltzg.jmtp.JMTP'
+    commandLine 'cmd', '/c', 'javah', '-jni', '-verbose', '-classpath', '../src/main/java', 'org.meltzg.jmlm.device.access.MTPContentInterface'
 }
 
 task buildLibJMTP(type:Exec, dependsOn:generateHeader) {

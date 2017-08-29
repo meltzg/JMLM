@@ -1,8 +1,8 @@
 package org.meltzg.jmtp.models;
 
+import org.meltzg.jmlm.device.access.MTPContentInterface;
 import org.meltzg.jmlm.device.models.ContentDevice;
 import org.meltzg.jmlm.device.models.ContentRoot;
-import org.meltzg.jmtp.JMTP;
 
 /**
  * Represents an MTP device
@@ -16,12 +16,12 @@ public class MTPDevice extends ContentDevice {
 	 * 
 	 */
 	private static final long serialVersionUID = -3647677976999328571L;
-	JMTP j;
+	MTPContentInterface j;
 
 	public MTPDevice(String deviceId, String friendlyName, String description, String manufacturer) {
 		super(deviceId, friendlyName, description, manufacturer);
 		
-		j = JMTP.getInstance();
+		j = MTPContentInterface.getInstance();
 	}
 
 	@Override

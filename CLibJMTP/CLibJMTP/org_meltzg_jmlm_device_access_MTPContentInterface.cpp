@@ -1,7 +1,7 @@
 #include <jni.h>
 #include <iostream>
 
-#include "../../jMTP/bin/org_meltzg_jmtp_JMTP.h"
+#include "../../JMLM/bin/org_meltzg_jmlm_device_access_MTPContentInterface.h"
 #include "jniHelpers.h"
 #include "mtpHelpers.h"
 
@@ -11,7 +11,7 @@ using std::nothrow;
 
 using Microsoft::WRL::ComPtr;
 
-JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDevices
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_getDevices
 (JNIEnv *env, jobject obj) {
 	vector<MTPDevice> devList = getDevices();
 	jobject jDevList = getNewArrayList(env);
@@ -23,7 +23,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDevices
 	return jDevList;
 }
 
-JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_selectDevice
+JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_selectDevice
 (JNIEnv *env, jobject obj, jstring id) {
 	PWSTR cId = jStringToWchar(env, id);
 	auto device = getSelectedDevice(cId);
@@ -31,7 +31,7 @@ JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_selectDevice
 	return device != nullptr;
 }
 
-JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDeviceContent
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_getDeviceContent
 (JNIEnv *env, jobject obj) {
 	MTPObjectTree *content = getDeviceContent();
 	jobject jContent = nullptr;
@@ -42,7 +42,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmtp_JMTP_getDeviceContent
 	return jContent;
 }
 
-JNIEXPORT jstring JNICALL Java_org_meltzg_jmtp_JMTP_transferToDevice
+JNIEXPORT jstring JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_transferToDevice
 (JNIEnv *env, jobject obj, jstring filepath, jstring destId, jstring destName) {
 	PWSTR cFilepath = jStringToWchar(env, filepath);
 	PWSTR cDestId = jStringToWchar(env, destId);
@@ -62,7 +62,7 @@ JNIEXPORT jstring JNICALL Java_org_meltzg_jmtp_JMTP_transferToDevice
 	}
 }
 
-JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_removeFromDevice
+JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_removeFromDevice
 (JNIEnv *env, jobject obj, jstring id, jstring stopId) {
 	PWSTR cId = jStringToWchar(env, id);
 	PWSTR cStopId = jStringToWchar(env, stopId);
@@ -75,7 +75,7 @@ JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_removeFromDevice
 	return ret;
 }
 
-JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_transferFromDevice
+JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_transferFromDevice
 (JNIEnv *env, jobject obj, jstring id, jstring destFilepath) {
 	PWSTR cId = jStringToWchar(env, id);
 	PWSTR cDestFilepath = jStringToWchar(env, destFilepath);
@@ -88,13 +88,13 @@ JNIEXPORT jboolean JNICALL Java_org_meltzg_jmtp_JMTP_transferFromDevice
 	return ret;
 }
 
-JNIEXPORT jlong JNICALL Java_org_meltzg_jmtp_JMTP_initCOM
+JNIEXPORT jlong JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_initCOM
 (JNIEnv *env, jobject obj) {
 
 	return initCOM();
 }
 
-JNIEXPORT void JNICALL Java_org_meltzg_jmtp_JMTP_closeCOM
+JNIEXPORT void JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_closeCOM
 (JNIEnv *env, jobject obj) {
 	closeCOM();
 }

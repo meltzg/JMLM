@@ -2,14 +2,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
+import org.meltzg.jmlm.device.access.MTPContentInterface;
 import org.meltzg.jmlm.device.models.ContentDevice;
 import org.meltzg.jmlm.device.models.ContentRoot;
-import org.meltzg.jmtp.JMTP;
 import org.meltzg.jmtp.models.MTPDevice;
 
 public class Main {
 	public static void main(String[] args) {		
-		JMTP j = JMTP.getInstance();
+		MTPContentInterface j = MTPContentInterface.getInstance();
 		List<ContentDevice> devices = j.getDevices();
 		
 		for (int i = 0; i < devices.size(); i++) {

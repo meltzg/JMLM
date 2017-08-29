@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\jMTP\bin\org_meltzg_jmtp_JMTP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="jniHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -30,11 +27,11 @@
     <ClInclude Include="commonHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\jMTP\bin\org_meltzg_jmlm_device_access_MTPContentInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="org_meltzg_jmtp_JMTP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="jniHelpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,6 +45,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="commonHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="org_meltzg_jmlm_device_access_MTPContentInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
