@@ -121,7 +121,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\jMTP\bin\org_meltzg_jmlm_device_access_MTPContentInterface.h" />
+    <ClInclude Include="..\..\JMLM\bin\org_meltzg_jmlm_device_access_MTPContentInterface.h" />
     <ClInclude Include="commonHelpers.h" />
     <ClInclude Include="jniHelpers.h" />
     <ClInclude Include="mtpHelpers.h" />

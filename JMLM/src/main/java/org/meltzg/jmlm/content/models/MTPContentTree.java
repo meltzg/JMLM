@@ -1,9 +1,7 @@
-package org.meltzg.jmtp.models;
+package org.meltzg.jmlm.content.models;
 
 import java.math.BigInteger;
 import java.util.List;
-
-import org.meltzg.jmlm.device.models.ContentTree;
 
 /**
  * Represents the contents of an MTP device.  Each node is an object on the MTP device
@@ -11,11 +9,7 @@ import org.meltzg.jmlm.device.models.ContentTree;
  * @author Greg Meltzer
  *
  */
-public class MTPObjectTree extends ContentTree {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1366586814273218967L;
+public class MTPContentTree extends AbstractContentTree {
 	
 	private String persistId;
 	private String name;
@@ -30,17 +24,17 @@ public class MTPObjectTree extends ContentTree {
 	 * @param capacity
 	 * @param children
 	 */
-	public MTPObjectTree(String id, String parentId, String persistId, String name, String origName, BigInteger size,
-			BigInteger capacity, List<ContentTree> children) {
+	public MTPContentTree(String id, String parentId, String persistId, String name, String origName, BigInteger size,
+			BigInteger capacity, List<AbstractContentTree> children) {
 		init(id, parentId, persistId, name, origName, size, capacity, children);
 	}
 	
-	public MTPObjectTree(MTPObjectTree other) {
+	public MTPContentTree(MTPContentTree other) {
 		init(other.id, other.parentId, other.persistId, other.name, other.origName, other.size, other.capacity, other.children);
 	}
 	
 	protected void init(String id, String parentId, String persistId, String name, String origName, BigInteger size,
-			BigInteger capacity, List<ContentTree> children) {
+			BigInteger capacity, List<AbstractContentTree> children) {
 		super.init(id, parentId, origName, size, capacity, children);
 		this.persistId = persistId;
 		this.name = name;

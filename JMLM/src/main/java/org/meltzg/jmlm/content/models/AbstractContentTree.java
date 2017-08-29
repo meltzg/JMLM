@@ -1,33 +1,27 @@
-package org.meltzg.jmlm.device.models;
+package org.meltzg.jmlm.content.models;
 
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.List;
 
-public abstract class ContentTree implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 7574716142670335129L;
+public abstract class AbstractContentTree {
 
 	protected String id;
 	protected String parentId;
 	protected String origName;
 	protected BigInteger size;
 	protected BigInteger capacity;
-	protected List<ContentTree> children;
+	protected List<AbstractContentTree> children;
 	
-	public ContentTree() {
+	public AbstractContentTree() {
 		
 	}
 	
-	public ContentTree(ContentTree other) {
+	public AbstractContentTree(AbstractContentTree other) {
 		init(other.id, other.parentId, other.origName, other.size, other.capacity, other.children);
 	}
 	
 	protected void init(String id, String parentId, String origName, BigInteger size,
-			BigInteger capacity, List<ContentTree> children) {
+			BigInteger capacity, List<AbstractContentTree> children) {
 		this.id = id;
 		this.parentId = parentId;
 		this.origName = origName;
@@ -76,11 +70,11 @@ public abstract class ContentTree implements Serializable {
 		this.capacity = capacity;
 	}
 
-	public List<ContentTree> getChildren() {
+	public List<AbstractContentTree> getChildren() {
 		return children;
 	}
 
-	public void setChildren(List<ContentTree> children) {
+	public void setChildren(List<AbstractContentTree> children) {
 		this.children = children;
 	}
 
@@ -103,7 +97,7 @@ public abstract class ContentTree implements Serializable {
 		str += "MTPObjectTree [id=" + id + ", parentId=" + parentId + ", origName=" + origName + ", size=" + size
 				+ ", capacity=" + capacity + "]\n";
 
-		for (ContentTree oTree : children) {
+		for (AbstractContentTree oTree : children) {
 			str += oTree.toPrettyString(level + 1);
 		}
 

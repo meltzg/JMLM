@@ -27,7 +27,7 @@
     <ClInclude Include="commonHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\jMTP\bin\org_meltzg_jmlm_device_access_MTPContentInterface.h">
+    <ClInclude Include="..\..\JMLM\bin\org_meltzg_jmlm_device_access_MTPContentInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

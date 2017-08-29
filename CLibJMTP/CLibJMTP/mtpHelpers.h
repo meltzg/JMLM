@@ -20,6 +20,7 @@ ComPtr<IPortableDeviceValues> getClientInfo();
 ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id);
 vector<MTPDevice> getDevices();
 MTPObjectTree* getDeviceContent();
+MTPObjectTree* getDeviceContent(const wchar_t* rootId);
 
 string formatHR(HRESULT hr);
 void logErr(char *msg, HRESULT hr);

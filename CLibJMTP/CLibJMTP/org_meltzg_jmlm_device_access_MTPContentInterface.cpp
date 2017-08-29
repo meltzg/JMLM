@@ -31,13 +31,26 @@ JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterfac
 	return device != nullptr;
 }
 
-JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_getDeviceContent
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_getDeviceContent__
 (JNIEnv *env, jobject obj) {
 	MTPObjectTree *content = getDeviceContent();
 	jobject jContent = nullptr;
 	if (content != nullptr) {
 		jContent = mtpotToJMtpot(env, content);
 	}
+	delete content;
+	return jContent;
+}
+
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_getDeviceContent__Ljava_lang_String_2
+(JNIEnv *env, jobject obj, jstring rootId) {
+	PWSTR cRootId = jStringToWchar(env, rootId);
+	MTPObjectTree *content = getDeviceContent(cRootId);
+	jobject jContent = nullptr;
+	if (content != nullptr) {
+		jContent = mtpotToJMtpot(env, content);
+	}
+	delete[] cRootId;
 	delete content;
 	return jContent;
 }

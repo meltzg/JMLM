@@ -1,34 +1,34 @@
-package org.meltzg.jmlm.device.models;
+package org.meltzg.jmlm.content.models;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class ContentRoot extends ContentTree {
+public class ContentRoot extends AbstractContentTree {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1751834230504015884L;
 
-	protected Map<String, ContentTree> idToNodes;
+	protected Map<String, AbstractContentTree> idToNodes;
 
-	public ContentRoot(ContentTree root) {
+	public ContentRoot(AbstractContentTree root) {
 		super(root);
 		buildRootInfo();
 	}
 	
-	public Map<String, ContentTree> getIdToNodes() {
+	public Map<String, AbstractContentTree> getIdToNodes() {
 		return this.idToNodes;
 	}
 	
 	private void buildRootInfo() {
-		idToNodes = new HashMap<String, ContentTree>();
-		Stack<ContentTree> nodes = new Stack<ContentTree>();
+		idToNodes = new HashMap<String, AbstractContentTree>();
+		Stack<AbstractContentTree> nodes = new Stack<AbstractContentTree>();
 		
 		nodes.push(this);
 		while (!nodes.empty()) {
-			ContentTree node = nodes.pop();
+			AbstractContentTree node = nodes.pop();
 			idToNodes.put(node.getId(), node);
 			
 			if (node.getChildren() != null) {

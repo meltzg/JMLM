@@ -3,20 +3,16 @@
  */
 package org.meltzg.jmlm.device.models;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.meltzg.jmlm.content.models.ContentRoot;
 
 /**
  * @author vader
  *
  */
-public abstract class ContentDevice implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8721771175784020302L;
+public abstract class AbstractContentDevice {
 
 	protected String deviceId;
 	protected String friendlyName;
@@ -31,7 +27,7 @@ public abstract class ContentDevice implements Serializable {
 	 * @param description
 	 * @param manufacturer
 	 */
-	public ContentDevice(String deviceId, String friendlyName, String description, String manufacturer) {
+	public AbstractContentDevice(String deviceId, String friendlyName, String description, String manufacturer) {
 		this.deviceId = deviceId;
 		this.friendlyName = friendlyName;
 		this.description = description;

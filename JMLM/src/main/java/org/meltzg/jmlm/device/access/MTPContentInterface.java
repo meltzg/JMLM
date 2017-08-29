@@ -3,9 +3,9 @@ package org.meltzg.jmlm.device.access;
 import java.io.IOException;
 import java.util.List;
 
-import org.meltzg.jmlm.device.models.ContentDevice;
-import org.meltzg.jmtp.models.MTPDevice;
-import org.meltzg.jmtp.models.MTPObjectTree;
+import org.meltzg.jmlm.content.models.MTPContentTree;
+import org.meltzg.jmlm.device.models.AbstractContentDevice;
+import org.meltzg.jmlm.device.models.MTPContentDevice;
 
 /**
  * A singleton implementation for accessing and modifying the content of MTP devices
@@ -52,9 +52,9 @@ public class MTPContentInterface extends AbstractContentInterface {
 	}
 	
 	/**
-	 * @return a List of {@link MTPDevice}s currently attached to the machine
+	 * @return a List of {@link MTPContentDevice}s currently attached to the machine
 	 */
-	public native List<ContentDevice> getDevices();
+	public native List<AbstractContentDevice> getDevices();
 	/**
 	 * Selects a device by ID to operate on.  All subsequent content access method calls will use the selected device
 	 * 
@@ -63,11 +63,12 @@ public class MTPContentInterface extends AbstractContentInterface {
 	 */
 	public native boolean selectDevice(String id);
 	/**
-	 * Enumerates the selected device, returning an {@link MTPObjectTree}.  If unsuccessful, returns null.
+	 * Enumerates the selected device, returning an {@link MTPContentTree}.  If unsuccessful, returns null.
 	 * 
-	 * @return {@link MTPObjectTree} content of the selected device.
+	 * @return {@link MTPContentTree} content of the selected device.
 	 */
-	public native MTPObjectTree getDeviceContent();
+	public native MTPContentTree getDeviceContent();
+	public native MTPContentTree getDeviceContent(String rootId);
 	/**
 	 * Transfers a file from the computer to the selected device
 	 * 

@@ -3,14 +3,12 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.meltzg.jmlm.device.access.MTPContentInterface;
-import org.meltzg.jmlm.device.models.ContentDevice;
-import org.meltzg.jmlm.device.models.ContentRoot;
-import org.meltzg.jmtp.models.MTPDevice;
+import org.meltzg.jmlm.device.models.AbstractContentDevice;
 
 public class Main {
 	public static void main(String[] args) {		
 		MTPContentInterface j = MTPContentInterface.getInstance();
-		List<ContentDevice> devices = j.getDevices();
+		List<AbstractContentDevice> devices = j.getDevices();
 		
 		for (int i = 0; i < devices.size(); i++) {
 			System.out.println("[" + i + "] " + devices.get(i).getFriendlyName());
@@ -29,7 +27,7 @@ public class Main {
 		System.out.println("Connected? " + connected);
 		
 		if (connected) {
-			ContentDevice device = devices.get(selection);
+			AbstractContentDevice device = devices.get(selection);
 			device.buildContentRoot();
 			System.out.println(device.getContentRoot().toPrettyString());
 			

@@ -1,8 +1,8 @@
-package org.meltzg.jmtp.models;
+package org.meltzg.jmlm.device.models;
 
+import org.meltzg.jmlm.content.models.ContentRoot;
+import org.meltzg.jmlm.content.models.MTPContentTree;
 import org.meltzg.jmlm.device.access.MTPContentInterface;
-import org.meltzg.jmlm.device.models.ContentDevice;
-import org.meltzg.jmlm.device.models.ContentRoot;
 
 /**
  * Represents an MTP device
@@ -10,15 +10,11 @@ import org.meltzg.jmlm.device.models.ContentRoot;
  * @author Greg Meltzer
  *
  */
-public class MTPDevice extends ContentDevice {
+public class MTPContentDevice extends AbstractContentDevice {
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -3647677976999328571L;
 	MTPContentInterface j;
 
-	public MTPDevice(String deviceId, String friendlyName, String description, String manufacturer) {
+	public MTPContentDevice(String deviceId, String friendlyName, String description, String manufacturer) {
 		super(deviceId, friendlyName, description, manufacturer);
 		
 		j = MTPContentInterface.getInstance();
@@ -33,7 +29,7 @@ public class MTPDevice extends ContentDevice {
 	@Override
 	public void buildContentRoot() {
 		if (j.selectDevice(this.deviceId)) {
-			MTPObjectTree oTree = j.getDeviceContent();
+			MTPContentTree oTree = j.getDeviceContent();
 			if (oTree != null) {
 				this.contentRoot = new ContentRoot(oTree);
 			}

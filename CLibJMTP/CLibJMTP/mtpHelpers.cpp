@@ -386,6 +386,11 @@ void getDeviceContent(PWSTR rootId, IPortableDeviceContent *content, map<wstring
 
 MTPObjectTree* getDeviceContent()
 {
+	return getDeviceContent(WPD_DEVICE_OBJECT_ID);
+}
+
+MTPObjectTree * getDeviceContent(const wchar_t * rootId)
+{
 	auto device = getSelectedDevice(NULL);
 	map<wstring, MTPObjectTree*> oTreeNodes;
 	MTPObjectTree* oTree = nullptr;
@@ -397,7 +402,11 @@ MTPObjectTree* getDeviceContent()
 			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
 		}
 		else {
-			getDeviceContent(WPD_DEVICE_OBJECT_ID, content.Get(), oTreeNodes);
+			wchar_t *rootIdCpy = nullptr;
+			wcsAllocCpy(&rootIdCpy, rootId);
+			getDeviceContent(rootIdCpy, content.Get(), oTreeNodes);
+			delete[] rootIdCpy;
+
 			oTree = constructTree(oTreeNodes);
 		}
 	}

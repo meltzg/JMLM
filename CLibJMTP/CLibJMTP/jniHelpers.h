@@ -7,8 +7,8 @@
 #define JARRLIST "Ljava/util/ArrayList;"
 #define JLIST "Ljava/util/List;"
 #define JBIGINT "Ljava/math/BigInteger;"
-#define JMTPDEV "Lorg/meltzg/jmtp/models/MTPDevice;"
-#define JMTPOTREE "Lorg/meltzg/jmtp/models/MTPObjectTree;"
+#define JMTPDEV "Lorg/meltzg/jmlm/device/models/MTPContentDevice;"
+#define JMTPOTREE "Lorg/meltzg/jmlm/content/models/MTPContentTree;"
 
 #define JCONSTRUCTOR "<init>"
 
