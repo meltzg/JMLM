@@ -25,7 +25,7 @@ int main() {
 		else {
 			/*auto content = getDeviceContent();
 			wcout << content->toPrettyString() << endl;
-			delete content;*/
+			delete content;
 
 			wstring newObjId = transferToDevice(L"D:/Users/vader/Desktop/test space.mp3", L"o2", L"this/is/a/test.mp3");
 			wcout << "Transfer to device successful: " << newObjId << endl;
@@ -34,7 +34,7 @@ int main() {
 			wcout << "transfer from device successful: " << transferSuccess << endl;
 
 			bool deleteSuccess = removeFromDevice(newObjId.c_str(), L"o2");
-			wcout << "Delete successful: " << deleteSuccess << endl;
+			wcout << "Delete successful: " << deleteSuccess << endl;*/
 		}
 	}
 

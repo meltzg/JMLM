@@ -278,12 +278,12 @@ MTPObjectTree* getNode(PCWSTR id, IPortableDeviceContent *content) {
 	return node;
 }
 
-MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
+MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes, wstring rootParentId) {
 	map<wstring, vector<wstring>> idToCIds;
 	MTPObjectTree* root = nullptr;
 	for (auto node : idToNodes) {
 		idToCIds[node.second->getId()];
-		if (node.second->getParentId().length() == 0) {
+		if (node.second->getParentId() == rootParentId) {
 			root = node.second;
 		}
 		else {
@@ -301,6 +301,10 @@ MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
 	}
 
 	return root;
+}
+
+MTPObjectTree* constructTree(const map<wstring, MTPObjectTree*> & idToNodes) {
+	return constructTree(idToNodes, L"");
 }
 
 stack<PWSTR> getContentIDStack(wchar_t *rootId, IPortableDeviceContent *content) {
@@ -407,7 +411,7 @@ MTPObjectTree * getDeviceContent(const wchar_t * rootId)
 			getDeviceContent(rootIdCpy, content.Get(), oTreeNodes);
 			delete[] rootIdCpy;
 
-			oTree = constructTree(oTreeNodes);
+			oTree = constructTree(oTreeNodes, oTreeNodes[rootId]->getParentId().c_str());
 		}
 	}
 
@@ -640,11 +644,17 @@ ComPtr<IPortableDeviceValues> getFolderProps(const wchar_t *parentId, const wcha
 	}
 }
 
-wstring createFolder(const wchar_t * destId, const wchar_t * path)
+pair<wstring, wstring> createFolder(const wchar_t * destId, const wchar_t * path)
 {
 	auto device = getSelectedDevice(NULL);
 	wchar_t *currId = nullptr;
 	wchar_t *pathCpy = nullptr;
+
+	// first is the ID of the first folder created or empty if all folders exist
+	// second is the ID of the last folder in the path
+	pair<wstring, wstring> retPair;
+	retPair.first = L"";
+	retPair.second = L"";
 
 	if (destId != nullptr && path != nullptr) {
 		wcsAllocCpy(&currId, destId);
@@ -675,6 +685,9 @@ wstring createFolder(const wchar_t * destId, const wchar_t * path)
 						currId = nullptr;
 						break;
 					}
+					else if (retPair.first.empty()) {
+						retPair.first.assign(folderId);
+					}
 
 					wcsAllocCpy(&currId, folderId);
 					CoTaskMemFree(folderId);
@@ -690,14 +703,12 @@ wstring createFolder(const wchar_t * destId, const wchar_t * path)
 		delete[] pathCpy;
 	}
 
-	wstring ret;
-
 	if (currId != nullptr) {
-		ret.assign(currId);
+		retPair.second.assign(currId);
 	}
 	delete[] currId;
 
-	return ret;
+	return retPair;
 }
 
 ComPtr<IPortableDeviceValues> getFileProps(const wchar_t *parentId, const wchar_t *filename, IStream *fileStream) {
@@ -840,8 +851,9 @@ HRESULT streamCopy(IStream *source, IStream *dest, DWORD transferSize) {
 	return hr;
 }
 
-wstring transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wchar_t * destName)
+MTPObjectTree* transferToDevice(const wchar_t * filepath, const wchar_t * destId, const wchar_t * destName)
 {
+	MTPObjectTree *newSubTree = nullptr;
 	wstring newIdStr;
 
 	if (filepath != nullptr && destId != nullptr && destName != nullptr) {
@@ -852,7 +864,8 @@ wstring transferToDevice(const wchar_t * filepath, const wchar_t * destId, const
 
 		HRESULT hr = E_FAIL;
 
-		wstring fullDestId = createFolder(destId, strDestPath.c_str());
+		auto folderPair = createFolder(destId, strDestPath.c_str());
+		wstring fullDestId = folderPair.second;
 
 		if (!fullDestId.empty()) {
 			auto device = getSelectedDevice(NULL);
@@ -921,9 +934,20 @@ wstring transferToDevice(const wchar_t * filepath, const wchar_t * destId, const
 				}
 			}
 		}
+
+		if (!newIdStr.empty()) {
+			wstring subRoot;
+			if (folderPair.first.empty()) {
+				subRoot = newIdStr;
+			}
+			else {
+				subRoot = folderPair.first;
+			}
+			newSubTree = getDeviceContent(subRoot.c_str());
+		}
 	}
 
-	return newIdStr;
+	return newSubTree;
 }
 
 HRESULT removeFromDevice(const wchar_t * id) {

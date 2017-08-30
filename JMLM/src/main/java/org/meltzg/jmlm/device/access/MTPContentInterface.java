@@ -77,7 +77,7 @@ public class MTPContentInterface extends AbstractContentInterface {
 	 * @param destName The name to give the transfered file.  The '/' can be used to create intermediate folders (ex. "these/are/folders/for/file.mp3"
 	 * @return The ID of the file that was transfered.  null if unsuccessful
 	 */
-	public native String transferToDevice(String filepath, String destId, String destName);
+	public native MTPContentTree transferToDevice(String filepath, String destId, String destName);
 	/**
 	 * Removes an object from a device.  If the specified object has children, all of its children will also be removed.
 	 * If stopId is specified, all parent objects with no more children will be removed until stopId is reached or

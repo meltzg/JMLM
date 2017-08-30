@@ -13,7 +13,6 @@ public abstract class AbstractContentTree {
 	protected List<AbstractContentTree> children;
 	
 	public AbstractContentTree() {
-		
 	}
 	
 	public AbstractContentTree(AbstractContentTree other) {
