@@ -85,9 +85,9 @@ public class MTPContentInterface extends AbstractContentInterface {
 	 * 
 	 * @param id ID of the object to remove
 	 * @param stopId ID of the object to stop deleting parents
-	 * @return true if successful, false otherwise
+	 * @return ID of the highest node deleted
 	 */
-	public native boolean removeFromDevice(String id, String stopId);
+	public native String removeFromDevice(String id, String stopId);
 	/**
 	 * Transfers a file from the object to the computer
 	 * 

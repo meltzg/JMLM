@@ -78,17 +78,21 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface
 	return jNewSubTree;
 }
 
-JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_removeFromDevice
+JNIEXPORT jstring JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_removeFromDevice
 (JNIEnv *env, jobject obj, jstring id, jstring stopId) {
 	PWSTR cId = jStringToWchar(env, id);
 	PWSTR cStopId = jStringToWchar(env, stopId);
 
-	bool ret = removeFromDevice(cId, cStopId);
+	wstring ret = removeFromDevice(cId, cStopId);
+	jstring jRet = nullptr;
+	if (!ret.empty()) {
+		jRet = wcharToJString(env, ret.c_str());
+	}
 
 	delete[] cId;
 	delete[] cStopId;
 
-	return ret;
+	return jRet;
 }
 
 JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_transferFromDevice

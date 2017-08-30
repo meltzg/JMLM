@@ -1001,12 +1001,13 @@ HRESULT removeFromDevice(const wchar_t * id) {
 	return hr;
 }
 
-bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
+wstring removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 {
 	auto device = getSelectedDevice(NULL);
 	ComPtr<IPortableDeviceContent> content = nullptr;
 	wchar_t *idCpy = nullptr;
 	HRESULT hr = E_FAIL;
+	wstring highestDeleted;
 
 	if (device != nullptr && id != nullptr) {
 		wcsAllocCpy(&idCpy, id);
@@ -1048,6 +1049,9 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 				idsToDelete.pop();
 
 				hr = removeFromDevice(tmpId);
+				if (hr == S_OK) {
+					highestDeleted.assign(tmpId);
+				}
 
 				if (wcscmp(tmpId, id) != 0) {
 					CoTaskMemFree(tmpId);
@@ -1060,6 +1064,9 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 				parentIdsToDelete.pop();
 				if (!hasChildren(tmpId.c_str())) {
 					hr = removeFromDevice(tmpId.c_str());
+					if (hr == S_OK) {
+						highestDeleted.assign(tmpId);
+					}
 				}
 				else {
 					break;
@@ -1069,7 +1076,7 @@ bool removeFromDevice(const wchar_t * id, const wchar_t * stopId)
 	}
 
 	delete[] idCpy;
-	return hr == S_OK;
+	return highestDeleted;
 }
 
 bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)

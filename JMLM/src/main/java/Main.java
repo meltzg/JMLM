@@ -32,16 +32,25 @@ public class Main {
 //			device.buildContentRoot();
 //			System.out.println(device.getContentRoot().toPrettyString());
 			
-			MTPContentTree newSubTree = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test1.mp3");
-			System.out.println("transfer1 to device successful: " + newSubTree);
-			newSubTree = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test2.mp3");
-			System.out.println("transfer2 to device successful: " + newSubTree);
+			MTPContentTree newSubTree1 = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test1.mp3");
+			System.out.println("transfer1 to device successful: " + newSubTree1);
+			MTPContentTree newSubTree2 = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test2.mp3");
+			System.out.println("transfer2 to device successful: " + newSubTree2);
 			
-//			boolean transSuccess = j.transferFromDevice(newId, "D:/Users/vader/Desktop/test/transfer.mp3");
-//			System.out.println("transfer from device successful: " + transSuccess);
-//			
-//			boolean removeSuccess = j.removeFromDevice(newId, "o2");
-//			System.out.println("remove from device successful: " + removeSuccess);
+			if (newSubTree1 != null && newSubTree2 != null) {
+				String id1 = newSubTree1.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
+				String id2 = newSubTree2.getId();
+
+				boolean transSuccess1 = j.transferFromDevice(id1, "D:/Users/vader/Desktop/test/transfer1.mp3");
+				System.out.println("transfer1 from device successful: " + transSuccess1);
+				boolean transSuccess2 = j.transferFromDevice(id2, "D:/Users/vader/Desktop/test/transfer2.mp3");
+				System.out.println("transfer2 from device successful: " + transSuccess2);
+				
+				String removeSuccess1 = j.removeFromDevice(id1, "o2");
+				System.out.println("remove1 from device successful: " + removeSuccess1);
+				String removeSuccess2 = j.removeFromDevice(id2, "o2");
+				System.out.println("remove2 from device successful: " + removeSuccess2);	
+			}
 		}
 
 		try {

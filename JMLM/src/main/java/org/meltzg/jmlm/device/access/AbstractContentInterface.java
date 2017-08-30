@@ -29,6 +29,6 @@ public abstract class AbstractContentInterface implements Closeable {
 	public abstract AbstractContentTree getDeviceContent();
 	public abstract AbstractContentTree getDeviceContent(String rootId);
 	public abstract AbstractContentTree transferToDevice(String filepath, String destId, String destName);
-	public abstract boolean removeFromDevice(String id, String stopId);
+	public abstract String removeFromDevice(String id, String stopId);
 	public abstract boolean transferFromDevice(String id, String destFilepath);
 }

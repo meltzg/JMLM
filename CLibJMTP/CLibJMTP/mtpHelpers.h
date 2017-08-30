@@ -36,5 +36,5 @@ bool hasChildren(const wchar_t *id);
 wstring getObjIdByOrigName(const wchar_t *parentId, const wchar_t *origName);
 pair<wstring, wstring> createFolder(const wchar_t *destId, const wchar_t *path);
 MTPObjectTree* transferToDevice(const wchar_t *filepath, const wchar_t *destId, const wchar_t *destName);
-bool removeFromDevice(const wchar_t *id, const wchar_t *stopId);
+wstring removeFromDevice(const wchar_t *id, const wchar_t *stopId);
 bool transferFromDevice(const wchar_t *id, const wchar_t *destFilepath);
