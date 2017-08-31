@@ -29,8 +29,8 @@ public class Main {
 		
 		if (connected) {
 			AbstractContentDevice device = devices.get(selection);
-//			device.buildContentRoot();
-//			System.out.println(device.getContentRoot().toPrettyString());
+			device.buildContentRoot();
+			System.out.println(device.getContentRoot().toPrettyString());
 			
 			MTPContentTree newSubTree1 = j.transferToDevice("D:/Users/vader/Desktop/test space.mp3", "o2", "this/is/a/test1.mp3");
 			System.out.println("transfer1 to device successful: " + newSubTree1);
