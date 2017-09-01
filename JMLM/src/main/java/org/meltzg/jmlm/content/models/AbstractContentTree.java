@@ -93,13 +93,24 @@ public abstract class AbstractContentTree {
 			str += "\t";
 		}
 
-		str += "MTPObjectTree [id=" + id + ", parentId=" + parentId + ", origName=" + origName + ", size=" + size
-				+ ", capacity=" + capacity + "]\n";
+		str += toString(false) + "\n";
 
 		for (AbstractContentTree oTree : children) {
 			str += oTree.toPrettyString(level + 1);
 		}
 
 		return str;		
+	}
+
+	protected String toString(boolean includeChildren) {
+		String str = "AbstractContentTree [id=" + id + ", parentId=" + parentId + ", origName=" + origName + ", size=" + size
+				+ ", capacity=" + capacity;
+		if (includeChildren) {
+			str += ", children=" + children;
+		}
+		
+		str += "]";
+		
+		return str;
 	}
 }

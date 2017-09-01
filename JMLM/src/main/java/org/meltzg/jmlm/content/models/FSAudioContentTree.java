@@ -86,5 +86,20 @@ public class FSAudioContentTree extends AbstractContentTree {
 	public void setTrackNum(int trackNum) {
 		this.trackNum = trackNum;
 	}
+
+	@Override
+	protected String toString(boolean includeChildren) {
+		String str = "FSAudioContentTree [path=" + path + ", genre=" + genre + ", artist=" + artist + ", album=" + album
+				+ ", title=" + title + ", discNum=" + discNum + ", trackNum=" + trackNum + ", id=" + id + ", parentId="
+				+ parentId + ", origName=" + origName + ", size=" + size + ", capacity=" + capacity;
+		
+		if (includeChildren) {
+			str += ", children=" + children;
+		}
+		
+		str += "]";
+		
+		return str;
+	}
 	
 }
