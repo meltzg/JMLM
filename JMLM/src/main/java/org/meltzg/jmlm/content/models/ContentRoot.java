@@ -22,7 +22,7 @@ public class ContentRoot extends AbstractContentTree {
 		return this.idToNodes;
 	}
 	
-	private void buildRootInfo() {
+	public void buildRootInfo() {
 		idToNodes = new HashMap<String, AbstractContentTree>();
 		Stack<AbstractContentTree> nodes = new Stack<AbstractContentTree>();
 		

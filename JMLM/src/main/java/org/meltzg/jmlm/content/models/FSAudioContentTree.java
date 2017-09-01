@@ -1,6 +1,7 @@
 package org.meltzg.jmlm.content.models;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,11 +15,10 @@ public class FSAudioContentTree extends AbstractContentTree {
 	private int discNum;
 	private int trackNum;
 
-	public FSAudioContentTree(String parentId, String origName, String path, BigInteger size,
-			BigInteger capacity, List<AbstractContentTree> children) {
+	public FSAudioContentTree(String parentId, String origName, String path, BigInteger size) {
 		
 		UUID id = UUID.randomUUID();
-		init(id.toString(), parentId, origName, path, size, capacity, children);
+		init(id.toString(), parentId, origName, path, size, BigInteger.ZERO, new ArrayList<AbstractContentTree>());
 	}
 
 	public FSAudioContentTree(FSAudioContentTree other) {
@@ -28,6 +28,7 @@ public class FSAudioContentTree extends AbstractContentTree {
 	protected void init(String id, String parentId, String origName, String path, BigInteger size, BigInteger capacity,
 			List<AbstractContentTree> children) {
 		super.init(id, parentId, origName, size, capacity, children);
+		this.path = path;
 	}
 
 	public String getPath() {

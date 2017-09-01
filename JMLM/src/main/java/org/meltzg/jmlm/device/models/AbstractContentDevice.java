@@ -32,6 +32,8 @@ public abstract class AbstractContentDevice {
 		this.friendlyName = friendlyName;
 		this.description = description;
 		this.manufacturer = manufacturer;
+		
+		libraryRoots = new HashMap<String, ContentRoot>();
 	}
 	
 	public abstract void buildContentRoot();
@@ -45,9 +47,6 @@ public abstract class AbstractContentDevice {
 		}
 		if (rootId == null) {
 			throw new NullPointerException("Root ID cannot be null");
-		}
-		if (libraryRoots == null) {
-			libraryRoots = new HashMap<String, ContentRoot>();
 		}
 		if (libraryRoots.get(rootId) != null) {
 			throw new IllegalArgumentException("Device already has a library root with ID: " + rootId);
