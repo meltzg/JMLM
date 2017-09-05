@@ -7,12 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.meltzg.jmlm.content.models.ContentRoot;
+import org.meltzg.jmlm.device.access.IContentInterface;
 
 /**
  * @author vader
  *
  */
-public abstract class AbstractContentDevice {
+public abstract class AbstractContentDevice implements IContentInterface {
 
 	protected String deviceId;
 	protected String friendlyName;

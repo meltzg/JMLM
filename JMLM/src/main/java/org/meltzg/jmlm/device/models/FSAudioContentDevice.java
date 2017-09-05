@@ -13,6 +13,7 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
+import org.meltzg.jmlm.content.models.AbstractContentTree;
 import org.meltzg.jmlm.content.models.ContentRoot;
 import org.meltzg.jmlm.content.models.FSAudioContentTree;
 
@@ -94,5 +95,35 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 			this.contentRoot.buildRootInfo();
 			this.libraryRoots.put(tmpRoot.getId(), new ContentRoot(tmpRoot));
 		}
+	}
+
+	@Override
+	public AbstractContentTree getDeviceContent() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AbstractContentTree getDeviceContent(String rootId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AbstractContentTree transferToDevice(String filepath, String destId, String destName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String removeFromDevice(String id, String stopId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean transferFromDevice(String id, String destFilepath) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }
