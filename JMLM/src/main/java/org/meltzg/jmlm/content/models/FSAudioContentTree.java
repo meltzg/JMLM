@@ -1,9 +1,20 @@
 package org.meltzg.jmlm.content.models;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagException;
 
 public class FSAudioContentTree extends AbstractContentTree {
 
@@ -102,4 +113,30 @@ public class FSAudioContentTree extends AbstractContentTree {
 		return str;
 	}
 	
+	public static FSAudioContentTree createNode(String pId, File file) {
+		FSAudioContentTree cNode = new FSAudioContentTree(pId, file.getName(), file.getAbsolutePath(),
+				BigInteger.ZERO);
+
+		boolean isValid = true;
+		if (!file.isDirectory()) {
+			try {
+				AudioFile af = AudioFileIO.read(file);
+				Tag tag = af.getTag();
+				cNode.setAlbum(tag.getFirst(FieldKey.ALBUM));
+				cNode.setArtist(tag.getFirst(FieldKey.ARTIST));
+				String strDiscNum = tag.getFirst(FieldKey.DISC_NO);
+				cNode.setDiscNum(strDiscNum.length() > 0 ? Integer.parseInt(strDiscNum) : 1);
+				cNode.setGenre(tag.getFirst(FieldKey.GENRE));
+				cNode.setTitle(tag.getFirst(FieldKey.TITLE));
+				cNode.setTrackNum(Integer.parseInt(tag.getFirst(FieldKey.TRACK)));
+			} catch (CannotReadException | IOException | TagException | ReadOnlyFileException
+					| InvalidAudioFrameException e) {
+				isValid = false;
+				System.err.println(file.getAbsolutePath());
+			}
+			cNode.setSize(BigInteger.valueOf(file.length()));
+		}
+		
+		return isValid ? cNode : null;
+	}
 }

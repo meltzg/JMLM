@@ -14,11 +14,11 @@ import org.meltzg.jmlm.device.models.AbstractContentDevice;
  * @author vader
  *
  */
-public abstract class AbstractContentInterface implements Closeable, IContentInterface {
+public abstract class AbstractNativeContentInterface implements Closeable, IContentInterface {
 
 	protected static IContentInterface singleton;
 	
-	protected AbstractContentInterface() {}
+	protected AbstractNativeContentInterface() {}
 	
 	public static IContentInterface getInstance()  {
 		return singleton;
