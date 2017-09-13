@@ -13,7 +13,7 @@ import org.meltzg.jmlm.device.models.MTPContentDevice;
  * @author Greg Meltzer
  *
  */
-public class MTPContentInterface extends AbstractContentInterface {
+public class MTPContentInterface extends AbstractNativeContentInterface {
 	
 	private static MTPContentInterface singleton;
 	

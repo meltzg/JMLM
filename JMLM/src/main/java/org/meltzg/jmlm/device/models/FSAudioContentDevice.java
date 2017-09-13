@@ -1,18 +1,16 @@
 package org.meltzg.jmlm.device.models;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.Stack;
 
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
-import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
-import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.Tag;
-import org.jaudiotagger.tag.TagException;
 import org.meltzg.jmlm.content.models.AbstractContentTree;
 import org.meltzg.jmlm.content.models.ContentRoot;
 import org.meltzg.jmlm.content.models.FSAudioContentTree;
@@ -60,30 +58,9 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 				}
 
 				for (File c : children) {
-					FSAudioContentTree cNode = new FSAudioContentTree(node.getId(), c.getName(), c.getAbsolutePath(),
-							BigInteger.ZERO);
+					FSAudioContentTree cNode = FSAudioContentTree.createNode(node.getId(), c);
 
-					boolean isValid = true;
-					if (!c.isDirectory()) {
-						try {
-							AudioFile af = AudioFileIO.read(c);
-							Tag tag = af.getTag();
-							cNode.setAlbum(tag.getFirst(FieldKey.ALBUM));
-							cNode.setArtist(tag.getFirst(FieldKey.ARTIST));
-							String strDiscNum = tag.getFirst(FieldKey.DISC_NO);
-							cNode.setDiscNum(strDiscNum.length() > 0 ? Integer.parseInt(strDiscNum) : 1);
-							cNode.setGenre(tag.getFirst(FieldKey.GENRE));
-							cNode.setTitle(tag.getFirst(FieldKey.TITLE));
-							cNode.setTrackNum(Integer.parseInt(tag.getFirst(FieldKey.TRACK)));
-						} catch (CannotReadException | IOException | TagException | ReadOnlyFileException
-								| InvalidAudioFrameException e) {
-							isValid = false;
-							System.err.println(c.getAbsolutePath());
-						}
-						cNode.setSize(BigInteger.valueOf(c.length()));
-					}
-
-					if (isValid) {
+					if (cNode != null) {
 						nodes.push(cNode);
 						node.getChildren().add(cNode);
 					}
@@ -98,32 +75,157 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 	}
 
 	@Override
-	public AbstractContentTree getDeviceContent() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public AbstractContentTree getDeviceContent(String rootId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public AbstractContentTree transferToDevice(String filepath, String destId, String destName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String removeFromDevice(String id, String stopId) {
-		// TODO Auto-generated method stub
-		return null;
+	public FSAudioContentTree transferToDevice(String filepath, String destId, String destName) {
+		FSAudioContentTree newSubTree = null;
+		try {
+			validateId(destId);
+			File toTransfer = new File(filepath);
+			if (!toTransfer.exists()) {
+				throw new FileNotFoundException(filepath);
+			}
+			if (toTransfer.isDirectory()) {
+				throw new IllegalArgumentException("!!! Cannot transfer directory to device: " + filepath);
+			}
+			
+			int lastSlash = destName.lastIndexOf('/');
+			String destFolder = destName.substring(0, lastSlash);
+			String destFile = destName.substring(lastSlash);
+			FolderPair folderPair = createFolder(destId, destFolder);
+			if (folderPair != null && folderPair.lastId != null) {
+				FSAudioContentTree parent = ((FSAudioContentTree) contentRoot.getIdToNodes().get(folderPair.lastId));
+				String transferPath = parent.getPath() + destFile;
+				Files.copy(toTransfer.toPath(), Paths.get(transferPath));
+				FSAudioContentTree newNode = FSAudioContentTree.createNode(parent.getId(), new File(transferPath));
+				if (newNode != null) {
+					parent.getChildren().add(newNode);
+					contentRoot.buildRootInfo();
+					if (folderPair.createdId != null) {
+						newSubTree = (FSAudioContentTree) contentRoot.getIdToNodes().get(folderPair.createdId);
+					} else {
+						newSubTree = newNode;
+					}
+				} else {
+					System.err.println("!!! Failed to transfer file to device: " + filepath);
+				}
+			} else {
+				System.err.println("!!! Failed to create intermediate folders: " + destFolder);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return newSubTree;
 	}
 
 	@Override
 	public boolean transferFromDevice(String id, String destFilepath) {
-		// TODO Auto-generated method stub
-		return false;
+		boolean success = false;
+		try {
+			validateId(id);
+			Path filepath = Paths.get(((FSAudioContentTree) (this.contentRoot.getIdToNodes().get(id))).getPath());
+			Path destpath = Paths.get(destFilepath);
+			
+			int lastSlash = destFilepath.replace('\\', '/').lastIndexOf('/');
+			(new File(destFilepath.substring(0, lastSlash))).mkdirs();
+
+			Files.copy(filepath, destpath);
+
+			success = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			success = false;
+		}
+		return success;
+	}
+
+	@Override
+	protected boolean removeFromDevice(String id) {
+		boolean success = false;
+		try {
+			validateId(id);
+			AbstractContentTree deleteNode = this.contentRoot.getIdToNodes().get(id);
+			if (deleteNode.getId().equals(contentRoot.getId())) {
+				throw new IllegalArgumentException("Cannot delete device root");
+			} else if (deleteNode.getChildren().size() > 0) {
+				throw new IllegalArgumentException("Cannot delete object with children");
+			} else {
+				Path filepath = Paths.get(((FSAudioContentTree) deleteNode).getPath());
+				Files.delete(filepath);
+				List<AbstractContentTree> children = this.contentRoot.getIdToNodes().get(deleteNode.getParentId()).getChildren();
+				for (int i = 0; i < children.size(); i++) {
+					if (children.get(i).getId().equals(id)) {
+						children.remove(i);
+						break;
+					}
+				}
+				contentRoot.buildRootInfo();
+				success = true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			success = false;
+		}
+		return success;
+	}
+	
+	FolderPair createFolder(String destId, String path) {
+		FolderPair folderPair = new FolderPair();
+		try {
+			validateId(destId);
+			Queue<FSAudioContentTree> newFolders = new LinkedList<FSAudioContentTree>();
+			FSAudioContentTree newRoot = null;
+			String fullPath = ((FSAudioContentTree) contentRoot.getIdToNodes().get(destId)).getPath();
+			String[] pathParts = path.split("/");
+			String tmpId = destId;
+			
+			for (String part : pathParts) {
+				String existingId = getObjIdByOrigName(tmpId, part);
+				fullPath += "/" + part;
+				if (existingId == null) {
+					File f = new File(fullPath);
+					if (!f.mkdir()) {
+						System.err.println("!!! Failed to create folder: " + fullPath);
+						folderPair = null;
+						break;
+					}
+					
+					FSAudioContentTree tmpNode = FSAudioContentTree.createNode(tmpId, f);
+					tmpId = tmpNode.getId();
+					if (newRoot == null) {
+						newRoot = tmpNode;
+					}
+					newFolders.add(tmpNode);
+					
+					if (folderPair.createdId == null) {
+						folderPair.createdId = tmpId;
+					}
+				} else {
+					tmpId = existingId;
+				}
+			}
+			
+			if (folderPair != null) {
+				folderPair.lastId = tmpId;
+			}
+			
+			if (!newFolders.isEmpty()) {
+				FSAudioContentTree tmpNode = newFolders.poll();
+				while (tmpNode != null && !newFolders.isEmpty()) {
+					FSAudioContentTree child = newFolders.poll();
+					tmpNode.getChildren().add(child);
+					tmpNode = child;
+				}
+				contentRoot.getIdToNodes().get(newRoot.getParentId()).getChildren().add(newRoot);
+				contentRoot.buildRootInfo();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return folderPair;
+	}
+	
+	private class FolderPair {
+		public String createdId;	// when creating folders, this is the highest folder created (null if none created)
+		public String lastId;		// when creating folders this should be the ID of the last folder created/returned
 	}
 }
