@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.UUID;
 
+import org.meltzg.jmlm.content.models.AbstractContentTree;
 import org.meltzg.jmlm.content.models.ContentRoot;
 import org.meltzg.jmlm.content.models.FSAudioContentTree;
 import org.meltzg.jmlm.content.models.MTPContentTree;
@@ -14,7 +15,7 @@ import org.meltzg.jmlm.device.models.FSAudioContentDevice;
 public class Main {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
-		
+
 		String testFile = "D:/Users/vader/Desktop/test space.mp3";
 
 		System.out.println("[0] MTP");
@@ -25,8 +26,12 @@ public class Main {
 			testType = in.nextInt();
 		}
 
+		AbstractContentDevice device = null;
+		String libRootId1 = null;
+		String libRootId2 = null;
+		MTPContentInterface j = MTPContentInterface.getInstance();
+
 		if (testType == 0) {
-			MTPContentInterface j = MTPContentInterface.getInstance();
 			List<AbstractContentDevice> devices = j.getDevices();
 
 			for (int i = 0; i < devices.size(); i++) {
@@ -45,72 +50,56 @@ public class Main {
 			System.out.println("Connected? " + connected);
 
 			if (connected) {
-				AbstractContentDevice device = devices.get(selection);
+				device = devices.get(selection);
 				device.buildContentRoot();
-				System.out.println(device.getContentRoot().toPrettyString());
-
-				MTPContentTree newSubTree1 = j.transferToDevice(testFile, "o2",
-						"this/is/a/test1.mp3");
-				System.out.println("transfer1 to device successful: " + newSubTree1);
-				MTPContentTree newSubTree2 = j.transferToDevice(testFile, "o2",
-						"this/is/a/test2.mp3");
-				System.out.println("transfer2 to device successful: " + newSubTree2);
-
-				if (newSubTree1 != null && newSubTree2 != null) {
-					String id1 = newSubTree1.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
-					String id2 = newSubTree2.getId();
-
-					boolean transSuccess1 = j.transferFromDevice(id1, "D:/Users/vader/Desktop/test/transfer1.mp3");
-					System.out.println("transfer1 from device successful: " + transSuccess1);
-					boolean transSuccess2 = j.transferFromDevice(id2, "D:/Users/vader/Desktop/test/transfer2.mp3");
-					System.out.println("transfer2 from device successful: " + transSuccess2);
-
-					String removeSuccess1 = j.removeFromDevice(id1, "o2");
-					System.out.println("remove1 from device successful: " + removeSuccess1);
-					String removeSuccess2 = j.removeFromDevice(id2, "o2");
-					System.out.println("remove2 from device successful: " + removeSuccess2);
-				}
+				libRootId1 = libRootId2 = "o2";
 			}
 
-			try {
-				j.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		} else if (testType == 1) {
-			FSAudioContentDevice device = new FSAudioContentDevice(UUID.randomUUID().toString(), "Test Device", "test fsa", null);
+			device = new FSAudioContentDevice(UUID.randomUUID().toString(), "Test Device", "test fsa", null);
 			device.addContentRoot("D:\\Users\\vader\\Music");
 			device.addContentRoot("D:\\Users\\vader\\Music2");
-			System.out.println(device.getContentRoot().toPrettyString());
-			System.out.println("-------------------");
-			
 			Map<String, ContentRoot> libRoots = device.getLibraryRoots();
 			String[] libRootIds = libRoots.keySet().toArray(new String[libRoots.keySet().size()]);
-			FSAudioContentTree newSubTree1 = device.transferToDevice(testFile, libRootIds[0], "this/is/a/test1.mp3");
-			System.out.println("transfer1 to device successful: " + newSubTree1);
-			FSAudioContentTree newSubTree2 = device.transferToDevice(testFile, libRootIds[1], "this/is/a/test2.mp3");
-			System.out.println("transfer2 to device successful: " + newSubTree2);
-			System.out.println(device.getContentRoot().toPrettyString());
+			libRootId1 = libRootIds[0];
+			libRootId2 = libRootIds[1];
+		}
+
+		if (device != null && libRootId1 != null && libRootId2 != null) {
+//			System.out.println(device.getContentRoot().toPrettyString());
 			System.out.println("-------------------");
-			
-			if (newSubTree1 != null && newSubTree2 != null)	{
+
+			AbstractContentTree newSubTree1 = device.transferToDevice(testFile, libRootId1, "this/is/a/test1.mp3");
+			System.out.println("transfer1 to device successful: " + newSubTree1);
+			AbstractContentTree newSubTree2 = device.transferToDevice(testFile, libRootId2, "this/is/a/test2.mp3");
+			System.out.println("transfer2 to device successful: " + newSubTree2);
+//			System.out.println(device.getContentRoot().toPrettyString());
+			System.out.println("-------------------");
+
+			if (newSubTree1 != null && newSubTree2 != null) {
 				String id1 = newSubTree1.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
-				String id2 = newSubTree2.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
-				
+				String id2 = testType == 0 ? newSubTree2.getId() : newSubTree2.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
+
 				boolean transSuccess1 = device.transferFromDevice(id1, "D:/Users/vader/Desktop/test/transfer1.mp3");
 				System.out.println("transfer1 from device successful: " + transSuccess1);
 				boolean transSuccess2 = device.transferFromDevice(id2, "D:/Users/vader/Desktop/test/transfer2.mp3");
 				System.out.println("transfer2 from device successful: " + transSuccess2);
 				System.out.println("-------------------");
-				
-				String removeSuccess1 = device.removeFromDevice(id1, libRootIds[0]);
+
+				String removeSuccess1 = device.removeFromDevice(id1, libRootId1);
 				System.out.println("remove1 from device successful: " + removeSuccess1);
-				String removeSuccess2 = device.removeFromDevice(id2, libRootIds[1]);
+				String removeSuccess2 = device.removeFromDevice(id2, libRootId2);
 				System.out.println("remove2 from device successful: " + removeSuccess2);
-				System.out.println(device.getContentRoot().toPrettyString());
+//				System.out.println(device.getContentRoot().toPrettyString());
 				System.out.println("-------------------");
 			}
+		}
+
+		try {
+			j.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }

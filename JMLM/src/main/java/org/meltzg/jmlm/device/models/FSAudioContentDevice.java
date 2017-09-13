@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -127,7 +128,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 			int lastSlash = destFilepath.replace('\\', '/').lastIndexOf('/');
 			(new File(destFilepath.substring(0, lastSlash))).mkdirs();
 
-			Files.copy(filepath, destpath);
+			Files.copy(filepath, destpath, StandardCopyOption.REPLACE_EXISTING);
 
 			success = true;
 		} catch (Exception e) {
