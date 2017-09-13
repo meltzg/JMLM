@@ -5,6 +5,7 @@ package org.meltzg.jmlm.device.models;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
@@ -68,6 +69,23 @@ public abstract class AbstractContentDevice implements IContentInterface {
 		}
 	}
 
+	protected String getObjIdByOrigName(String parentId, String origName) {
+		String objId = null;
+		try {
+			validateId(parentId);
+			List<AbstractContentTree> pChildren = contentRoot.getIdToNodes().get(parentId).getChildren();
+			for (AbstractContentTree child : pChildren) {
+				if (child.getOrigName().equals(origName)) {
+					objId = child.getId();
+					break;
+				}
+			}
+		} catch (Exception e) {
+			// e.printStackTrace();
+		}
+		return objId;
+	}
+
 	public String getDeviceId() {
 		return deviceId;
 	}
@@ -118,12 +136,12 @@ public abstract class AbstractContentDevice implements IContentInterface {
 		if (this.contentRoot == null) {
 			buildContentRoot();
 		}
-		
+
 		if (this.contentRoot != null) {
 			if (rootId == null) {
 				rootId = this.contentRoot.getId();
 			}
-			
+
 			return this.contentRoot.getIdToNodes().get(rootId);
 		}
 		return null;
