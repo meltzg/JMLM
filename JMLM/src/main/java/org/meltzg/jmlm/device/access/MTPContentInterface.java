@@ -97,6 +97,9 @@ public class MTPContentInterface extends AbstractNativeContentInterface {
 	 */
 	public native boolean transferFromDevice(String id, String destFilepath);
 	
+	public native boolean moveOnDevice(String id, String destFolderId);
+	
+	
 	/**
 	 * Initializes any necessary interfaces before a connection is possible
 	 * 

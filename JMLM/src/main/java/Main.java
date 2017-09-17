@@ -6,8 +6,6 @@ import java.util.UUID;
 
 import org.meltzg.jmlm.content.models.AbstractContentTree;
 import org.meltzg.jmlm.content.models.ContentRoot;
-import org.meltzg.jmlm.content.models.FSAudioContentTree;
-import org.meltzg.jmlm.content.models.MTPContentTree;
 import org.meltzg.jmlm.device.access.MTPContentInterface;
 import org.meltzg.jmlm.device.models.AbstractContentDevice;
 import org.meltzg.jmlm.device.models.FSAudioContentDevice;

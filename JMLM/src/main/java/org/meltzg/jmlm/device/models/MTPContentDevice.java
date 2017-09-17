@@ -93,5 +93,11 @@ public class MTPContentDevice extends AbstractContentDevice {
 	protected boolean removeFromDevice(String id) {
 		String ret = removeFromDevice(id, null);
 		return ret != null;
+	}
+
+	@Override
+	public boolean moveOnDevice(String id, String destFolderId) {
+		// TODO Auto-generated method stub
+		return false;
 	}	
 }

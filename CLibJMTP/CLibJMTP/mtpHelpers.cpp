@@ -47,6 +47,47 @@ void closeCOM() {
 	//cout << "COM closed" << endl;
 }
 
+bool supportsCommand(IPortableDevice *device, REFPROPERTYKEY command) {
+	bool isSupported = false;
+
+	if (device != nullptr) {
+		ComPtr<IPortableDeviceCapabilities> caps;
+		ComPtr<IPortableDeviceKeyCollection> commands;
+		DWORD numCommands = 0;
+
+		HRESULT hr = device->Capabilities(&caps);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceCapabilities from IPortableDevice: ", hr);
+		}
+		else {
+			hr = caps->GetSupportedCommands(&commands);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get supported commands from device: ", hr);
+			}
+		}
+
+		if (SUCCEEDED(hr)) {
+			hr = commands->GetCount(&numCommands);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get the number of supported commands: ", hr);
+			}
+		}
+
+		if (SUCCEEDED(hr)) {
+			for (DWORD i = 0; i < numCommands && !isSupported; i++) {
+				PROPERTYKEY key = WPD_PROPERTY_NULL;
+				hr = commands->GetAt(i, &key);
+				if (SUCCEEDED(hr)) {
+					isSupported = IsEqualPropertyKey(command, key);
+				}
+			}
+		}
+
+	}
+
+	return isSupported;
+}
+
 ComPtr<IPortableDeviceManager> getDeviceManager(bool close) {
 
 	static ComPtr<IPortableDeviceManager> deviceManager = nullptr;
@@ -1155,6 +1196,59 @@ bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)
 				hr = streamCopy(objStream.Get(), fileStream.Get(), optimalTransferSizeBytes);
 				if (FAILED(hr)) {
 					logErr("!!! Failed to transfer object from device: ", hr);
+				}
+			}
+		}
+	}
+
+	return hr == S_OK;
+}
+
+bool moveOnDevice(const wchar_t * id, const wchar_t * destFolderId)
+{
+	auto device = getSelectedDevice(NULL);
+	HRESULT hr = E_FAIL;
+
+	if (device != nullptr && id != nullptr && destFolderId != nullptr) {
+		if (!supportsCommand(device.Get(), WPD_COMMAND_OBJECT_MANAGEMENT_MOVE_OBJECTS)) {
+			logErr("!!! This device does not support the move operation: ", hr);
+			return false;
+		}
+
+		ComPtr<IPortableDeviceContent> content;
+		ComPtr<IPortableDevicePropVariantCollection> objsToMove;
+		
+		hr = device->Content(&content);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
+		}
+		else {
+			hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection,
+				nullptr,
+				CLSCTX_INPROC_SERVER,
+				IID_PPV_ARGS(&objsToMove));
+			if (FAILED(hr)) {
+				logErr("!!! Failed to CoCreateInstance CLSID_PortableDevicePropVariantCollection: ", hr);
+			}
+			else {
+				PROPVARIANT pv = { 0 };
+				hr = InitPropVariantFromString(id, &pv);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to move an object on the device because we could no allocate memory for the object identifier string: ", hr);
+				}
+				else {
+					hr = objsToMove->Add(&pv);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to add object to IPortableDevicePropVariantCollection: ", hr);
+					}
+					else {
+						hr = content->Move(objsToMove.Get(),
+							destFolderId,
+							nullptr);
+						if (hr != S_OK) {
+							logErr("!!! Failed to move object: ", hr);
+						}
+					}
 				}
 			}
 		}

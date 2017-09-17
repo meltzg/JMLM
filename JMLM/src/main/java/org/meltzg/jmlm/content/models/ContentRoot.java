@@ -6,11 +6,6 @@ import java.util.Stack;
 
 public class ContentRoot extends AbstractContentTree {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1751834230504015884L;
-
 	protected Map<String, AbstractContentTree> idToNodes;
 
 	public ContentRoot(AbstractContentTree root) {
