@@ -92,7 +92,8 @@ ComPtr<IPortableDeviceManager> getDeviceManager(bool close) {
 
 	static ComPtr<IPortableDeviceManager> deviceManager = nullptr;
 
-	if (close) {
+	if (close && deviceManager != nullptr) {
+		deviceManager.Reset();
 		deviceManager = nullptr;
 	}
 	else if (deviceManager == nullptr) {
@@ -144,7 +145,8 @@ ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close)
 {
 	static ComPtr<IPortableDevice> device = nullptr;
 
-	if (close || id != nullptr) {
+	if (device != nullptr && (close || id != nullptr)) {
+		device.Reset();
 		device = nullptr;
 	}
 

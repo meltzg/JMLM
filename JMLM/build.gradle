@@ -27,6 +27,11 @@ dependencies {
     compile group:'net.jthink', name:'jaudiotagger', version:'2.2.5'
 }
 
+tasks.withType(Test) {
+	// testLogging.showStandardStreams = true
+    systemProperty "java.library.path", project.libsDir
+}
+
 task makeBinDir() {
     project.file('./bin').mkdirs()
 }
@@ -47,3 +52,4 @@ task copyLibJMTPToOutput(type:Copy, dependsOn:buildLibJMTP) {
 }
 
 project.tasks.build.dependsOn(copyLibJMTPToOutput)
+project.tasks.testClasses.dependsOn(copyLibJMTPToOutput)

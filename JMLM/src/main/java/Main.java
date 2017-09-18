@@ -14,7 +14,7 @@ public class Main {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
 
-		String testFile = "D:/Users/vader/Desktop/test space.mp3";
+		String testFile = "C:/Users/vader/Desktop/test.flac";
 
 		System.out.println("[0] MTP");
 		System.out.println("[1] FSA");
@@ -50,7 +50,8 @@ public class Main {
 			if (connected) {
 				device = devices.get(selection);
 				device.buildContentRoot();
-				libRootId1 = libRootId2 = "o2";
+				libRootId1 = "o2";
+				libRootId2 = "o9301";
 			}
 
 		} else if (testType == 1) {
@@ -76,11 +77,11 @@ public class Main {
 
 			if (newSubTree1 != null && newSubTree2 != null) {
 				String id1 = newSubTree1.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
-				String id2 = testType == 0 ? newSubTree2.getId() : newSubTree2.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
+				String id2 = newSubTree2.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
 
-				boolean transSuccess1 = device.transferFromDevice(id1, "D:/Users/vader/Desktop/test/transfer1.mp3");
+				boolean transSuccess1 = device.transferFromDevice(id1, "C:/Users/vader/Desktop/test/transfer1.mp3");
 				System.out.println("transfer1 from device successful: " + transSuccess1);
-				boolean transSuccess2 = device.transferFromDevice(id2, "D:/Users/vader/Desktop/test/transfer2.mp3");
+				boolean transSuccess2 = device.transferFromDevice(id2, "C:/Users/vader/Desktop/test/transfer2.mp3");
 				System.out.println("transfer2 from device successful: " + transSuccess2);
 				System.out.println("-------------------");
 
