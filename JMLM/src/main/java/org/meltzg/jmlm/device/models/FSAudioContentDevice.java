@@ -169,9 +169,9 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 	}
 	
 	@Override
-	public boolean moveOnDevice(String id, String destFolderId) {
+	public FSAudioContentTree moveOnDevice(String id, String destId, String destFolderPath) {
 		// TODO Auto-generated method stub
-		return false;
+		return null;
 	}
 	
 	FolderPair createFolder(String destId, String path) {

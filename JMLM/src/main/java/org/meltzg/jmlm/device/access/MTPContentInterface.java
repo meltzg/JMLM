@@ -97,7 +97,7 @@ public class MTPContentInterface extends AbstractNativeContentInterface {
 	 */
 	public native boolean transferFromDevice(String id, String destFilepath);
 	
-	public native boolean moveOnDevice(String id, String destFolderId);
+	public native MTPContentTree moveOnDevice(String id, String destId, String destFolderPath);
 	
 	
 	/**

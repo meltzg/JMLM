@@ -96,8 +96,8 @@ public class MTPContentDevice extends AbstractContentDevice {
 	}
 
 	@Override
-	public boolean moveOnDevice(String id, String destFolderId) {
+	public MTPContentTree moveOnDevice(String id, String destId, String destFolderPath) {
 		// TODO Auto-generated method stub
-		return false;
+		return null;
 	}	
 }
