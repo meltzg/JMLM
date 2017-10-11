@@ -87,9 +87,9 @@ public class Main {
 				System.out.println("transfer2 from device successful: " + transSuccess2);
 				System.out.println("-------------------");
 				
-				AbstractContentTree moveTree1 = j.moveOnDevice(id1, libRootId2, "this/is/a/move", ".");
+				AbstractContentTree moveTree1 = device.moveOnDevice(id1, libRootId2, "this/is/a/move", ".");
 				System.out.println("move1 successful: " + moveTree1);
-				AbstractContentTree moveTree2 = j.moveOnDevice(id2, libRootId1, "this/is/a/move", ".");
+				AbstractContentTree moveTree2 = device.moveOnDevice(id2, libRootId1, "this/is/a/move", ".");
 				System.out.println("move2 successful: " + moveTree2);
 				System.out.println("-------------------");
 				
