@@ -108,15 +108,24 @@ JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterfac
 	return ret;
 }
 
-JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_moveOnDevice
-(JNIEnv *env, jobject obj, jstring id, jstring destFolderId) {
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_moveOnDevice
+(JNIEnv *env, jobject obj, jstring id, jstring destId, jstring destFolderPath, jstring tmpDir) {
 	PWSTR cId = jStringToWchar(env, id);
-	PWSTR cDestFolderId = jStringToWchar(env, destFolderId);
+	PWSTR cDestId = jStringToWchar(env, destId);
+	PWSTR cDestFolderPath = jStringToWchar(env, destFolderPath);
+	PWSTR cTmpDir = jStringToWchar(env, tmpDir);
 
-	bool ret = moveOnDevice(cId, cDestFolderId);
+	MTPObjectTree *newSubTree = moveOnDevice(cId, cDestId, cDestFolderPath, cTmpDir);
+
+	jobject ret = nullptr;
+	if (newSubTree != nullptr) {
+		ret = mtpotToJMtpot(env, newSubTree);
+	}
 
 	delete[] cId;
-	delete[] cDestFolderId;
+	delete[] cDestId;
+	delete[] cDestFolderPath;
+	delete[] cTmpDir;
 
 	return ret;
 }

@@ -38,4 +38,4 @@ pair<wstring, wstring> createFolder(const wchar_t *destId, const wchar_t *path);
 MTPObjectTree* transferToDevice(const wchar_t *filepath, const wchar_t *destId, const wchar_t *destName);
 wstring removeFromDevice(const wchar_t *id, const wchar_t *stopId);
 bool transferFromDevice(const wchar_t *id, const wchar_t *destFilepath);
-bool moveOnDevice(const wchar_t *id, const wchar_t *destFolderId);
+MTPObjectTree* moveOnDevice(const wchar_t *id, const wchar_t *destId, const wchar_t *destFolderPath, const wchar_t *tmpFolder);

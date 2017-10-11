@@ -96,8 +96,13 @@ public class MTPContentDevice extends AbstractContentDevice {
 	}
 
 	@Override
-	public MTPContentTree moveOnDevice(String id, String destId, String destFolderPath) {
-		// TODO Auto-generated method stub
-		return null;
+	protected MTPContentTree moveObject(String id, String destId, String destFolderPath, String tmpFolder) {
+		MTPContentTree moveTree = null;
+		
+		if (j.selectDevice(deviceId)) {
+			moveTree = j.moveOnDevice(id, destId, destFolderPath, tmpFolder);
+		}
+
+		return moveTree;
 	}	
 }

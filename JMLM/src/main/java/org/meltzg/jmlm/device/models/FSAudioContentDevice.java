@@ -169,7 +169,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 	}
 	
 	@Override
-	public FSAudioContentTree moveOnDevice(String id, String destId, String destFolderPath) {
+	protected FSAudioContentTree moveObject(String id, String destId, String destFolderPath, String tmpFolder) {
 		// TODO Auto-generated method stub
 		return null;
 	}

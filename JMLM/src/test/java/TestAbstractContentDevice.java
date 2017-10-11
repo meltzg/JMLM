@@ -56,7 +56,7 @@ public abstract class TestAbstractContentDevice {
 	@Test
 	public void testDeviceContent() {
 		assertNotNull("Device should have a content root", device.getContentRoot());
-		assertTrue("Device should have more than 0 nodes", device.getContentRoot().getIdToNodes().size() > 0);
+		assertTrue("Device should have more than 0 nodes", device.getContentRoot().getIdToNodes().size() > 1);
 	}
 
 	@Test

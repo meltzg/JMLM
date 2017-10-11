@@ -1152,7 +1152,7 @@ bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)
 					&optimalTransferSizeBytes,
 					&objStream);
 				if (FAILED(hr)) {
-					logErr("!!! Failed to get IStream for the object data", hr);
+					logErr("!!! Failed to get IStream for the object data: ", hr);
 				}
 			}
 
@@ -1206,55 +1206,46 @@ bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)
 	return hr == S_OK;
 }
 
-bool moveOnDevice(const wchar_t * id, const wchar_t * destFolderId)
+MTPObjectTree* moveOnDevice(const wchar_t *id, const wchar_t *destId, const wchar_t *destFolderPath, const wchar_t *tmpFolder)
 {
 	auto device = getSelectedDevice(NULL);
+	pair<wstring, wstring> folderPair;
 	HRESULT hr = E_FAIL;
+	MTPObjectTree *ret = nullptr;
 
-	if (device != nullptr && id != nullptr && destFolderId != nullptr) {
-		if (!supportsCommand(device.Get(), WPD_COMMAND_OBJECT_MANAGEMENT_MOVE_OBJECTS)) {
-			logErr("!!! This device does not support the move operation: ", hr);
-			return false;
-		}
-
+	if (device != nullptr && id != nullptr && destId != nullptr && tmpFolder != nullptr) {
 		ComPtr<IPortableDeviceContent> content;
-		ComPtr<IPortableDevicePropVariantCollection> objsToMove;
-		
 		hr = device->Content(&content);
 		if (FAILED(hr)) {
 			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
 		}
 		else {
-			hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection,
-				nullptr,
-				CLSCTX_INPROC_SERVER,
-				IID_PPV_ARGS(&objsToMove));
-			if (FAILED(hr)) {
-				logErr("!!! Failed to CoCreateInstance CLSID_PortableDevicePropVariantCollection: ", hr);
-			}
-			else {
-				PROPVARIANT pv = { 0 };
-				hr = InitPropVariantFromString(id, &pv);
-				if (FAILED(hr)) {
-					logErr("!!! Failed to move an object on the device because we could no allocate memory for the object identifier string: ", hr);
+
+		}
+		MTPObjectTree *node = getNode(id, content.Get());
+		if (node != nullptr) {
+			wstring tmpPath(tmpFolder);
+			tmpPath += L"/" + node->getOrigName();
+			if (transferFromDevice(id, tmpPath.c_str())) {
+				if (removeFromDevice(id) != S_OK) {
+					logErr("!!! Failed to remove file from original directory: ", E_FAIL);
 				}
 				else {
-					hr = objsToMove->Add(&pv);
-					if (FAILED(hr)) {
-						logErr("!!! Failed to add object to IPortableDevicePropVariantCollection: ", hr);
-					}
-					else {
-						hr = content->Move(objsToMove.Get(),
-							destFolderId,
-							nullptr);
-						if (hr != S_OK) {
-							logErr("!!! Failed to move object: ", hr);
-						}
-					}
+					wstring movePath(destFolderPath);
+					movePath += L"/" + node->getOrigName();
+					ret = transferToDevice(tmpPath.c_str(), destId, movePath.c_str());
+				}
+
+				if (_wremove(tmpPath.c_str()) != 0) {
+					logErr("!!! Failed to remove temporary file: ", E_FAIL);
 				}
 			}
+			else {
+				logErr("!!! Failed to move file to temporary directory: ", E_FAIL);
+			}
 		}
+		delete node;
 	}
 
-	return hr == S_OK;
+	return ret;
 }

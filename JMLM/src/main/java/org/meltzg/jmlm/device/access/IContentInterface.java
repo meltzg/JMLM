@@ -14,6 +14,6 @@ public interface IContentInterface {
 
 	boolean transferFromDevice(String id, String destFilepath);
 	
-	AbstractContentTree moveOnDevice(String id, String destId, String destFolderPath);
+	AbstractContentTree moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder);
 
 }
