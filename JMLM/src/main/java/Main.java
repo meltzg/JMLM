@@ -68,9 +68,9 @@ public class Main {
 //			System.out.println(device.getContentRoot().toPrettyString());
 			System.out.println("-------------------");
 
-			AbstractContentTree newSubTree1 = device.transferToDevice(testFile, libRootId1, "this/is/a/test1.mp3");
+			AbstractContentTree newSubTree1 = device.transferToDevice(testFile, libRootId1, "this/is/a/test1.flac");
 			System.out.println("transfer1 to device successful: " + newSubTree1);
-			AbstractContentTree newSubTree2 = device.transferToDevice(testFile, libRootId2, "this/is/a/test2.mp3");
+			AbstractContentTree newSubTree2 = device.transferToDevice(testFile, libRootId2, "this/is/a/test2.flac");
 			System.out.println("transfer2 to device successful: " + newSubTree2);
 //			System.out.println(device.getContentRoot().toPrettyString());
 			System.out.println("-------------------");

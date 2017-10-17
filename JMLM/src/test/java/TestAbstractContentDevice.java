@@ -83,13 +83,30 @@ public abstract class TestAbstractContentDevice {
 	}
 	
 	@Test
+	public void testMoveOnDevice() {
+		AbstractContentTree moveTree1 = null;
+		AbstractContentTree moveTree2 = null;
+		
+		if (newSubTree1 != null && newSubTree2 != null) {
+			String id1 = newSubTree1.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
+			String id2 = newSubTree2.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
+			
+			moveTree1 = device.moveOnDevice(id1, libRootId2, "this/is/a/move", ".");
+			moveTree2 = device.moveOnDevice(id2, libRootId1, "this/is/a/move", ".");
+		}
+		
+		assertNotNull("Device should be able to move a file on the device", moveTree1);
+		assertNotNull("Device should be able to move another file on the device", moveTree2);
+	}
+	
+	@Test
 	public void testRemoveFrom() {
 		String removeSuccess1 = null;
 		String removeSuccess2 = null;
 
 		if (newSubTree1 != null && newSubTree2 != null) {
-			String id1 = newSubTree1.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
-			String id2 = newSubTree2.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
+			String id1 = newSubTree1.getChildren().get(0).getChildren().get(0).getId();
+			String id2 = newSubTree2.getChildren().get(0).getChildren().get(0).getId();
 
 			removeSuccess1 = device.removeFromDevice(id1, libRootId1);
 			removeSuccess2 = device.removeFromDevice(id2, libRootId2);

@@ -170,21 +170,28 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 	}
 	
 	@Override
-	protected FSAudioContentTree moveObject(String id, String destId, String destFolderPath, String tmpFolder) {
+	public FSAudioContentTree moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder) {
 		FSAudioContentTree moveTree = null;
 		
 		try {
 			validateId(id);
 			validateId(destId);
 			
-			String fullMovePath = ((FSAudioContentTree) contentRoot.getIdToNodes().get(destId)).getPath();
-			String fileName = contentRoot.getIdToNodes().get(id).getOrigName();
-			String destName = destFolderPath + "/" + fileName;
-			
-			fullMovePath += "/" + destFolderPath + "/" + fileName;
-			fullMovePath = fullMovePath.replace('\\', '/').replaceAll("/+", "/");
+			FSAudioContentTree toMove = (FSAudioContentTree) contentRoot.getIdToNodes().get(id);
+			String currPath = toMove.getPath();
+			String origName = toMove.getOrigName();
+			String destName = destFolderPath + "/" + origName;
 			destName = destName.replace('\\', '/').replaceAll("/+", "/");
-System.out.println();
+			
+			moveTree = this.transferToDevice(currPath, destId, destName);
+			
+			if (moveTree != null) {
+				boolean removeOld = this.removeFromDevice(id);
+				
+				if (!removeOld) {
+					System.err.println("!!! Failed to remove object after moving");
+				}
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
