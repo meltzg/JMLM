@@ -103,7 +103,7 @@ public abstract class AbstractContentTree {
 	}
 
 	protected String toString(boolean includeChildren) {
-		String str = "AbstractContentTree [id=" + id + ", parentId=" + parentId + ", origName=" + origName + ", size=" + size
+		String str = this.getClass().getSimpleName() + " [id=" + id + ", parentId=" + parentId + ", origName=" + origName + ", size=" + size
 				+ ", capacity=" + capacity;
 		if (includeChildren) {
 			str += ", children=" + children;
@@ -112,5 +112,10 @@ public abstract class AbstractContentTree {
 		str += "]";
 		
 		return str;
+	}
+	
+	@Override
+	public String toString() {
+		return toString(true);
 	}
 }

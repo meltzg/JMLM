@@ -100,7 +100,7 @@ public class FSAudioContentTree extends AbstractContentTree {
 
 	@Override
 	protected String toString(boolean includeChildren) {
-		String str = "FSAudioContentTree [path=" + path + ", genre=" + genre + ", artist=" + artist + ", album=" + album
+		String str = this.getClass().getSimpleName() + " [path=" + path + ", genre=" + genre + ", artist=" + artist + ", album=" + album
 				+ ", title=" + title + ", discNum=" + discNum + ", trackNum=" + trackNum + ", id=" + id + ", parentId="
 				+ parentId + ", origName=" + origName + ", size=" + size + ", capacity=" + capacity;
 		

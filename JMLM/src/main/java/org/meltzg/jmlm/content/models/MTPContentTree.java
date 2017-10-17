@@ -66,9 +66,16 @@ public class MTPContentTree extends AbstractContentTree {
 	}
 
 	@Override
-	public String toString() {
-		return "MTPObjectTree [id=" + id + ", parentId=" + parentId + ", persistId=" + persistId + ", name=" + name
-				+ ", origName=" + origName + ", size=" + size + ", capacity=" + capacity + ", children=" + children
-				+ "]";
+	protected String toString(boolean includeChildren) {
+		String str = this.getClass().getSimpleName() + " [id=" + id + ", parentId=" + parentId + ", persistId=" + persistId + ", name=" + name
+				+ ", origName=" + origName + ", size=" + size + ", capacity=" + capacity;
+		
+		if (includeChildren) {
+			str += ", children=" + children;
+		}
+		
+		str += "]";
+		
+		return str;
 	}
 }

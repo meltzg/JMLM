@@ -65,7 +65,7 @@ public class Main {
 		}
 
 		if (device != null && libRootId1 != null && libRootId2 != null) {
-//			System.out.println(device.getContentRoot().toPrettyString());
+			System.out.println(device.getContentRoot().toPrettyString());
 			System.out.println("-------------------");
 
 			AbstractContentTree newSubTree1 = device.transferToDevice(testFile, libRootId1, "this/is/a/test1.flac");
