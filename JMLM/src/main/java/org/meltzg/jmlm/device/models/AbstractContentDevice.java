@@ -12,6 +12,7 @@ import java.util.Stack;
 
 import org.meltzg.jmlm.content.models.AbstractContentTree;
 import org.meltzg.jmlm.content.models.ContentRoot;
+import org.meltzg.jmlm.content.models.MTPContentTree;
 import org.meltzg.jmlm.device.access.IContentInterface;
 
 /**
@@ -228,4 +229,29 @@ public abstract class AbstractContentDevice implements IContentInterface {
 
 		return idStack;
 	}
+	
+//	@Override
+//	public AbstractContentTree moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder) {
+//		AbstractContentTree moveTree = moveObject(id, destId, destFolderPath, tmpFolder);
+//		
+//		if (moveTree != null) {
+//			String oldParentId = this.contentRoot.getIdToNodes().get(id).getParentId();
+//			String newParentId = moveTree.getParentId();
+//			
+//			List<AbstractContentTree> children = this.contentRoot.getIdToNodes().get(oldParentId).getChildren();
+//			for (int i = 0; i < children.size(); i++) {
+//				if (children.get(i).getId().equals(id)) {
+//					children.remove(i);
+//					break;
+//				}
+//			}
+//			
+//			this.contentRoot.getIdToNodes().get(newParentId).getChildren().add(moveTree);
+//			
+//			this.contentRoot.buildRootInfo();		}
+//		
+//		return moveTree;
+//	}
+//	
+//	protected abstract AbstractContentTree moveObject(String id, String destId, String destFolderPath, String tmpFolder);
 }

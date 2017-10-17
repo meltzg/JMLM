@@ -47,11 +47,53 @@ void closeCOM() {
 	//cout << "COM closed" << endl;
 }
 
+bool supportsCommand(IPortableDevice *device, REFPROPERTYKEY command) {
+	bool isSupported = false;
+
+	if (device != nullptr) {
+		ComPtr<IPortableDeviceCapabilities> caps;
+		ComPtr<IPortableDeviceKeyCollection> commands;
+		DWORD numCommands = 0;
+
+		HRESULT hr = device->Capabilities(&caps);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceCapabilities from IPortableDevice: ", hr);
+		}
+		else {
+			hr = caps->GetSupportedCommands(&commands);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get supported commands from device: ", hr);
+			}
+		}
+
+		if (SUCCEEDED(hr)) {
+			hr = commands->GetCount(&numCommands);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get the number of supported commands: ", hr);
+			}
+		}
+
+		if (SUCCEEDED(hr)) {
+			for (DWORD i = 0; i < numCommands && !isSupported; i++) {
+				PROPERTYKEY key = WPD_PROPERTY_NULL;
+				hr = commands->GetAt(i, &key);
+				if (SUCCEEDED(hr)) {
+					isSupported = IsEqualPropertyKey(command, key);
+				}
+			}
+		}
+
+	}
+
+	return isSupported;
+}
+
 ComPtr<IPortableDeviceManager> getDeviceManager(bool close) {
 
 	static ComPtr<IPortableDeviceManager> deviceManager = nullptr;
 
-	if (close) {
+	if (close && deviceManager != nullptr) {
+		deviceManager.Reset();
 		deviceManager = nullptr;
 	}
 	else if (deviceManager == nullptr) {
@@ -103,7 +145,8 @@ ComPtr<IPortableDevice> getSelectedDevice(const wchar_t* id, bool close)
 {
 	static ComPtr<IPortableDevice> device = nullptr;
 
-	if (close || id != nullptr) {
+	if (device != nullptr && (close || id != nullptr)) {
+		device.Reset();
 		device = nullptr;
 	}
 
@@ -1109,7 +1152,7 @@ bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)
 					&optimalTransferSizeBytes,
 					&objStream);
 				if (FAILED(hr)) {
-					logErr("!!! Failed to get IStream for the object data", hr);
+					logErr("!!! Failed to get IStream for the object data: ", hr);
 				}
 			}
 
@@ -1161,4 +1204,48 @@ bool transferFromDevice(const wchar_t * id, const wchar_t * destFilepath)
 	}
 
 	return hr == S_OK;
+}
+
+MTPObjectTree* moveOnDevice(const wchar_t *id, const wchar_t *destId, const wchar_t *destFolderPath, const wchar_t *tmpFolder)
+{
+	auto device = getSelectedDevice(NULL);
+	pair<wstring, wstring> folderPair;
+	HRESULT hr = E_FAIL;
+	MTPObjectTree *ret = nullptr;
+
+	if (device != nullptr && id != nullptr && destId != nullptr && tmpFolder != nullptr) {
+		ComPtr<IPortableDeviceContent> content;
+		hr = device->Content(&content);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to get IPortableDeviceContent: ", hr);
+		}
+		else {
+
+		}
+		MTPObjectTree *node = getNode(id, content.Get());
+		if (node != nullptr) {
+			wstring tmpPath(tmpFolder);
+			tmpPath += L"/" + node->getOrigName();
+			if (transferFromDevice(id, tmpPath.c_str())) {
+				if (removeFromDevice(id) != S_OK) {
+					logErr("!!! Failed to remove file from original directory: ", E_FAIL);
+				}
+				else {
+					wstring movePath(destFolderPath);
+					movePath += L"/" + node->getOrigName();
+					ret = transferToDevice(tmpPath.c_str(), destId, movePath.c_str());
+				}
+
+				if (_wremove(tmpPath.c_str()) != 0) {
+					logErr("!!! Failed to remove temporary file: ", E_FAIL);
+				}
+			}
+			else {
+				logErr("!!! Failed to move file to temporary directory: ", E_FAIL);
+			}
+		}
+		delete node;
+	}
+
+	return ret;
 }

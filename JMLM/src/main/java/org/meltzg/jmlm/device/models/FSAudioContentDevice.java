@@ -88,7 +88,8 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 				throw new IllegalArgumentException("!!! Cannot transfer directory to device: " + filepath);
 			}
 			
-			int lastSlash = destName.lastIndexOf('/');
+			int lastSlash = destName.replace('\\', '/').lastIndexOf('/');
+
 			String destFolder = destName.substring(0, lastSlash);
 			String destFile = destName.substring(lastSlash);
 			FolderPair folderPair = createFolder(destId, destFolder);
@@ -166,6 +167,36 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 			success = false;
 		}
 		return success;
+	}
+	
+	@Override
+	public FSAudioContentTree moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder) {
+		FSAudioContentTree moveTree = null;
+		
+		try {
+			validateId(id);
+			validateId(destId);
+			
+			FSAudioContentTree toMove = (FSAudioContentTree) contentRoot.getIdToNodes().get(id);
+			String currPath = toMove.getPath();
+			String origName = toMove.getOrigName();
+			String destName = destFolderPath + "/" + origName;
+			destName = destName.replace('\\', '/').replaceAll("/+", "/");
+			
+			moveTree = this.transferToDevice(currPath, destId, destName);
+			
+			if (moveTree != null) {
+				boolean removeOld = this.removeFromDevice(id);
+				
+				if (!removeOld) {
+					System.err.println("!!! Failed to remove object after moving");
+				}
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return moveTree;
 	}
 	
 	FolderPair createFolder(String destId, String path) {

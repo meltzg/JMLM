@@ -1,5 +1,9 @@
 package org.meltzg.jmlm.device.models;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.meltzg.jmlm.content.models.AbstractContentTree;
@@ -93,5 +97,42 @@ public class MTPContentDevice extends AbstractContentDevice {
 	protected boolean removeFromDevice(String id) {
 		String ret = removeFromDevice(id, null);
 		return ret != null;
+	}
+
+	@Override
+	public MTPContentTree moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder) {
+		MTPContentTree moveTree = null;
+		
+		if (j.selectDevice(deviceId)) {
+			MTPContentTree toMove = (MTPContentTree) contentRoot.getIdToNodes().get(id);
+			String destName = destFolderPath + "/" + toMove.getOrigName();
+			destName = destName.replace('\\', '/').replaceAll("/+", "/");
+			String tempLoc = tmpFolder + "/" + toMove.getOrigName();
+			
+			boolean tmpTransferSuccess = this.transferFromDevice(id, tempLoc);
+			if (!tmpTransferSuccess) {
+				System.err.println("!!! Failed to move object to temporary folder");
+			} else {
+				moveTree = this.transferToDevice(tempLoc, destId, destName);
+				
+				if (moveTree == null) {
+					System.err.println("!!! Failed to move object to location on device");
+				} else {
+					boolean oldRemoved = this.removeFromDevice(id);
+					if (!oldRemoved) {
+						System.err.println("!!! Failed to remove old object after moving");
+					}
+				}
+				
+				Path cleanup = Paths.get(tempLoc);
+				try {
+					Files.delete(cleanup);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return moveTree;
 	}	
 }

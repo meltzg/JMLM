@@ -6,8 +6,6 @@ import java.util.UUID;
 
 import org.meltzg.jmlm.content.models.AbstractContentTree;
 import org.meltzg.jmlm.content.models.ContentRoot;
-import org.meltzg.jmlm.content.models.FSAudioContentTree;
-import org.meltzg.jmlm.content.models.MTPContentTree;
 import org.meltzg.jmlm.device.access.MTPContentInterface;
 import org.meltzg.jmlm.device.models.AbstractContentDevice;
 import org.meltzg.jmlm.device.models.FSAudioContentDevice;
@@ -16,7 +14,7 @@ public class Main {
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
 
-		String testFile = "D:/Users/vader/Desktop/test space.mp3";
+		String testFile = "D:/Users/vader/Desktop/Monomer - Labyrinth - 04 Labyrinth.flac";
 
 		System.out.println("[0] MTP");
 		System.out.println("[1] FSA");
@@ -52,7 +50,8 @@ public class Main {
 			if (connected) {
 				device = devices.get(selection);
 				device.buildContentRoot();
-				libRootId1 = libRootId2 = "o2";
+				libRootId1 = "o2";
+				libRootId2 = "o9301";
 			}
 
 		} else if (testType == 1) {
@@ -69,26 +68,34 @@ public class Main {
 //			System.out.println(device.getContentRoot().toPrettyString());
 			System.out.println("-------------------");
 
-			AbstractContentTree newSubTree1 = device.transferToDevice(testFile, libRootId1, "this/is/a/test1.mp3");
+			AbstractContentTree newSubTree1 = device.transferToDevice(testFile, libRootId1, "this/is/a/test1.flac");
 			System.out.println("transfer1 to device successful: " + newSubTree1);
-			AbstractContentTree newSubTree2 = device.transferToDevice(testFile, libRootId2, "this/is/a/test2.mp3");
+			AbstractContentTree newSubTree2 = device.transferToDevice(testFile, libRootId2, "this/is/a/test2.flac");
 			System.out.println("transfer2 to device successful: " + newSubTree2);
 //			System.out.println(device.getContentRoot().toPrettyString());
 			System.out.println("-------------------");
 
 			if (newSubTree1 != null && newSubTree2 != null) {
 				String id1 = newSubTree1.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
-				String id2 = testType == 0 ? newSubTree2.getId() : newSubTree2.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
+				String id2 = newSubTree2.getChildren().get(0).getChildren().get(0).getChildren().get(0).getId();
+				String folderId1 = newSubTree1.getChildren().get(0).getChildren().get(0).getId();
+				String folderId2 = newSubTree2.getChildren().get(0).getChildren().get(0).getId();
 
 				boolean transSuccess1 = device.transferFromDevice(id1, "D:/Users/vader/Desktop/test/transfer1.mp3");
 				System.out.println("transfer1 from device successful: " + transSuccess1);
 				boolean transSuccess2 = device.transferFromDevice(id2, "D:/Users/vader/Desktop/test/transfer2.mp3");
 				System.out.println("transfer2 from device successful: " + transSuccess2);
 				System.out.println("-------------------");
-
-				String removeSuccess1 = device.removeFromDevice(id1, libRootId1);
+				
+				AbstractContentTree moveTree1 = device.moveOnDevice(id1, libRootId2, "this/is/a/move", ".");
+				System.out.println("move1 successful: " + moveTree1);
+				AbstractContentTree moveTree2 = device.moveOnDevice(id2, libRootId1, "this/is/a/move", ".");
+				System.out.println("move2 successful: " + moveTree2);
+				System.out.println("-------------------");
+				
+				String removeSuccess1 = device.removeFromDevice(folderId1, libRootId1);
 				System.out.println("remove1 from device successful: " + removeSuccess1);
-				String removeSuccess2 = device.removeFromDevice(id2, libRootId2);
+				String removeSuccess2 = device.removeFromDevice(folderId2, libRootId2);
 				System.out.println("remove2 from device successful: " + removeSuccess2);
 //				System.out.println(device.getContentRoot().toPrettyString());
 				System.out.println("-------------------");

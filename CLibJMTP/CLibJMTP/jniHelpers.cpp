@@ -43,6 +43,10 @@ jobject ulonglongToJBigInt(JNIEnv * env, unsigned long long num)
 
 wchar_t* jStringToWchar(JNIEnv *env, jstring jStr)
 {
+	if (jStr == NULL) {
+		return nullptr;
+	}
+	
 	const jchar *raw = env->GetStringChars(jStr, 0);
 	jsize len = env->GetStringLength(jStr);
 	wstring wStr;

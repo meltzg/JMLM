@@ -63,7 +63,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface
 
 	MTPObjectTree *newSubTree = transferToDevice(cFilepath, cDestId, cDestName);
 
-	
+
 
 	jobject jNewSubTree = nullptr;
 	if (newSubTree != nullptr) {
@@ -104,6 +104,28 @@ JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterfac
 
 	delete[] cId;
 	delete[] cDestFilepath;
+
+	return ret;
+}
+
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_access_MTPContentInterface_moveOnDevice
+(JNIEnv *env, jobject obj, jstring id, jstring destId, jstring destFolderPath, jstring tmpDir) {
+	PWSTR cId = jStringToWchar(env, id);
+	PWSTR cDestId = jStringToWchar(env, destId);
+	PWSTR cDestFolderPath = jStringToWchar(env, destFolderPath);
+	PWSTR cTmpDir = jStringToWchar(env, tmpDir);
+
+	MTPObjectTree *newSubTree = moveOnDevice(cId, cDestId, cDestFolderPath, cTmpDir);
+
+	jobject ret = nullptr;
+	if (newSubTree != nullptr) {
+		ret = mtpotToJMtpot(env, newSubTree);
+	}
+
+	delete[] cId;
+	delete[] cDestId;
+	delete[] cDestFolderPath;
+	delete[] cTmpDir;
 
 	return ret;
 }
