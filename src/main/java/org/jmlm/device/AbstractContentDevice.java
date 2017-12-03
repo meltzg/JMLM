@@ -2,13 +2,10 @@ package org.jmlm.device;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Stack;
 import org.jmlm.device.content.AbstractContentNode;
 import org.jmlm.device.content.ContentRootNode;
 
@@ -48,36 +45,22 @@ public abstract class AbstractContentDevice {
                 throw new IllegalArgumentException("!!! Cannot transfer directory to device: " + filepath);
             }
 
-            String[] pathParts = destpath.split("[/\\]");
+            
             String fileName = toTransfer.getName();
             AbstractContentNode parent = content.getNode(destId);
 
-            for (String part : pathParts) {
-                AbstractContentNode existantNode = parent.getChildByOName(part);
-                if (existantNode != null) {
-                    if (!existantNode.isDir()) {
-                        throw new IllegalArgumentException("Node " + part + " already exists and is not a directory");
-                    }
-                    parent = existantNode;
-                } else {
-                    AbstractContentNode newFolder = createDirNode(parent.getId(), part);
-                    if (newFolder == null) {
-                        parent = null;
-                        break;
-                    }
-                    parent.getChildren().add(newFolder);
-                    parent = newFolder;
-                    if (highestCreated == null) {
-                        highestCreated = newFolder;
-                    }
-                }
-            }
+            FolderPair fPair = createFolderPath(destId, destpath);
+            highestCreated = fPair.createdId;
+            parent = fPair.lastId;
 
             if (parent != null) {
                 AbstractContentNode contentNode = parent.getChildByOName(fileName);
                 if (contentNode == null) {
                     contentNode = createContentNode(parent.getId(), toTransfer);
                     parent.getChildren().add(contentNode);
+                    if (highestCreated == null) {
+                        highestCreated = contentNode;
+                    }
                 } else {
                     throw new IllegalArgumentException(
                             "Node with name " + fileName + " already exists at location " + destpath);
@@ -132,16 +115,41 @@ public abstract class AbstractContentDevice {
     }
     
     public AbstractContentNode moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder) {
-        // TODO stub
         AbstractContentNode highestCreatNode = null;
         try {
             validateId(id);
+            validateId(destId);
+
+            FolderPair fPair = createFolderPath(destId, destFolderPath);
+            highestCreatNode = fPair.createdId;
+            AbstractContentNode movedNode = moveNode(fPair.lastId.getId(), id, tmpFolder);
+            if (highestCreatNode == null && movedNode != null) {
+                highestCreatNode = movedNode;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             content.refreshRootInfo();
         }
         return highestCreatNode;
+    }
+
+    public AbstractContentNode readDeviceContent(String id) {
+        AbstractContentNode root = readNode(id);
+        
+        Queue<AbstractContentNode> nodeQueue = new LinkedList<AbstractContentNode>();
+        nodeQueue.add(root);
+        while (!nodeQueue.isEmpty()) {
+            AbstractContentNode node = nodeQueue.poll();
+            List<String> childIds = getChildIds(node.getId());
+            for (String cId : childIds) {
+                AbstractContentNode cNode = readNode(cId);
+                node.getChildren().add(cNode);
+                nodeQueue.add(cNode);
+            }
+        }
+
+        return root;
     }
 
     protected void validateId(String id) {
@@ -180,15 +188,60 @@ public abstract class AbstractContentDevice {
         return success;
     }
 
+    private FolderPair createFolderPath(String id, String path) {
+        FolderPair pair = new FolderPair();
+        try {
+            validateId(id);
+            
+            AbstractContentNode parent = content.getNode(id);
+            String[] pathParts = path.split("[/\\]");
+            for (String part : pathParts) {
+                AbstractContentNode existantNode = parent.getChildByOName(part);
+                if (existantNode != null) {
+                    if (!existantNode.isDir()) {
+                        throw new IllegalArgumentException("Node " + part + " already exists and is not a directory");
+                    }
+                    parent = existantNode;
+                    pair.lastId = existantNode;
+                } else {
+                    AbstractContentNode newFolder = createDirNode(parent.getId(), part);
+                    if (newFolder == null) {
+                        parent = null;
+                        break;
+                    }
+                    parent.getChildren().add(newFolder);
+                    parent = newFolder;
+                    if (pair.createdId == null) {
+                        pair.createdId = newFolder;
+                    }
+                    pair.lastId = newFolder;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            content.refreshRootInfo();
+        }
+
+        return pair;
+    }
+
     protected abstract List<String> getChildIds(String pId);
 
     protected abstract AbstractContentNode createDirNode(String pId, String name);
 
     protected abstract AbstractContentNode createContentNode(String pId, File file);
 
+    protected abstract AbstractContentNode readNode(String id);
+
     protected abstract AbstractContentNode moveNode(String pId, String id, String tmpFolder);
 
     protected abstract boolean deleteNode(String id);
 
     protected abstract boolean retrieveNode(String id, String destFolder);
+    
+    private class FolderPair {
+		public AbstractContentNode createdId;	// when creating folders, this is the highest folder created (null if none created)
+		public AbstractContentNode lastId;		// when creating folders this should be the ID of the last folder created/returned
+	}
 }
