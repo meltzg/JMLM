@@ -4,6 +4,7 @@ import java.util.List;
 
 public abstract class AbstractContentNode {
     protected String id;
+    protected String pId;
     protected String origName;
     protected boolean isDir;
     protected List<AbstractContentNode> children;
@@ -14,6 +15,10 @@ public abstract class AbstractContentNode {
 
     public String getId() {
         return id;
+    }
+
+    public String getPId() {
+        return pId;
     }
 
     public String getOrigName() {

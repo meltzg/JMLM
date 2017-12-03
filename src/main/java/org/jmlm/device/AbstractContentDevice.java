@@ -111,20 +111,26 @@ public abstract class AbstractContentDevice {
     }
 
     public boolean removeFromDevice(String id) {
-        // TODO stub
         boolean success = false;
         try {
-            validateId(id);
-            Stack<AbstractContentNode> trash = new Stack<AbstractContentNode>();
-            Queue<AbstractContentNode> queue = new LinkedList<AbstractContentNode>();
-        } catch (Exception e) {
+            success = removeFromDeviceRecursive(id);
+            if (success) {
+                List<AbstractContentNode> parentChildren = content.getNode(content.getNode(id).getPId()).getChildren();
+                for (int i = 0; i < parentChildren.size(); i++) {
+                    if (parentChildren.get(i).getId() == id) {
+                        parentChildren.remove(i);
+                        break;
+                    }
+                }
+            }
+        } catch(Exception e) {
             e.printStackTrace();
         } finally {
             content.refreshRootInfo();
         }
         return success;
     }
-
+    
     public AbstractContentNode moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder) {
         // TODO stub
         AbstractContentNode highestCreatNode = null;
@@ -148,6 +154,30 @@ public abstract class AbstractContentDevice {
         if (content.contains(id)) {
             throw new NullPointerException("Device does not contain an object with ID: " + id);
         }
+    }
+
+    private boolean removeFromDeviceRecursive(String id) {
+        boolean success = false;
+        try {
+            validateId(id);
+            AbstractContentNode node = content.getNode(id);
+            for (int i = 0; i < node.getChildren().size();) {
+                boolean childRemoved = removeFromDeviceRecursive(node.getChildren().get(i).getId());
+                success &= childRemoved;
+                if (childRemoved) {
+                    node.getChildren().remove(i);
+                } else {
+                    i++;
+                }
+            }
+
+            if (node.getChildren().isEmpty()) {
+                deleteNode(id);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return success;
     }
 
     protected abstract List<String> getChildIds(String pId);
