@@ -3,22 +3,19 @@ package org.jmlm.device.content;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.omg.IOP.ProfileIdHelper;
-
 public abstract class AbstractContentNode {
     protected String id;
     protected String pId;
     protected String origName;
     protected boolean isDir;
+    protected long size;
+    protected long capacity;
     protected List<AbstractContentNode> children;
 
     public AbstractContentNode() {}
     
-    public AbstractContentNode(String id, String pId, String origName, boolean isDir) {
+    public AbstractContentNode(String id) {
         this.id = id;
-        this.pId = pId;
-        this.origName = origName;
-        this.isDir = isDir;
         this.children = new ArrayList<AbstractContentNode>();
     }
 
@@ -33,6 +30,10 @@ public abstract class AbstractContentNode {
     public String getPId() {
         return pId;
     }
+
+    public void setPId(String pId) {
+        this.pId = pId;
+	}
 
     public String getOrigName() {
         return origName;

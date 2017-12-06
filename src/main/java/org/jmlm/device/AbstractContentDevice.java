@@ -2,23 +2,35 @@ package org.jmlm.device;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import org.jmlm.device.content.AbstractContentNode;
-import org.jmlm.device.content.ContentRootNode;
+import org.jmlm.device.content.ContentRootWrapper;
 
 public abstract class AbstractContentDevice {
     protected String deviceId;
-    protected ContentRootNode content;
+    protected ContentRootWrapper content;
     protected Set<String> libRoots;
+
+    public AbstractContentDevice() {
+		this.deviceId = UUID.randomUUID().toString();
+        this.libRoots = new HashSet<String>();
+	}
 
     public boolean addLibraryRoot(String id) {
         try {
             validateId(id);
             if (content.getNode(id).isDir()) {
-                libRoots.add(id);
+                if (!libRoots.contains(id)) {
+                    libRoots.add(id);                    
+                } else {
+                    System.err.println(id + " is already a library root");
+                    return false;
+                }
             } else {
                 System.err.println("Library root must be a directory: " + id);
                 return false;
@@ -144,8 +156,10 @@ public abstract class AbstractContentDevice {
             List<String> childIds = getChildIds(node.getId());
             for (String cId : childIds) {
                 AbstractContentNode cNode = readNode(cId);
-                node.getChildren().add(cNode);
-                nodeQueue.add(cNode);
+                if (cNode != null) {
+                    node.getChildren().add(cNode);
+                    nodeQueue.add(cNode);
+                }
             }
         }
 
@@ -159,7 +173,7 @@ public abstract class AbstractContentDevice {
         if (id == null) {
             throw new NullPointerException("ID cannot be null");
         }
-        if (content.contains(id)) {
+        if (!content.contains(id)) {
             throw new NullPointerException("Device does not contain an object with ID: " + id);
         }
     }

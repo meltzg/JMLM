@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class ContentRootNode extends AbstractContentNode {
+public class ContentRootWrapper {
 
     AbstractContentNode root;
     Map<String, AbstractContentNode> idToNodes;
     
-    public ContentRootNode(AbstractContentNode root) {
+    public ContentRootWrapper(AbstractContentNode root) {
         this.root = root;
         refreshRootInfo();
     }
@@ -23,6 +23,20 @@ public class ContentRootNode extends AbstractContentNode {
             return idToNodes.get(id);
         }
         return null;
+    }
+
+    public boolean addToRoot(AbstractContentNode node) {
+        for (AbstractContentNode child : this.root.getChildren()) {
+            if (child.getId().equals(node.getId())) {
+                System.err.println("Content toot already has child with ID " + node.getId());
+                return false;
+            }
+        }
+
+        node.setPId(this.root.getId());
+        this.root.getChildren().add(node);
+        refreshRootInfo();
+        return true;
     }
     
     public void refreshRootInfo() {
