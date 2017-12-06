@@ -39,6 +39,14 @@ public abstract class AbstractContentNode {
         return origName;
     }
 
+    public long getSize() {
+        return size;
+    }
+
+    public long getCapacity() {
+        return capacity;
+    }
+
     public List<AbstractContentNode> getChildren() {
         return children;
     }
