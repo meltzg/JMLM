@@ -1,4 +1,4 @@
-package org.jmlm.device.content;
+package org.meltzg.jmlm.device.content;
 
 import java.util.ArrayList;
 import java.util.List;

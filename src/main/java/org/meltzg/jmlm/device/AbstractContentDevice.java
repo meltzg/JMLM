@@ -1,4 +1,4 @@
-package org.jmlm.device;
+package org.meltzg.jmlm.device;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import org.jmlm.device.content.AbstractContentNode;
-import org.jmlm.device.content.ContentRootWrapper;
+import org.meltzg.jmlm.device.content.AbstractContentNode;
+import org.meltzg.jmlm.device.content.ContentRootWrapper;
 
 public abstract class AbstractContentDevice {
     protected String deviceId;

@@ -1,5 +1,5 @@
-import org.jmlm.device.AbstractContentDevice;
-import org.jmlm.device.FSAudioContentDevice;
+import org.meltzg.jmlm.device.AbstractContentDevice;
+import org.meltzg.jmlm.device.FSAudioContentDevice;
 
 public class Main {
     public static void main(String[] args) {

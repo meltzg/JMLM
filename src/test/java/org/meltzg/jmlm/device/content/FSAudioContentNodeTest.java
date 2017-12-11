@@ -1,17 +1,16 @@
+package org.meltzg.jmlm.device.content;
+
 import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
-
-import org.jmlm.device.content.FSAudioContentNode;
+import org.meltzg.TestConfig;
+import org.meltzg.jmlm.device.content.FSAudioContentNode;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
-public class TestFSAudioContentNode {
-    private static Properties props;
+public class FSAudioContentNodeTest extends AbstractContentNodeTest {
     
     private static String testFile;
     private static String testDir;
@@ -27,9 +26,8 @@ public class TestFSAudioContentNode {
 
     @BeforeClass
     public static void setUpBeforeClass() throws FileNotFoundException, IOException {
-        props = new Properties();
-        props.load(new FileReader("./src/test/resources/test-props.properties"));
-
+        Properties props = TestConfig.getProps();
+        
         testFile = props.getProperty("test.fsacn.file");
         testDir = props.getProperty("test.fsacn.dir");
         testInvalidFile = props.getProperty("test.fsacn.invfile");
@@ -43,7 +41,7 @@ public class TestFSAudioContentNode {
         testTrackNum = Integer.parseInt(props.getProperty("test.fsacn.tracknum"));
     }
 
-    @Test
+    @Override
     public void testReadContentNode() {
         File file = new File(testFile);
         FSAudioContentNode node = new FSAudioContentNode(testFile);
@@ -62,7 +60,7 @@ public class TestFSAudioContentNode {
         assertTrue("Node should be valid: ", node.isValid());
     }
 
-    @Test
+    @Override
     public void testReadDirNode() {
         File file = new File(testDir);
         FSAudioContentNode node = new FSAudioContentNode(testDir);
@@ -81,8 +79,8 @@ public class TestFSAudioContentNode {
         assertTrue("Node should be valid: ", node.isValid());
     }
 
-    @Test
-    public void testInvalidFileNode() {
+    @Override
+    public void testInvalidContentNode() {
         File file = new File(testInvalidFile);
         FSAudioContentNode node = new FSAudioContentNode(testInvalidFile);
 
@@ -100,8 +98,8 @@ public class TestFSAudioContentNode {
         assertFalse("Node should be invalid: ", node.isValid());
     }
 
-    @Test
-    public void testFileNotFound() {
+    @Override
+    public void testContentNotFound() {
         File file = new File(testInvalidFile);
         FSAudioContentNode node = new FSAudioContentNode(testInvalidFile);
 
