@@ -16,13 +16,16 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 
 	@Override
 	public boolean addLibraryRoot(String id) {
+		String addId = id;
 		if (!content.contains(id)) {
 			AbstractContentNode node = readDeviceContent(id);
 			content.addToRoot(node);
 			content.refreshRootInfo();
+			
+			addId = node.getId();
 		}
 
-		return super.addLibraryRoot(id);
+		return super.addLibraryRoot(addId);
 	}
 	
 	@Override

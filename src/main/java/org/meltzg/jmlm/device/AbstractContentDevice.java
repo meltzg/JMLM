@@ -24,10 +24,16 @@ public abstract class AbstractContentDevice {
     public boolean addLibraryRoot(String id) {
         try {
             validateId(id);
-            if (content.getNode(id).isDir()) {
-                if (!libRoots.contains(id)) {
-                    libRoots.add(id);                    
-                } else {
+            AbstractContentNode node = content.getNode(id);
+            if (node.isDir()) {
+                for (String libRoot : libRoots) {
+                    ContentRootWrapper tmpRoot = new ContentRootWrapper(content.getNode(libRoot));
+                    if (tmpRoot.contains(id)) {
+                        System.err.println(id + " is a child of another library root");
+                        return false;
+                    }
+                }
+                if (!libRoots.add(id)) {                 
                     System.err.println(id + " is already a library root");
                     return false;
                 }
@@ -41,6 +47,10 @@ public abstract class AbstractContentDevice {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public Set<String> getLibRoots() {
+        return libRoots;
     }
 
     public AbstractContentNode transferToDevice(String filepath, String destId, String destpath) {

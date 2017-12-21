@@ -8,6 +8,7 @@
 
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
+apply plugin: "jacoco"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -22,7 +23,7 @@ repositories {
 
 dependencies {
 
-    testCompile "org.mockito:mockito-core:2.+"
+    // testCompile "org.mockito:mockito-core:2.+"
     
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
