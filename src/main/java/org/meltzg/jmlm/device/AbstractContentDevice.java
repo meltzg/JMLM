@@ -11,9 +11,17 @@ import java.util.UUID;
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 
+/**
+ * Represents a media content device.  Contains the common logic for manipulating a device's content.
+ * Relies on the Template design pattern for device specific implementations.
+ * 
+ * @author Greg Meltzer
+ * @author https://github.com/meltzg
+ */
 public abstract class AbstractContentDevice {
     protected String deviceId;
     protected ContentRootWrapper content;
+    /** A device may contain several directories that make up the overall library of the device */
     protected Set<String> libRoots;
 
     public AbstractContentDevice() {
@@ -21,6 +29,13 @@ public abstract class AbstractContentDevice {
         this.libRoots = new HashSet<String>();
 	}
 
+    /**
+     * Adds a node to this device's library root list.
+     * @param id the ID to add as a library root
+     * @return true if the ID was successfully added as a library root.  
+     * false if the ID is contained within another library root, the ID is already a library root, 
+     * no node with the given ID exists, or the ID is not for a directory
+     */
     public boolean addLibraryRoot(String id) {
         try {
             id = validateId(id);
@@ -49,14 +64,29 @@ public abstract class AbstractContentDevice {
         }
     }
 
+    /**
+     * Removes an ID as a library root
+     * @param libRoot the ID of the library root to remove
+     * @return success of removal
+     */
     public boolean removeLibRoot(String libRoot) {
         return libRoots.remove(libRoot);
 	}
 
+    /** @return the set of library roots */
     public Set<String> getLibRoots() {
         return libRoots;
     }
 
+    /**
+     * Transfers a file to the device.  The returned subtree can have a null representing the 
+     * content that was attempted to transfer if transfer was unsuccessful
+     * @param filepath the path to the file to transfer
+     * @param destId the ID of the content node to transfer the file under
+     * @param destpath the path under destId to transfer the file under (non existant directories will be created)
+     * @return a sub tree with the root being the highest new node created or null if nothing was created
+     * @throws FileNotFoundException
+     */
     public AbstractContentNode transferToDevice(String filepath, String destId, String destpath) throws FileNotFoundException {
         AbstractContentNode highestCreated = null;
 
@@ -102,6 +132,12 @@ public abstract class AbstractContentDevice {
         return highestCreated;
     }
 
+    /**
+     * Transfers a file from the device
+     * @param id the ID of the content to transfer
+     * @param destFolder the path of the folder to transfer the content to
+     * @return true if transfer is successful
+     */
     public boolean transferFromDevice(String id, String destFolder) {
         boolean success = false;
         try {
@@ -117,6 +153,11 @@ public abstract class AbstractContentDevice {
         return success;
     }
 
+    /**
+     * Removes content from the device by ID.  This will recursively remove content.
+     * @param id ID of the node to remove from the device
+     * @return true if the removal was successful.  A failed removal can be partial if node has children
+     */
     public boolean removeFromDevice(String id) {
         boolean success = false;
         try {
@@ -133,12 +174,23 @@ public abstract class AbstractContentDevice {
         return success;
     }
     
+    /**
+     * Moves content from one location on the device to another. DOES NOT WORK ON DIRECTORIES
+     * @param id the id of the content to move
+     * @param destId the ID of the content node to transfer the file under
+     * @param destFolderPath the path under destId to transfer the file under (non existant directories will be created)
+     * @param tmpFolder a temporary file that can be used as an intermediary (not all devices support a direct move)
+     * @return a sub tree with the root being the highest new node created or null if nothing was created
+     */
     public AbstractContentNode moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder) {
         AbstractContentNode highestCreatNode = null;
         try {
             id = validateId(id);
             destId = validateId(destId);
 
+            if (content.getNode(id).isDir()) {
+                throw new InvalidContentIDException("Cannot move directories");
+            }
             FolderPair fPair = createFolderPath(destId, destFolderPath);
             highestCreatNode = fPair.createdNode;
             AbstractContentNode movedNode = copyNode(fPair.lastNode.getId(), id, tmpFolder);
@@ -157,6 +209,11 @@ public abstract class AbstractContentDevice {
         return highestCreatNode;
     }
 
+    /**
+     * Reads the device's content from the given ID and returns a tree with ID as the root
+     * @param id ID to start the device read on
+     * @return AbstractContentNode tree with ID as the root
+     */
     public AbstractContentNode readDeviceContent(String id) {
         AbstractContentNode root = readNode(id);
         
@@ -177,6 +234,13 @@ public abstract class AbstractContentDevice {
         return root;
     }
 
+    /**
+     * Validates a given ID.  A validated ID is returned. The returned ID may not be an exact match to the input.  
+     * This can happen if the device is able to correct the formatting of the ID.  For this reason, the returned 
+     * value should be used
+     * @param id the ID to validate
+     * @return the validated ID
+     */
     protected String validateId(String id) throws InvalidContentIDException {
         if (content == null) {
             throw new InvalidContentIDException("Device content has not been initialized.");
@@ -191,20 +255,16 @@ public abstract class AbstractContentDevice {
         return id;
     }
 
+    /**
+     * Recursive helper function to delete device content.  Will likely be made iterative in a later version
+     * @param id ID of the node to remove from the device
+     * @return true if the removal was successful.  A failed removal can be partial if node has children
+     */
     private boolean removeFromDeviceRecursive(String id) {
         boolean success = false;
         try {
             id = validateId(id);
             AbstractContentNode node = content.getNode(id);
-            // for (int i = 0; i < node.getChildren().size();) {
-            //     boolean childRemoved = removeFromDeviceRecursive(node.getChildren().get(i).getId());
-            //     success &= childRemoved;
-            //     if (childRemoved) {
-            //         node.getChildren().remove(i);
-            //     } else {
-            //         i++;
-            //     }
-            // }
 
             for (AbstractContentNode child : node.getChildren()) {
                 boolean childRemoved = removeFromDeviceRecursive(child.getId());
@@ -222,6 +282,12 @@ public abstract class AbstractContentDevice {
         return success;
     }
 
+    /**
+     * Creates a directory node path
+     * @param id the ID of the node to create a folder path under
+     * @param path the desired folder path (creates all non-existant directories)
+     * @return a FolderPair representing the work done
+     */
     private FolderPair createFolderPath(String id, String path) {
         FolderPair pair = new FolderPair();
         try {
@@ -262,22 +328,67 @@ public abstract class AbstractContentDevice {
         return pair;
     }
 
+    /**
+     * Retrieves the child IDs of a given node from the device
+     * @param pId the ID of the node to retrieve child IDs from
+     * @return a List of child IDs
+     */
     protected abstract List<String> getChildIds(String pId);
 
+    /**
+     * Creates a new directory node on the device
+     * @param pId the ID of the directory to create a new directory under
+     * @param name the name to give the new directory
+     * @return the newly created node or null if it was unsuccessful
+     */
     protected abstract AbstractContentNode createDirNode(String pId, String name);
 
+    /**
+     * Creates a new content node on the device
+     * @param pId the ID of the directory to move the content under
+     * @param file the file to transfer to the device
+     * @return the newly created node or null if it was unsuccessful
+     */
     protected abstract AbstractContentNode createContentNode(String pId, File file);
 
+    /**
+     * @param id The ID of the node to read
+     * @return the node if found, null otherwise
+     */
     protected abstract AbstractContentNode readNode(String id);
 
+    /**
+     * copies content from one location on the device to another. DOES NOT WORK ON DIRECTORIES
+     * @param id the id of the content to move
+     * @param pId the ID of the content node to transfer the file under
+     * @param tmpFolder a temporary file that can be used as an intermediary (not all devices support a direct move)
+     * @return the moved content node
+     */
     protected abstract AbstractContentNode copyNode(String pId, String id, String tmpFolder);
 
+    /**
+     * Removes content from the device by ID.  If the node with the given ID is a non-empty 
+     * directory, the deletion will fail
+     * @param id ID of the node to remove from the device
+     * @return true if the removal was successful.
+     */
     protected abstract boolean deleteNode(String id);
 
+    /**
+     * Transfers a file from the device
+     * @param id the ID of the content to transfer
+     * @param destFolder the path of the folder to transfer the content to
+     * @return true if transfer is successful
+     */
     protected abstract boolean retrieveNode(String id, String destFolder);
     
+    /**
+     * Represents the work done when creating a folder path.
+     */
     private class FolderPair {
-		public AbstractContentNode createdNode; // when creating folders, this is the highest folder created (null if none created)
-		public AbstractContentNode lastNode;	// when creating folders this should be the ID of the last folder created/returned
+        /** when creating folders, this is the highest folder created (null if none created) */
+        public AbstractContentNode createdNode;
+        /** when creating folders this should be the ID of the last folder created/returned */
+		public AbstractContentNode lastNode;
 	}
 }

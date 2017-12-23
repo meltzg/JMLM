@@ -12,6 +12,11 @@ import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 import org.meltzg.jmlm.device.content.FSAudioContentNode;
 
+/**
+ * Represents an abstract music device on a filesystem.
+ * @author Greg Meltzer
+ * @author https://github.com/meltzg
+ */
 public class FSAudioContentDevice extends AbstractContentDevice {
 
 	public FSAudioContentDevice() {
@@ -22,6 +27,9 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 	@Override
 	public boolean addLibraryRoot(String id) {
 		String addId = id;
+		// since this device is an abstraction ontop of the filesystem,
+		// content must be read when adding the library root instead of
+		// at device initialization
 		if (!content.contains(id)) {
 			AbstractContentNode node = readDeviceContent(id);
 			content.addToRoot(node);

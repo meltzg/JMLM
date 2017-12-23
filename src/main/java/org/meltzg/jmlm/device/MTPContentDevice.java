@@ -4,11 +4,21 @@ import java.io.File;
 import java.util.List;
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 
+/**
+ * Represents an MTP device, such as the AK100ii
+ * @author Greg Meltzer
+ * @author https://github.com/meltzg
+ */
 public class MTPContentDevice extends AbstractContentDevice {
 
     protected MTPDeviceInfo deviceInfo;
 
-    public static native List<MTPDeviceInfo> getDevicesInfo();
+	/** Returns information on all MTP devices attached to the computer */
+	public static native List<MTPDeviceInfo> getDevicesInfo();
+	/**
+	 * @param deviceId the ID of the device to retrieve information for
+	 * @return the device's information
+	 */
     public static native MTPDeviceInfo getDeviceInfo(String deviceId);
 
 	@Override
