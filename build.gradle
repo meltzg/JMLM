@@ -31,4 +31,9 @@ dependencies {
     compile group:'net.jthink', name:'jaudiotagger', version:'2.2.5'
 }
 
+task generateHeader(type:Exec) {
+    workingDir './src/main/cpp/include'
+    commandLine 'cmd', '/c', 'javah', '-jni', '-verbose', '-classpath', '../../java', 'org.meltzg.jmlm.device.MTPContentDevice'
+}
+
 defaultTasks 'clean', 'build', 'jacocoTestReport'
