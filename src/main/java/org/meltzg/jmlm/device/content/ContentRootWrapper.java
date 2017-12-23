@@ -3,6 +3,7 @@ package org.meltzg.jmlm.device.content;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+import org.meltzg.jmlm.device.InvalidContentIDException;
 
 public class ContentRootWrapper {
 
@@ -33,8 +34,7 @@ public class ContentRootWrapper {
             }
         }
 
-        node.setPId(this.root.getId());
-        this.root.getChildren().add(node);
+        this.root.addChild(node);
         refreshRootInfo();
         return true;
     }
@@ -51,5 +51,15 @@ public class ContentRootWrapper {
                 stack.add(child);
             }
         }
+    }
+    
+    public void refreshRootInfo(AbstractContentNode node) throws InvalidContentIDException {
+    	if (contains(node.getId())) {
+    		throw new InvalidContentIDException("Content already has a node with ID " + node.getId());
+        }
+        if (idToNodes == null) {
+            idToNodes = new HashMap<>();
+        }
+        idToNodes.put(node.getId(), node);
     }
 }

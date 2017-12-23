@@ -1,6 +1,11 @@
 package org.meltzg.jmlm.device;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import org.meltzg.jmlm.device.content.AbstractContentNode;
@@ -43,16 +48,54 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 
 	@Override
 	protected AbstractContentNode createDirNode(String pId, String name) {
+		try {
+			pId = validateId(pId);
+			String fullPath = pId + '/' + name;
+			File folder = new File(fullPath);
+			if (folder.mkdir()) {
+				return readNode(fullPath);
+			}
+		} catch (InvalidContentIDException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
 	@Override
 	protected AbstractContentNode createContentNode(String pId, File file) {
+		try {
+			pId = validateId(pId);
+			AbstractContentNode parent = content.getNode(pId);
+			if (parent.isDir() && file.exists() && !file.isDirectory()) {
+				Path destination = Paths.get(pId, file.getName());
+				Files.copy(file.toPath(), destination);
+				return readNode(destination.toFile().getAbsolutePath());
+			} else {
+				System.err.println("Cannot create node under " + pId + ": it is not a directory");
+			}
+		} catch (InvalidContentIDException | IOException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
 	@Override
-	protected AbstractContentNode moveNode(String pId, String id, String tmpFolder) {
+	protected AbstractContentNode copyNode(String pId, String id, String tmpFolder) {
+		try {
+			pId = validateId(pId);
+			id = validateId(id);
+			AbstractContentNode parent = content.getNode(pId);
+			AbstractContentNode toMove = content.getNode(id);
+			if (parent.isDir()) {
+				Path finalPath = Paths.get(parent.getId(), toMove.getOrigName());
+				Files.copy(Paths.get(toMove.getId()), finalPath);
+				return readNode(finalPath.toFile().getAbsolutePath());
+			} else {
+				System.err.println("Cannot create node under " + pId + ": it is not a directory");
+			}
+		} catch (InvalidContentIDException | IOException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
@@ -73,11 +116,39 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 
 	@Override
 	protected boolean deleteNode(String id) {
+		try {
+			id = validateId(id);
+			Files.delete(Paths.get(id));
+			return true;
+		} catch (InvalidContentIDException | IOException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 
 	@Override
 	protected boolean retrieveNode(String id, String destFolder) {
+		try {
+			id = validateId(id);
+			AbstractContentNode node = content.getNode(id);
+			File dir = new File(destFolder);
+			if (!dir.exists()) {
+				System.err.println(destFolder + " does not exist");
+			} else if (!dir.isDirectory()) {
+				System.err.println(destFolder + " is not a directory");
+			} else {
+				Files.copy(Paths.get(node.getId()), Paths.get(destFolder, node.getOrigName()), StandardCopyOption.REPLACE_EXISTING);
+				return true;
+			}
+		} catch (InvalidContentIDException | IOException e) {
+			e.printStackTrace();
+		}
 		return false;
+	}
+
+	@Override
+	protected String validateId(String id) throws InvalidContentIDException {
+		id = Paths.get(id).toAbsolutePath().toString();
+		return super.validateId(id);
 	}
 }

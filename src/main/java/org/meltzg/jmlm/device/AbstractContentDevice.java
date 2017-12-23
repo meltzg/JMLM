@@ -23,7 +23,7 @@ public abstract class AbstractContentDevice {
 
     public boolean addLibraryRoot(String id) {
         try {
-            validateId(id);
+            id = validateId(id);
             AbstractContentNode node = content.getNode(id);
             if (node.isDir()) {
                 for (String libRoot : libRoots) {
@@ -43,21 +43,25 @@ public abstract class AbstractContentDevice {
             }
 
             return true;
-        } catch (Exception e) {
+        } catch (InvalidContentIDException e) {
             e.printStackTrace();
             return false;
         }
     }
 
+    public boolean removeLibRoot(String libRoot) {
+        return libRoots.remove(libRoot);
+	}
+
     public Set<String> getLibRoots() {
         return libRoots;
     }
 
-    public AbstractContentNode transferToDevice(String filepath, String destId, String destpath) {
+    public AbstractContentNode transferToDevice(String filepath, String destId, String destpath) throws FileNotFoundException {
         AbstractContentNode highestCreated = null;
 
         try {
-            validateId(destId);
+            destId = validateId(destId);
 
             File toTransfer = new File(filepath);
             if (!toTransfer.exists()) {
@@ -72,14 +76,14 @@ public abstract class AbstractContentDevice {
             AbstractContentNode parent = content.getNode(destId);
 
             FolderPair fPair = createFolderPath(destId, destpath);
-            highestCreated = fPair.createdId;
-            parent = fPair.lastId;
+            highestCreated = fPair.createdNode;
+            parent = fPair.lastNode;
 
             if (parent != null) {
                 AbstractContentNode contentNode = parent.getChildByOName(fileName);
                 if (contentNode == null) {
                     contentNode = createContentNode(parent.getId(), toTransfer);
-                    parent.getChildren().add(contentNode);
+                    parent.addChild(contentNode);
                     if (highestCreated == null) {
                         highestCreated = contentNode;
                     }
@@ -89,7 +93,7 @@ public abstract class AbstractContentDevice {
                 }
             }
 
-        } catch (Exception e) {
+        } catch (InvalidContentIDException e) {
             e.printStackTrace();
         } finally {
             content.refreshRootInfo();
@@ -101,14 +105,12 @@ public abstract class AbstractContentDevice {
     public boolean transferFromDevice(String id, String destFolder) {
         boolean success = false;
         try {
-            validateId(id);
-            AbstractContentNode toTransfer = content.getNode(id);
-            String fullpath = destFolder + "/" + toTransfer.getOrigName();
+            id = validateId(id);
 
             (new File(destFolder)).mkdirs();
             
-            success = retrieveNode(id, fullpath);
-        } catch (Exception e) {
+            success = retrieveNode(id, destFolder);
+        } catch (InvalidContentIDException e) {
             e.printStackTrace();
         }
 
@@ -120,13 +122,8 @@ public abstract class AbstractContentDevice {
         try {
             success = removeFromDeviceRecursive(id);
             if (success) {
-                List<AbstractContentNode> parentChildren = content.getNode(content.getNode(id).getPId()).getChildren();
-                for (int i = 0; i < parentChildren.size(); i++) {
-                    if (parentChildren.get(i).getId() == id) {
-                        parentChildren.remove(i);
-                        break;
-                    }
-                }
+                AbstractContentNode parent = content.getNode(content.getNode(id).getPId());
+                success = parent.removeChild(id);
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -139,16 +136,20 @@ public abstract class AbstractContentDevice {
     public AbstractContentNode moveOnDevice(String id, String destId, String destFolderPath, String tmpFolder) {
         AbstractContentNode highestCreatNode = null;
         try {
-            validateId(id);
-            validateId(destId);
+            id = validateId(id);
+            destId = validateId(destId);
 
             FolderPair fPair = createFolderPath(destId, destFolderPath);
-            highestCreatNode = fPair.createdId;
-            AbstractContentNode movedNode = moveNode(fPair.lastId.getId(), id, tmpFolder);
+            highestCreatNode = fPair.createdNode;
+            AbstractContentNode movedNode = copyNode(fPair.lastNode.getId(), id, tmpFolder);
             if (highestCreatNode == null && movedNode != null) {
                 highestCreatNode = movedNode;
+                fPair.lastNode.addChild(movedNode);
             }
-        } catch (Exception e) {
+            if (movedNode != null) {
+                removeFromDevice(id);
+            }
+        } catch (InvalidContentIDException e) {
             e.printStackTrace();
         } finally {
             content.refreshRootInfo();
@@ -167,7 +168,7 @@ public abstract class AbstractContentDevice {
             for (String cId : childIds) {
                 AbstractContentNode cNode = readNode(cId);
                 if (cNode != null) {
-                    node.getChildren().add(cNode);
+                    node.addChild(cNode);
                     nodeQueue.add(cNode);
                 }
             }
@@ -176,37 +177,46 @@ public abstract class AbstractContentDevice {
         return root;
     }
 
-    protected void validateId(String id) {
+    protected String validateId(String id) throws InvalidContentIDException {
         if (content == null) {
-            throw new NullPointerException("Device content has not been initialized.");
+            throw new InvalidContentIDException("Device content has not been initialized.");
         }
         if (id == null) {
-            throw new NullPointerException("ID cannot be null");
+            throw new InvalidContentIDException("ID cannot be null");
         }
         if (!content.contains(id)) {
-            throw new NullPointerException("Device does not contain an object with ID: " + id);
+            throw new InvalidContentIDException("Device does not contain an object with ID: " + id);
         }
+
+        return id;
     }
 
     private boolean removeFromDeviceRecursive(String id) {
         boolean success = false;
         try {
-            validateId(id);
+            id = validateId(id);
             AbstractContentNode node = content.getNode(id);
-            for (int i = 0; i < node.getChildren().size();) {
-                boolean childRemoved = removeFromDeviceRecursive(node.getChildren().get(i).getId());
-                success &= childRemoved;
+            // for (int i = 0; i < node.getChildren().size();) {
+            //     boolean childRemoved = removeFromDeviceRecursive(node.getChildren().get(i).getId());
+            //     success &= childRemoved;
+            //     if (childRemoved) {
+            //         node.getChildren().remove(i);
+            //     } else {
+            //         i++;
+            //     }
+            // }
+
+            for (AbstractContentNode child : node.getChildren()) {
+                boolean childRemoved = removeFromDeviceRecursive(child.getId());
                 if (childRemoved) {
-                    node.getChildren().remove(i);
-                } else {
-                    i++;
+                    node.removeChild(child.getId());
                 }
             }
 
             if (node.getChildren().isEmpty()) {
-                deleteNode(id);
+                success = deleteNode(id);
             }
-        } catch (Exception e) {
+        } catch (InvalidContentIDException e) {
             e.printStackTrace();
         }
         return success;
@@ -215,10 +225,10 @@ public abstract class AbstractContentDevice {
     private FolderPair createFolderPath(String id, String path) {
         FolderPair pair = new FolderPair();
         try {
-            validateId(id);
+            id = validateId(id);
             
             AbstractContentNode parent = content.getNode(id);
-            String[] pathParts = path.split("[/\\]");
+            String[] pathParts = path.replaceFirst("^[/\\\\]", "").split("[/\\\\]");
             for (String part : pathParts) {
                 AbstractContentNode existantNode = parent.getChildByOName(part);
                 if (existantNode != null) {
@@ -226,22 +236,24 @@ public abstract class AbstractContentDevice {
                         throw new IllegalArgumentException("Node " + part + " already exists and is not a directory");
                     }
                     parent = existantNode;
-                    pair.lastId = existantNode;
+                    pair.lastNode = existantNode;
                 } else {
                     AbstractContentNode newFolder = createDirNode(parent.getId(), part);
                     if (newFolder == null) {
                         parent = null;
+                        pair.lastNode = null;
                         break;
                     }
-                    parent.getChildren().add(newFolder);
+                    parent.addChild(newFolder);
                     parent = newFolder;
-                    if (pair.createdId == null) {
-                        pair.createdId = newFolder;
+                    content.refreshRootInfo(newFolder);
+                    if (pair.createdNode == null) {
+                        pair.createdNode = newFolder;
                     }
-                    pair.lastId = newFolder;
+                    pair.lastNode = newFolder;
                 }
             }
-        } catch (Exception e) {
+        } catch (InvalidContentIDException e) {
             e.printStackTrace();
         } finally {
             content.refreshRootInfo();
@@ -258,14 +270,14 @@ public abstract class AbstractContentDevice {
 
     protected abstract AbstractContentNode readNode(String id);
 
-    protected abstract AbstractContentNode moveNode(String pId, String id, String tmpFolder);
+    protected abstract AbstractContentNode copyNode(String pId, String id, String tmpFolder);
 
     protected abstract boolean deleteNode(String id);
 
     protected abstract boolean retrieveNode(String id, String destFolder);
     
     private class FolderPair {
-		public AbstractContentNode createdId;	// when creating folders, this is the highest folder created (null if none created)
-		public AbstractContentNode lastId;		// when creating folders this should be the ID of the last folder created/returned
+		public AbstractContentNode createdNode; // when creating folders, this is the highest folder created (null if none created)
+		public AbstractContentNode lastNode;	// when creating folders this should be the ID of the last folder created/returned
 	}
 }

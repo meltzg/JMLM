@@ -1,7 +1,8 @@
 package org.meltzg.jmlm.device.content;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractContentNode {
     protected String id;
@@ -10,13 +11,13 @@ public abstract class AbstractContentNode {
     protected boolean isDir;
     protected long size;
     protected long capacity;
-    protected List<AbstractContentNode> children;
+    protected Map<String, AbstractContentNode> children;
 
     public AbstractContentNode() {}
     
     public AbstractContentNode(String id) {
         this.id = id;
-        this.children = new ArrayList<AbstractContentNode>();
+        this.children = new HashMap<String, AbstractContentNode>();
     }
 
     public boolean isDir() {
@@ -47,12 +48,29 @@ public abstract class AbstractContentNode {
         return capacity;
     }
 
-    public List<AbstractContentNode> getChildren() {
-        return children;
+    public Collection<AbstractContentNode> getChildren() {
+        return children.values();
+    }
+
+    public boolean addChild(AbstractContentNode node) {
+        if (!children.containsKey(node.getId())) {
+            node.setPId(this.getId());
+            children.put(node.getId(), node);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeChild(String id) {
+        if (children.containsKey(id)) {
+            children.remove(id);
+            return true;
+        }
+        return false;
     }
 
     public AbstractContentNode getChildByOName(String origName) {
-        for (AbstractContentNode child : children) {
+        for (AbstractContentNode child : children.values()) {
             if (child.origName.equals(origName)) {
                 return child;
             }

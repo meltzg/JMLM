@@ -31,3 +31,4 @@ dependencies {
     compile group:'net.jthink', name:'jaudiotagger', version:'2.2.5'
 }
 
+defaultTasks 'clean', 'build', 'jacocoTestReport'
