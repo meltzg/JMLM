@@ -42,10 +42,10 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_createDir
 /*
  * Class:     org_meltzg_jmlm_device_MTPContentDevice
  * Method:    createContentNode
- * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/io/File;)Lorg/meltzg/jmlm/device/content/AbstractContentNode;
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/meltzg/jmlm/device/content/AbstractContentNode;
  */
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_createContentNode
-  (JNIEnv *, jobject, jstring, jstring, jobject);
+  (JNIEnv *, jobject, jstring, jstring, jstring);
 
 /*
  * Class:     org_meltzg_jmlm_device_MTPContentDevice

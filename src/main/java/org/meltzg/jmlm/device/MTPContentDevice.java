@@ -33,7 +33,7 @@ public class MTPContentDevice extends AbstractContentDevice {
 
 	@Override
 	protected AbstractContentNode createContentNode(String pId, File file) {
-		return createContentNode(this.deviceId, pId, file);
+		return createContentNode(this.deviceId, pId, file.getAbsolutePath());
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class MTPContentDevice extends AbstractContentDevice {
 
 	private native AbstractContentNode createDirNode(String dId, String pId, String name);
 
-	private native AbstractContentNode createContentNode(String dId, String pId, File file);
+	private native AbstractContentNode createContentNode(String dId, String pId, String file);
 
 	private native AbstractContentNode readNode(String dId, String id);
 
