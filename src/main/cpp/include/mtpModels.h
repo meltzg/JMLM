@@ -1,9 +1,15 @@
 #pragma once
+#include <string>
+
+using std::wstring;
 
 class MTPContentNode {
 
 };
 
-class MTPDeviceInfo {
-
+struct MTPDeviceInfo {
+	wstring deviceId;
+	wstring friendlyName;
+	wstring description;
+	wstring manufacturer;
 };

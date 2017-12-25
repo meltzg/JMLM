@@ -5,11 +5,6 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevice
 	return NULL;
 }
 
-JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDeviceInfo
-(JNIEnv *env, jclass obj, jstring deviceId) {
-	return NULL;
-}
-
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds
 (JNIEnv *env, jobject obj, jstring deviceId, jstring parentId) {
 	return NULL;

@@ -100,8 +100,8 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
 
     @Override
     public void testContentNotFound() {
-        File file = new File(testInvalidFile);
-        FSAudioContentNode node = new FSAudioContentNode(testInvalidFile);
+        File file = new File(testNotFound);
+        FSAudioContentNode node = new FSAudioContentNode(testNotFound);
 
         assertEquals("Node should have full path as ID: ", file.getAbsolutePath(), node.getId());
         assertEquals("Node should have parent dir as pID: ", file.getParentFile().getAbsolutePath(), node.getPId());

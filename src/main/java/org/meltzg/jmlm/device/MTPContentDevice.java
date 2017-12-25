@@ -15,11 +15,6 @@ public class MTPContentDevice extends AbstractContentDevice {
 
 	/** Returns information on all MTP devices attached to the computer */
 	public static native List<MTPDeviceInfo> getDevicesInfo();
-	/**
-	 * @param deviceId the ID of the device to retrieve information for
-	 * @return the device's information
-	 */
-    public static native MTPDeviceInfo getDeviceInfo(String deviceId);
 
 	@Override
 	protected List<String> getChildIds(String pId) {
@@ -71,6 +66,7 @@ public class MTPContentDevice extends AbstractContentDevice {
     private native boolean retrieveNode(String dId, String id, String destFolder);
     
     public class MTPDeviceInfo {
+		public String deviceId;
         public String friendlyName;
         public String description;
         public String manufacturer;

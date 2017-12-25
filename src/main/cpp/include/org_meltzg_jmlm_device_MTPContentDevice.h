@@ -17,14 +17,6 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevice
 
 /*
  * Class:     org_meltzg_jmlm_device_MTPContentDevice
- * Method:    getDeviceInfo
- * Signature: (Ljava/lang/String;)Lorg/meltzg/jmlm/device/MTPContentDevice/MTPDeviceInfo;
- */
-JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDeviceInfo
-  (JNIEnv *, jclass, jstring);
-
-/*
- * Class:     org_meltzg_jmlm_device_MTPContentDevice
  * Method:    getChildIds
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
  */
