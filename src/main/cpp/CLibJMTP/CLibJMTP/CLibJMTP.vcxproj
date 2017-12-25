@@ -120,6 +120,7 @@
     <ClCompile Include="..\..\src\org_meltzg_jmlm_device_MTPContentDevice.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\jniHelpers.h" />
     <ClInclude Include="..\..\include\mtpHelpers.h" />
     <ClInclude Include="..\..\include\mtpModels.h" />
   </ItemGroup>

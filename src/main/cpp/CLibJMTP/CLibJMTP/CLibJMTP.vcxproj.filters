@@ -29,5 +29,8 @@
     <ClInclude Include="..\..\include\mtpModels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\jniHelpers.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
