@@ -9,7 +9,7 @@ using LibJMTP::toJMTPDeviceInfoList;
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevicesInfo
 (JNIEnv *env, jclass obj) {
 	vector<MTPDeviceInfo> info = getDevicesInfo();
-	jobject jInfo = toJMTPDeviceInfoList(env, info);
+	jobject jInfo = toJMTPDeviceInfoList(env, obj, info);
 	return jInfo;
 }
 

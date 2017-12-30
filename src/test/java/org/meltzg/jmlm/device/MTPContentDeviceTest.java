@@ -1,9 +1,14 @@
 package org.meltzg.jmlm.device;
 
+import static org.junit.Assert.*;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.meltzg.TestConfig;
 
 public class MTPContentDeviceTest extends AbstractContentDeviceTest {
@@ -29,5 +34,29 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
         testFile2 = props.getProperty("test.mtpcd.file2");
         testDevPath1 = props.getProperty("test.mtpcd.path1");
         testDevPath2 = props.getProperty("test.mtpcd.path2");
+    }
+
+    @Before
+    public void beforeTests() {
+        device = new MTPContentDevice(testDevId);
+    }
+
+    @Test
+    public void testGetDevices() {
+        List<MTPContentDevice.MTPDeviceInfo> deviceInfo = MTPContentDevice.getDevicesInfo();
+        MTPContentDevice.MTPDeviceInfo found = null;
+
+        for (MTPContentDevice.MTPDeviceInfo info : deviceInfo) {
+            if (info.deviceId.equals(testDevId)) {
+                found = info;
+                break;
+            }
+        }
+
+        assertNotNull("Assert device found: ", found);
+        assertEquals("Assert device has correct ID", testDevId, found.deviceId);
+        assertEquals("Assert device has correct description", testDesc, found.description);
+        assertEquals("Assert device has correct manufacturer", testManufacturer, found.manufacturer);
+        assertEquals("Assert device has correct friendly name", testFName, found.friendlyName);
     }
 }

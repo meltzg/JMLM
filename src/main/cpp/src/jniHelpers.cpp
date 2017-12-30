@@ -65,13 +65,13 @@ namespace LibJMTP {
         jmethodID arrayListAdd = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
         env->CallBooleanMethod(list, arrayListAdd, element);
     }
-	jobject toJMTPDeviceInfoList(JNIEnv * env, vector<MTPDeviceInfo> info)
+	jobject toJMTPDeviceInfoList(JNIEnv * env, jobject obj, vector<MTPDeviceInfo> info)
 	{
 		jobject jlist = getNewArrayList(env);
 		jclass deviceInfoClass = env->FindClass(JMTPDEVICEINFO);
 
 		string sig = "(";
-		/*sig += JMTPDEVICE;*/
+		sig += JMTPDEVICE;
 		sig += JSTRING;
 		sig += JSTRING;
 		sig += JSTRING;
@@ -88,6 +88,7 @@ namespace LibJMTP {
 
 			jobject jInfo = env->NewObject(deviceInfoClass,
 				deviceInfoConstr,
+                obj,
 				jDeviceId,
 				jFriendlyName,
 				jDescription,

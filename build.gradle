@@ -43,9 +43,13 @@ msbuild {
     parameters.OutDir = '../../../../../build/libs/'
 }
 
+test {
+    systemProperty 'java.library.path', 'build/libs'
+}
+
 task generateHeader(type:Exec) {
     workingDir './src/main/cpp/include'
     commandLine 'cmd', '/c', 'javah', '-jni', '-verbose', '-classpath', '../../java', 'org.meltzg.jmlm.device.MTPContentDevice'
 }
 
-defaultTasks 'clean', 'build', 'jacocoTestReport'
+defaultTasks 'clean', 'msbuild', 'build', 'jacocoTestReport'

@@ -11,7 +11,7 @@ namespace LibJMTP {
     const char * const JBIGINT = "Ljava/math/BigInteger;";
 
 	const char * const JMTPDEVICE = "Lorg/meltzg/jmlm/device/MTPContentDevice;";
-	const char * const JMTPDEVICEINFO = "Lorg/meltzg/jmlm/device/MTPDeviceInfo;";
+	const char * const JMTPDEVICEINFO = "Lorg/meltzg/jmlm/device/MTPContentDevice$MTPDeviceInfo;";
 
     jstring wcharToJString(JNIEnv *env, const wchar_t* wstr);
     jobject ulonglongToJBigInt(JNIEnv *env, unsigned long long num);
@@ -19,5 +19,5 @@ namespace LibJMTP {
     jobject getNewArrayList(JNIEnv *env);
     void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 
-	jobject toJMTPDeviceInfoList(JNIEnv *env, std::vector<MTPDeviceInfo> info);
+	jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, std::vector<MTPDeviceInfo> info);
 }

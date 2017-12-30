@@ -11,7 +11,10 @@ import org.meltzg.jmlm.device.content.AbstractContentNode;
  */
 public class MTPContentDevice extends AbstractContentDevice {
 
-    protected MTPDeviceInfo deviceInfo;
+	protected MTPDeviceInfo deviceInfo;
+
+	public MTPContentDevice(String id) {
+	}
 
 	/** Returns information on all MTP devices attached to the computer */
 	public static native List<MTPDeviceInfo> getDevicesInfo();
@@ -63,31 +66,23 @@ public class MTPContentDevice extends AbstractContentDevice {
 
 	private native boolean deleteNode(String dId, String id);
 
-    private native boolean retrieveNode(String dId, String id, String destFolder);
-    
-//    public class MTPDeviceInfo {
-//		public String deviceId;
-//        public String friendlyName;
-//        public String description;
-//        public String manufacturer;
-//        
-////        public final String deviceId;
-////        public final String friendlyName;
-////        public final String description;
-////        public final String manufacturer;
-//        
-//        public MTPDeviceInfo() {
-//        }
-//        
-//        public MTPDeviceInfo(String deviceId, String friendlyName, String description, String manufacturer) {
-//        	this.deviceId = deviceId;
-//        	this.friendlyName = friendlyName;
-//        	this.description = description;
-//        	this.manufacturer = manufacturer;
-//        }
-//    }
+	private native boolean retrieveNode(String dId, String id, String destFolder);
 
-    static {
+	public class MTPDeviceInfo {
+		public final String deviceId;
+		public final String friendlyName;
+		public final String description;
+		public final String manufacturer;
+
+		public MTPDeviceInfo(String deviceId, String friendlyName, String description, String manufacturer) {
+			this.deviceId = deviceId;
+			this.friendlyName = friendlyName;
+			this.description = description;
+			this.manufacturer = manufacturer;
+		}
+	}
+
+	static {
 		System.loadLibrary("CLibJMTP");
 	}
 }
