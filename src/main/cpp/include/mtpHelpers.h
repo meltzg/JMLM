@@ -7,7 +7,8 @@ using std::vector;
 using std::wstring;
 
 namespace LibJMTP {
-    vector<MTPDeviceInfo> getDevicesInfo();
+	vector<MTPDeviceInfo> getDevicesInfo();
+	MTPDeviceInfo getDeviceInfo(wstring id);
 
     vector<wstring> getChildIds(wstring deviceId, wstring parentId);
     MTPContentNode createDirNode(wstring deviceId, wstring parentId, wstring name);

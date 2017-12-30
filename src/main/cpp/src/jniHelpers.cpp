@@ -65,9 +65,8 @@ namespace LibJMTP {
         jmethodID arrayListAdd = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
         env->CallBooleanMethod(list, arrayListAdd, element);
     }
-	jobject toJMTPDeviceInfoList(JNIEnv * env, jobject obj, vector<MTPDeviceInfo> info)
+	jobject toJMTPDeviceInfo(JNIEnv * env, jobject obj, MTPDeviceInfo info)
 	{
-		jobject jlist = getNewArrayList(env);
 		jclass deviceInfoClass = env->FindClass(JMTPDEVICEINFO);
 
 		string sig = "(";
@@ -79,20 +78,29 @@ namespace LibJMTP {
 		sig += ")V";
 
 		jmethodID deviceInfoConstr = env->GetMethodID(deviceInfoClass, JCONSTRUCTOR, sig.c_str());
+
+		jstring jDeviceId = wcharToJString(env, info.deviceId.c_str());
+		jstring jDescription = wcharToJString(env, info.description.c_str());
+		jstring jFriendlyName = wcharToJString(env, info.friendlyName.c_str());
+		jstring jManufacturer = wcharToJString(env, info.manufacturer.c_str());
+
+		jobject jInfo = env->NewObject(deviceInfoClass,
+			deviceInfoConstr,
+			obj,
+			jDeviceId,
+			jFriendlyName,
+			jDescription,
+			jManufacturer);
+
+		return jInfo;
+	}
+	jobject toJMTPDeviceInfoList(JNIEnv * env, jobject obj, vector<MTPDeviceInfo> info)
+	{
+		jobject jlist = getNewArrayList(env);
+		
 		
 		for (auto iter = info.begin(); iter != info.end(); iter++) {
-			jstring jDeviceId = wcharToJString(env, iter->deviceId.c_str());
-			jstring jDescription = wcharToJString(env, iter->description.c_str());
-			jstring jFriendlyName = wcharToJString(env, iter->friendlyName.c_str());
-			jstring jManufacturer = wcharToJString(env, iter->manufacturer.c_str());
-
-			jobject jInfo = env->NewObject(deviceInfoClass,
-				deviceInfoConstr,
-                obj,
-				jDeviceId,
-				jFriendlyName,
-				jDescription,
-				jManufacturer);
+			jobject jInfo = toJMTPDeviceInfo(env, obj, *iter);
 
 			arrayListAdd(env, jlist, jInfo);
 		}

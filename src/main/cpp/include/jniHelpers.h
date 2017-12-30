@@ -19,5 +19,6 @@ namespace LibJMTP {
     jobject getNewArrayList(JNIEnv *env);
     void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 
+	jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info);
 	jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, std::vector<MTPDeviceInfo> info);
 }

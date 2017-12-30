@@ -44,19 +44,22 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
     @Test
     public void testGetDevices() {
         List<MTPContentDevice.MTPDeviceInfo> deviceInfo = MTPContentDevice.getDevicesInfo();
-        MTPContentDevice.MTPDeviceInfo found = null;
+        MTPContentDevice.MTPDeviceInfo found = MTPContentDevice.getDeviceInfo(testDevId);
+        MTPContentDevice.MTPDeviceInfo found2 = null;        
 
         for (MTPContentDevice.MTPDeviceInfo info : deviceInfo) {
             if (info.deviceId.equals(testDevId)) {
-                found = info;
+                found2 = info;
                 break;
             }
         }
 
-        assertNotNull("Assert device found: ", found);
-        assertEquals("Assert device has correct ID", testDevId, found.deviceId);
-        assertEquals("Assert device has correct description", testDesc, found.description);
-        assertEquals("Assert device has correct manufacturer", testManufacturer, found.manufacturer);
-        assertEquals("Assert device has correct friendly name", testFName, found.friendlyName);
+        assertEquals("Device has correct ID", testDevId, found.deviceId);
+        assertEquals("Device has correct description", testDesc, found.description);
+        assertEquals("Device has correct manufacturer", testManufacturer, found.manufacturer);
+        assertEquals("Device has correct friendly name", testFName, found.friendlyName);
+
+        assertNotNull("Device found: ", found);
+        assertEquals("Specific device is the same as list device", found, found2);
     }
 }

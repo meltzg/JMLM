@@ -41,7 +41,7 @@ namespace LibJMTP {
 		CoUninitialize();
 	}
 
-	wstring getDeviceDescription(IPortableDeviceManager *deviceManager, PWSTR deviceId) {
+	wstring getDeviceDescription(IPortableDeviceManager *deviceManager, const wchar_t * deviceId) {
 		DWORD descLength = 0;
 		PWSTR description = nullptr;
 
@@ -69,7 +69,7 @@ namespace LibJMTP {
 		return ret;
 	}
 
-	wstring getDeviceFriendlyName(IPortableDeviceManager *deviceManager, PWSTR deviceId) {
+	wstring getDeviceFriendlyName(IPortableDeviceManager *deviceManager, const wchar_t * deviceId) {
 		DWORD fNameLength = 0;
 		PWSTR friendlyName = nullptr;
 
@@ -97,7 +97,7 @@ namespace LibJMTP {
 		return ret;
 	}
 
-	wstring getDeviceManufacturer(IPortableDeviceManager *deviceManager, PWSTR deviceId) {
+	wstring getDeviceManufacturer(IPortableDeviceManager *deviceManager, const wchar_t *deviceId) {
 		DWORD manuLength = 0;
 		PWSTR manufacturer = nullptr;
 
@@ -125,6 +125,17 @@ namespace LibJMTP {
 		return ret;
 	}
 
+	MTPDeviceInfo getDeviceInfo(IPortableDeviceManager *deviceManager, wstring id)
+	{
+		MTPDeviceInfo info;
+		info.deviceId = id.c_str();
+		info.description = getDeviceDescription(deviceManager, id.c_str());
+		info.friendlyName = getDeviceFriendlyName(deviceManager, id.c_str());
+		info.manufacturer = getDeviceManufacturer(deviceManager, id.c_str());
+
+		return info;
+	}
+
 	vector<MTPDeviceInfo> getDevicesInfo() {
 		vector<MTPDeviceInfo> devices;
 		if (SUCCEEDED(initCOM())) {
@@ -150,11 +161,7 @@ namespace LibJMTP {
 					hr = deviceManager->GetDevices(deviceIDs, &deviceCount);
 					if (SUCCEEDED(hr)) {
 						for (unsigned int i = 0; i < deviceCount; i++) {
-							MTPDeviceInfo info;
-							info.deviceId = deviceIDs[i];
-							info.description = getDeviceDescription(deviceManager.Get(), deviceIDs[i]);
-							info.friendlyName = getDeviceFriendlyName(deviceManager.Get(), deviceIDs[i]);
-							info.manufacturer = getDeviceManufacturer(deviceManager.Get(), deviceIDs[i]);
+							MTPDeviceInfo info = getDeviceInfo(deviceManager.Get(), deviceIDs[i]);
 
 							devices.push_back(info);
 							CoTaskMemFree(deviceIDs[i]);
@@ -172,6 +179,33 @@ namespace LibJMTP {
 			closeCOM();
 		}
 		return devices;
+	}
+
+	MTPDeviceInfo getDeviceInfo(wstring id)
+	{
+		MTPDeviceInfo info;
+
+		if (SUCCEEDED(initCOM())) {
+			ComPtr<IPortableDeviceManager> deviceManager;
+
+			HRESULT hr = CoCreateInstance(
+				CLSID_PortableDeviceManager,
+				NULL,
+				CLSCTX_INPROC_SERVER,
+				IID_PPV_ARGS(&deviceManager));
+
+			if (FAILED(hr)) {
+				logErr("!!! Failed to CoInstanceCreate CLSID_PortableDeviceManager: ", hr);
+			}
+
+			if (SUCCEEDED(hr)) {
+				info = getDeviceInfo(deviceManager.Get(), id.c_str());
+			}
+			deviceManager.Reset();
+			closeCOM();
+		}
+
+		return info;
 	}
 	
 	vector<wstring> getChildIds(wstring deviceId, wstring parentId)

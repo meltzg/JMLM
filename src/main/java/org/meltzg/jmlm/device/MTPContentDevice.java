@@ -18,6 +18,7 @@ public class MTPContentDevice extends AbstractContentDevice {
 
 	/** Returns information on all MTP devices attached to the computer */
 	public static native List<MTPDeviceInfo> getDevicesInfo();
+	public static native MTPDeviceInfo getDeviceInfo(String id);
 
 	@Override
 	protected List<String> getChildIds(String pId) {
@@ -79,6 +80,29 @@ public class MTPContentDevice extends AbstractContentDevice {
 			this.friendlyName = friendlyName;
 			this.description = description;
 			this.manufacturer = manufacturer;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (!(other instanceof MTPDeviceInfo)) {
+				return false;
+			}
+
+			MTPDeviceInfo oInfo = (MTPDeviceInfo) other;
+			if (!this.deviceId.equals(oInfo.deviceId)) {
+				return false;
+			}
+			if (!this.description.equals(oInfo.description)) {
+				return false;
+			}
+			if (!this.manufacturer.equals(oInfo.manufacturer)) {
+				return false;
+			}
+			if (!this.friendlyName.equals(oInfo.friendlyName)) {
+				return false;
+			}
+
+			return true;
 		}
 	}
 

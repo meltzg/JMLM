@@ -3,13 +3,24 @@
 #include "jniHelpers.h"
 
 using LibJMTP::getDevicesInfo;
+using LibJMTP::getDeviceInfo;
 using LibJMTP::MTPDeviceInfo;
 using LibJMTP::toJMTPDeviceInfoList;
+using LibJMTP::toJMTPDeviceInfo;
+using LibJMTP::jStringToWchar;
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevicesInfo
 (JNIEnv *env, jclass obj) {
 	vector<MTPDeviceInfo> info = getDevicesInfo();
 	jobject jInfo = toJMTPDeviceInfoList(env, obj, info);
+	return jInfo;
+}
+
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDeviceInfo
+(JNIEnv *env, jclass obj, jstring id) {
+	wstring cId(jStringToWchar(env, id));
+	MTPDeviceInfo info = getDeviceInfo(cId);
+	jobject jInfo = toJMTPDeviceInfo(env, obj, info);
 	return jInfo;
 }
 
