@@ -168,11 +168,17 @@ namespace LibJMTP {
 					}
 				}
 			}
+			deviceManager.Reset();
 			closeCOM();
 		}
 		return devices;
 	}
 	
+	vector<wstring> getChildIds(wstring deviceId, wstring parentId)
+	{
+		return vector<wstring>();
+	}
+
 	MTPContentNode createDirNode(wstring deviceId, wstring parentId, wstring name)
 	{
 		return MTPContentNode();

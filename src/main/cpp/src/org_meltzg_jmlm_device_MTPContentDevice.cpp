@@ -1,13 +1,16 @@
 #include "org_meltzg_jmlm_device_MTPContentDevice.h"
 #include "mtpHelpers.h"
+#include "jniHelpers.h"
 
 using LibJMTP::getDevicesInfo;
 using LibJMTP::MTPDeviceInfo;
+using LibJMTP::toJMTPDeviceInfoList;
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevicesInfo
 (JNIEnv *env, jclass obj) {
 	vector<MTPDeviceInfo> info = getDevicesInfo();
-	return NULL;
+	jobject jInfo = toJMTPDeviceInfoList(env, info);
+	return jInfo;
 }
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds

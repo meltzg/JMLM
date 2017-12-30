@@ -77,6 +77,9 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\projects\JMLM\src\main\cpp\include;C:\Program Files\Java\jdk1.8.0_144\include\win32;C:\Program Files\Java\jdk1.8.0_144\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>PortableDeviceGuids.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -116,6 +119,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\jniHelpers.cpp" />
     <ClCompile Include="..\..\src\mtpHelpers.cpp" />
     <ClCompile Include="..\..\src\org_meltzg_jmlm_device_MTPContentDevice.cpp" />
   </ItemGroup>
