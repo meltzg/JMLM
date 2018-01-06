@@ -2,12 +2,7 @@
 #include "mtpHelpers.h"
 #include "jniHelpers.h"
 
-using LibJMTP::getDevicesInfo;
-using LibJMTP::getDeviceInfo;
-using LibJMTP::MTPDeviceInfo;
-using LibJMTP::toJMTPDeviceInfoList;
-using LibJMTP::toJMTPDeviceInfo;
-using LibJMTP::jStringToWchar;
+using namespace LibJMTP;
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevicesInfo
 (JNIEnv *env, jclass obj) {
@@ -26,7 +21,17 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevice
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds
 (JNIEnv *env, jobject obj, jstring deviceId, jstring parentId) {
-	return NULL;
+	wstring cDeviceId(jStringToWchar(env, deviceId));
+	wstring cParentId(jStringToWchar(env, parentId));
+	vector<wstring> childIds = getChildIds(cDeviceId, cParentId);
+
+	jobject jList = getNewArrayList(env);
+	for (auto iter = childIds.begin(); iter != childIds.end(); iter++) {
+		jstring childId = wcharToJString(env, iter->c_str());
+		arrayListAdd(env, jList, childId);
+	}
+	
+	return jList;
 }
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_createDirNode

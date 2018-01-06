@@ -41,6 +41,69 @@ namespace LibJMTP {
 		CoUninitialize();
 	}
 
+	HRESULT getDeviceManager(ComPtr<IPortableDeviceManager> &deviceManager) {
+		HRESULT hr = CoCreateInstance(
+			CLSID_PortableDeviceManager,
+			NULL,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&deviceManager));
+
+		if (FAILED(hr)) {
+			logErr("!!! Failed to CoInstanceCreate CLSID_PortableDeviceManager: ", hr);
+		}
+
+		return hr;
+	}
+
+	HRESULT getClientInfo(ComPtr<IPortableDeviceValues> &clientInfo) {
+		HRESULT hr = CoCreateInstance(CLSID_PortableDeviceValues,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&clientInfo));
+
+		if (FAILED(hr)) {
+			clientInfo = nullptr;
+			logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
+		}
+		else {
+			hr = clientInfo->SetUnsignedIntegerValue(WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE, SECURITY_IMPERSONATION);
+			if (FAILED(hr))
+			{
+				clientInfo = nullptr;
+				logErr("!!! Failed to set WPD_CLIENT_SECURITY_QUALITY_OF_SERVICE: ", hr);
+			}
+		}
+
+		return hr;
+	}
+
+	HRESULT getPortableDevice(ComPtr<IPortableDevice> &device, wstring id) {
+		ComPtr<IPortableDeviceValues> clientInfo;
+		HRESULT hr = getClientInfo(clientInfo);
+		
+		if (SUCCEEDED(hr)) {
+			hr = CoCreateInstance(CLSID_PortableDeviceFTM,
+				nullptr,
+				CLSCTX_INPROC_SERVER,
+				IID_PPV_ARGS(&device));
+
+			if (FAILED(hr)) {
+				device = nullptr;
+				logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceFTM: ", hr);
+			}
+			else {
+				hr = device->Open(id.c_str(), clientInfo.Get());
+				if (FAILED(hr)) {
+					device = nullptr;
+					logErr("!!! Failed to open device: ", hr);
+				}
+			}
+		}
+		
+		clientInfo.Reset();
+		return hr;
+	}
+
 	wstring getDeviceDescription(IPortableDeviceManager *deviceManager, const wchar_t * deviceId) {
 		DWORD descLength = 0;
 		PWSTR description = nullptr;
@@ -142,16 +205,9 @@ namespace LibJMTP {
 			ComPtr<IPortableDeviceManager> deviceManager;
 			DWORD deviceCount = 0;
 
-			HRESULT hr = CoCreateInstance(
-				CLSID_PortableDeviceManager,
-				NULL,
-				CLSCTX_INPROC_SERVER,
-				IID_PPV_ARGS(&deviceManager));
+			HRESULT hr = getDeviceManager(deviceManager);
 
-			if (FAILED(hr)) {
-				logErr("!!! Failed to CoInstanceCreate CLSID_PortableDeviceManager: ", hr);
-			}
-			else {
+			if (SUCCEEDED(hr)) {
 				hr = deviceManager->GetDevices(NULL, &deviceCount);
 			}
 
@@ -188,15 +244,7 @@ namespace LibJMTP {
 		if (SUCCEEDED(initCOM())) {
 			ComPtr<IPortableDeviceManager> deviceManager;
 
-			HRESULT hr = CoCreateInstance(
-				CLSID_PortableDeviceManager,
-				NULL,
-				CLSCTX_INPROC_SERVER,
-				IID_PPV_ARGS(&deviceManager));
-
-			if (FAILED(hr)) {
-				logErr("!!! Failed to CoInstanceCreate CLSID_PortableDeviceManager: ", hr);
-			}
+			HRESULT hr = getDeviceManager(deviceManager);
 
 			if (SUCCEEDED(hr)) {
 				info = getDeviceInfo(deviceManager.Get(), id.c_str());
@@ -210,7 +258,46 @@ namespace LibJMTP {
 	
 	vector<wstring> getChildIds(wstring deviceId, wstring parentId)
 	{
-		return vector<wstring>();
+		ComPtr<IPortableDevice> device = nullptr;
+		ComPtr<IPortableDeviceContent> content = nullptr;
+		ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
+
+		HRESULT hr = getPortableDevice(device, deviceId);
+		vector<wstring> childIds;
+
+		if (SUCCEEDED(hr)) {
+			hr = device->Content(&content);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get IPortbleDeviceContent: ", hr);
+			}
+		}
+		
+		if (SUCCEEDED(hr)) {
+			hr = content->EnumObjects(0, parentId.c_str(), nullptr, &objIdsEnum);
+			if (FAILED(hr)) {
+				logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
+			}
+		}
+
+		while (hr == S_OK) {
+			DWORD fetched = 0;
+			PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
+			hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
+				objIds,
+				&fetched);
+
+			if (SUCCEEDED(hr)) {
+				for (DWORD i = 0; i < fetched; i++) {
+					childIds.push_back(wstring(objIds[i]));
+					CoTaskMemFree(objIds[i]);
+				}
+			}
+		}
+
+		device.Reset();
+		content.Reset();
+		objIdsEnum.Reset();
+		return childIds;
 	}
 
 	MTPContentNode createDirNode(wstring deviceId, wstring parentId, wstring name)

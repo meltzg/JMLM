@@ -11,6 +11,8 @@ import java.util.Map;
  * @author https://github.com/meltzg
  */
 public abstract class AbstractContentNode {
+	protected static final String ROOT_ID = "DEVICE";
+
     protected String id;
     /** The ID of this node's parent */
     protected String pId;

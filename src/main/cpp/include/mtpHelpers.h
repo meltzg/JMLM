@@ -7,6 +7,8 @@ using std::vector;
 using std::wstring;
 
 namespace LibJMTP {
+	const unsigned int NUM_OBJECTS_TO_REQUEST = 100;
+
 	vector<MTPDeviceInfo> getDevicesInfo();
 	MTPDeviceInfo getDeviceInfo(wstring id);
 

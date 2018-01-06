@@ -19,8 +19,6 @@ import org.jaudiotagger.tag.TagException;
  * @author https://github.com/meltzg
  */
 public class FSAudioContentNode extends AbstractContentNode {
-	protected static final String ROOT_ID = "DEVICE";
-
     protected String genre;
 	protected String artist;
 	protected String album;
