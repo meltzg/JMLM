@@ -2,6 +2,8 @@ package org.meltzg.jmlm.device.content;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -25,7 +27,6 @@ public class FSAudioContentNode extends AbstractContentNode {
 	protected String title;
 	protected int discNum;
 	protected int trackNum;
-	protected boolean isValid;
 
 	/** Creates a node that can be used as the root of a FSAudio device content */
 	public FSAudioContentNode() {
@@ -49,7 +50,7 @@ public class FSAudioContentNode extends AbstractContentNode {
 		this.pId = content.getParentFile().getAbsolutePath();
 		this.origName = content.getName();
 		this.isDir = content.isDirectory();
-		this.size = !this.isDir ? content.length() : 0;
+		this.size = !this.isDir ? BigInteger.valueOf(content.length()) : BigInteger.ZERO;
 		this.isValid = true;
 		
 		if (!this.isDir) {

@@ -17,7 +17,7 @@ public class MTPContentDevice extends AbstractContentDevice {
 	public MTPContentDevice(String id) {
 		this.deviceInfo = getDeviceInfo(id);
 		this.deviceId = this.deviceInfo.deviceId;
-		this.content = new ContentRootWrapper(readDeviceContent(this.deviceId));
+		this.content = new ContentRootWrapper(readDeviceContent(AbstractContentNode.ROOT_ID));
 	}
 
 	/** Returns information on all MTP devices attached to the computer */

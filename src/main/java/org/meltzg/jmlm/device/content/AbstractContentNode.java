@@ -1,5 +1,6 @@
 package org.meltzg.jmlm.device.content;
 
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Map;
  * @author https://github.com/meltzg
  */
 public abstract class AbstractContentNode {
-	protected static final String ROOT_ID = "DEVICE";
+	public static final String ROOT_ID = "DEVICE";
 
     protected String id;
     /** The ID of this node's parent */
@@ -19,15 +20,29 @@ public abstract class AbstractContentNode {
     protected String origName;
     protected boolean isDir;
     /** The size of the content in bytes */
-    protected long size;
+    protected BigInteger size;
     /** The storage capacity of this node in bytes */
-    protected long capacity;
+    protected BigInteger capacity;
     protected Map<String, AbstractContentNode> children;
+    
+	protected boolean isValid;
 
-    public AbstractContentNode() {}
+    public AbstractContentNode() {
+    	this.children = new HashMap<String, AbstractContentNode>();
+    }
     
     public AbstractContentNode(String id) {
         this.id = id;
+        this.children = new HashMap<String, AbstractContentNode>();
+    }
+    
+    public AbstractContentNode(String id, String pId, String origName, boolean isDir, BigInteger size, BigInteger capacity) {
+    	this.id = id;
+    	this.pId = pId;
+    	this.origName = origName;
+    	this.isDir = isDir;
+    	this.size = size;
+    	this.capacity = capacity;
         this.children = new HashMap<String, AbstractContentNode>();
     }
 
@@ -60,12 +75,12 @@ public abstract class AbstractContentNode {
     }
 
     /** @return the size of this node's content in bytes */
-    public long getSize() {
+    public BigInteger getSize() {
         return size;
     }
 
     /** @return the storage capacity of this node */
-    public long getCapacity() {
+    public BigInteger getCapacity() {
         return capacity;
     }
 

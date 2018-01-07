@@ -217,18 +217,20 @@ public abstract class AbstractContentDevice {
     public AbstractContentNode readDeviceContent(String id) {
         AbstractContentNode root = readNode(id);
         
-        Queue<AbstractContentNode> nodeQueue = new LinkedList<AbstractContentNode>();
-        nodeQueue.add(root);
-        while (!nodeQueue.isEmpty()) {
-            AbstractContentNode node = nodeQueue.poll();
-            List<String> childIds = getChildIds(node.getId());
-            for (String cId : childIds) {
-                AbstractContentNode cNode = readNode(cId);
-                if (cNode != null) {
-                    node.addChild(cNode);
-                    nodeQueue.add(cNode);
-                }
-            }
+        if (root != null) {
+	        Queue<AbstractContentNode> nodeQueue = new LinkedList<AbstractContentNode>();
+	        nodeQueue.add(root);
+	        while (!nodeQueue.isEmpty()) {
+	            AbstractContentNode node = nodeQueue.poll();
+	            List<String> childIds = getChildIds(node.getId());
+	            for (String cId : childIds) {
+	                AbstractContentNode cNode = readNode(cId);
+	                if (cNode != null) {
+	                    node.addChild(cNode);
+	                    nodeQueue.add(cNode);
+	                }
+	            }
+	        }
         }
 
         return root;

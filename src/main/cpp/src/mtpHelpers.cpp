@@ -4,8 +4,10 @@
 #include <PortableDevice.h>
 #include <wrl/client.h>
 #include <shlwapi.h>
+#include <guiddef.h>
 
 #include "mtpHelpers.h"
+#include "commonHelpers.h"
 
 using std::cerr;
 using std::endl;
@@ -25,7 +27,7 @@ namespace LibJMTP {
 		return strStream.str();
 	}
 
-	void logErr(char * msg, HRESULT hr) {
+	void logErr(const char * msg, HRESULT hr) {
 		cerr << msg << formatHR(hr) << hex << endl;
 	}
 
@@ -199,6 +201,43 @@ namespace LibJMTP {
 		return info;
 	}
 
+	void addToKeyCollection(IPortableDeviceKeyCollection *propsToRead, REFPROPERTYKEY key, char *name) {
+		HRESULT hr = propsToRead->Add(key);
+		if (FAILED(hr)) {
+			ostringstream message;
+			message << "!!! Failed to add " << name << " to IPortableDeviceKeyCollection: ";
+
+			logErr(message.str().c_str(), hr);
+		}
+	}
+
+	void getStringProperty(IPortableDeviceValues * values, REFPROPERTYKEY key, PWSTR * destination)
+	{
+		PWSTR value = nullptr;
+		HRESULT hr = values->GetStringValue(key, &value);
+
+		if (SUCCEEDED(hr)) {
+			wcsAllocCpy(destination, value);
+		}
+
+		CoTaskMemFree(value);
+		value = nullptr;
+	}
+
+	void getULongLongProperty(IPortableDeviceValues * values, REFPROPERTYKEY key, ULONGLONG * destination)
+	{
+		ULONGLONG value = 0;
+		HRESULT hr = values->GetUnsignedLargeIntegerValue(key, &value);
+
+		if (SUCCEEDED(hr)) {
+			*destination = value;
+		}
+	}
+
+	void getGUIDProperty(IPortableDeviceValues * values, REFPROPERTYKEY key, GUID * destination) {
+		HRESULT hr = values->GetGuidValue(key, destination);
+	}
+
 	vector<MTPDeviceInfo> getDevicesInfo() {
 		vector<MTPDeviceInfo> devices;
 		if (SUCCEEDED(initCOM())) {
@@ -260,43 +299,48 @@ namespace LibJMTP {
 	{
 		ComPtr<IPortableDevice> device = nullptr;
 		ComPtr<IPortableDeviceContent> content = nullptr;
-		ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum;
+		ComPtr<IEnumPortableDeviceObjectIDs> objIdsEnum = nullptr;
 
-		HRESULT hr = getPortableDevice(device, deviceId);
 		vector<wstring> childIds;
 
-		if (SUCCEEDED(hr)) {
-			hr = device->Content(&content);
-			if (FAILED(hr)) {
-				logErr("!!! Failed to get IPortbleDeviceContent: ", hr);
-			}
-		}
-		
-		if (SUCCEEDED(hr)) {
-			hr = content->EnumObjects(0, parentId.c_str(), nullptr, &objIdsEnum);
-			if (FAILED(hr)) {
-				logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
-			}
-		}
-
-		while (hr == S_OK) {
-			DWORD fetched = 0;
-			PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
-			hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
-				objIds,
-				&fetched);
+		if (SUCCEEDED(initCOM())) {
+			HRESULT hr = getPortableDevice(device, deviceId);
 
 			if (SUCCEEDED(hr)) {
-				for (DWORD i = 0; i < fetched; i++) {
-					childIds.push_back(wstring(objIds[i]));
-					CoTaskMemFree(objIds[i]);
+				hr = device->Content(&content);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IPortbleDeviceContent: ", hr);
 				}
 			}
+
+			if (SUCCEEDED(hr)) {
+				hr = content->EnumObjects(0, parentId.c_str(), nullptr, &objIdsEnum);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IEnumPortableDeviceObjectIDs: ", hr);
+				}
+			}
+
+			while (hr == S_OK) {
+				DWORD fetched = 0;
+				PWSTR objIds[NUM_OBJECTS_TO_REQUEST] = { nullptr };
+				hr = objIdsEnum->Next(NUM_OBJECTS_TO_REQUEST,
+					objIds,
+					&fetched);
+
+				if (SUCCEEDED(hr)) {
+					for (DWORD i = 0; i < fetched; i++) {
+						childIds.push_back(wstring(objIds[i]));
+						CoTaskMemFree(objIds[i]);
+					}
+				}
+			}
+			device.Reset();
+			content.Reset();
+			objIdsEnum.Reset();
+
+			closeCOM();
 		}
 
-		device.Reset();
-		content.Reset();
-		objIdsEnum.Reset();
 		return childIds;
 	}
 
@@ -310,7 +354,104 @@ namespace LibJMTP {
 	}
 	MTPContentNode readNode(wstring deviceId, wstring id)
 	{
-		return MTPContentNode();
+		ComPtr<IPortableDevice> device = nullptr;
+		ComPtr<IPortableDeviceContent> content = nullptr;
+		ComPtr<IPortableDeviceValues> objVals = nullptr;
+		ComPtr<IPortableDeviceProperties> props = nullptr;
+		ComPtr<IPortableDeviceKeyCollection> propsToRead = nullptr;
+
+		MTPContentNode node;
+		node.id = id;
+		node.isValid = false;
+
+		if (SUCCEEDED(initCOM())) {
+			HRESULT hr = getPortableDevice(device, deviceId);
+			if (SUCCEEDED(hr)) {
+				hr = device->Content(&content);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IPortbleDeviceContent: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = content->Properties(&props);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IPortableDeviceProperties: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = CoCreateInstance(CLSID_PortableDeviceKeyCollection,
+					nullptr,
+					CLSCTX_INPROC_SERVER,
+					IID_PPV_ARGS(&propsToRead));
+				if (FAILED(hr)) {
+					logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceKeyCollection: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				addToKeyCollection(propsToRead.Get(), WPD_OBJECT_PARENT_ID, "WPD_OBJECT_PARENT_ID");
+				addToKeyCollection(propsToRead.Get(), WPD_OBJECT_NAME, "WPD_OBJECT_NAME");
+				addToKeyCollection(propsToRead.Get(), WPD_OBJECT_ORIGINAL_FILE_NAME, "WPD_OBJECT_ORIGINAL_FILE_NAME");
+				addToKeyCollection(propsToRead.Get(), WPD_OBJECT_SIZE, "WPD_OBJECT_SIZE");
+				addToKeyCollection(propsToRead.Get(), WPD_STORAGE_CAPACITY, "WPD_STORAGE_CAPACITY");
+				addToKeyCollection(propsToRead.Get(), WPD_OBJECT_CONTENT_TYPE, "WPD_OBJECT_CONTENT_TYPE");
+
+				hr = props->GetValues(id.c_str(),
+					propsToRead.Get(),
+					&objVals);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get all properties for object: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				wchar_t * parentId = nullptr;
+				wchar_t * name = nullptr;
+				wchar_t * origName = nullptr;
+				unsigned long long size = 0;
+				unsigned long long capacity = 0;
+				GUID contentType;
+
+				getStringProperty(objVals.Get(), WPD_OBJECT_PARENT_ID, &parentId);
+				getStringProperty(objVals.Get(), WPD_OBJECT_NAME, &name);
+				getStringProperty(objVals.Get(), WPD_OBJECT_ORIGINAL_FILE_NAME, &origName);
+				getULongLongProperty(objVals.Get(), WPD_OBJECT_SIZE, &size);
+				getULongLongProperty(objVals.Get(), WPD_STORAGE_CAPACITY, &capacity);
+				getGUIDProperty(objVals.Get(), WPD_OBJECT_CONTENT_TYPE, &contentType);
+
+				node.pId = wstring(parentId ? parentId : L"");
+				node.name = wstring(name ? name : L"");
+				node.origName = wstring(origName ? origName : L"");
+				node.capacity = capacity;
+				node.isValid = true;
+
+				node.isDir = IsEqualGUID(contentType, WPD_CONTENT_TYPE_FUNCTIONAL_OBJECT) ||
+					IsEqualGUID(contentType, WPD_CONTENT_TYPE_FOLDER);
+
+				if (!node.isDir) {
+					node.size = size;
+				}
+				else {
+					node.size = 0;
+				}
+
+				delete[] parentId;
+				delete[] name;
+				delete[] origName;
+			}
+			
+			device.Reset();
+			content.Reset();
+			objVals.Reset();
+			props.Reset();
+			propsToRead.Reset();
+
+			closeCOM();
+		}
+
+		return node;
 	}
 	MTPContentNode copyNode(wstring deviceId, wstring parentId, wstring id, wstring tmpFolder)
 	{

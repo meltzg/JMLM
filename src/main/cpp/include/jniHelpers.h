@@ -12,6 +12,7 @@ namespace LibJMTP {
 
 	const char * const JMTPDEVICE = "Lorg/meltzg/jmlm/device/MTPContentDevice;";
 	const char * const JMTPDEVICEINFO = "Lorg/meltzg/jmlm/device/MTPContentDevice$MTPDeviceInfo;";
+	const char * const JMTPCONTENTNODE = "Lorg/meltzg/jmlm/device/content/MTPContentNode;";
 
     jstring wcharToJString(JNIEnv *env, const wchar_t* wstr);
     jobject ulonglongToJBigInt(JNIEnv *env, unsigned long long num);
@@ -21,4 +22,5 @@ namespace LibJMTP {
 
 	jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info);
 	jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, std::vector<MTPDeviceInfo> info);
+	jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node);
 }

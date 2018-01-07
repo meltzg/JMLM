@@ -1,8 +1,10 @@
 #include <string>
+#include <sstream>
 #include "jniHelpers.h"
 
 using std::string;
 using std::wstring;
+using std::ostringstream;
 using std::to_wstring;
 using std::vector;
 
@@ -24,11 +26,12 @@ namespace LibJMTP {
     {
         jclass bigIntClass = env->FindClass(JBIGINT);
 
-        string sig = "(";
-        sig += JSTRING;
-        sig += ")V";
+		ostringstream sig;
+		sig << "("
+			<< JSTRING
+			<< ")V";
 
-        jmethodID bigIntConstructor = env->GetMethodID(bigIntClass, JCONSTRUCTOR, sig.c_str());
+        jmethodID bigIntConstructor = env->GetMethodID(bigIntClass, JCONSTRUCTOR, sig.str().c_str());
 
         // the number needs to be a string for BigInteger's constructor
         wstring strNum = to_wstring(num);
@@ -69,15 +72,16 @@ namespace LibJMTP {
 	{
 		jclass deviceInfoClass = env->FindClass(JMTPDEVICEINFO);
 
-		string sig = "(";
-		sig += JMTPDEVICE;
-		sig += JSTRING;
-		sig += JSTRING;
-		sig += JSTRING;
-		sig += JSTRING;
-		sig += ")V";
+		ostringstream sig;
+		sig << "("
+			<< JMTPDEVICE
+			<< JSTRING
+			<< JSTRING
+			<< JSTRING
+			<< JSTRING
+			<< ")V";
 
-		jmethodID deviceInfoConstr = env->GetMethodID(deviceInfoClass, JCONSTRUCTOR, sig.c_str());
+		jmethodID deviceInfoConstr = env->GetMethodID(deviceInfoClass, JCONSTRUCTOR, sig.str().c_str());
 
 		jstring jDeviceId = wcharToJString(env, info.deviceId.c_str());
 		jstring jDescription = wcharToJString(env, info.description.c_str());
@@ -105,5 +109,42 @@ namespace LibJMTP {
 			arrayListAdd(env, jlist, jInfo);
 		}
 		return jlist;
+	}
+	
+	jobject toJMTPContentNode(JNIEnv * env, MTPContentNode node)
+	{
+		jclass contentNodeClass = env->FindClass(JMTPCONTENTNODE);
+
+		ostringstream sig;
+		sig << "("
+			<< JSTRING
+			<< JSTRING
+			<< JSTRING
+			<< JSTRING
+			<< "Z"
+			<< JBIGINT
+			<< JBIGINT
+			<< ")V";
+
+		jmethodID contentNodeConstr = env->GetMethodID(contentNodeClass, JCONSTRUCTOR, sig.str().c_str());
+
+		jstring id = wcharToJString(env, node.id.c_str());
+		jstring pId = wcharToJString(env, node.pId.c_str());
+		jstring name = wcharToJString(env, node.name.c_str());
+		jstring origName = wcharToJString(env, node.origName.c_str());
+		jobject size = ulonglongToJBigInt(env, node.size);
+		jobject capacity = ulonglongToJBigInt(env, node.capacity);
+
+		jobject jNode = env->NewObject(contentNodeClass,
+			contentNodeConstr,
+			id,
+			pId,
+			name,
+			origName,
+			node.isDir,
+			size,
+			capacity);
+
+		return jNode;
 	}
 }

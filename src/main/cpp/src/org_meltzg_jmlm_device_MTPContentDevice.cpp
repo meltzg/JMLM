@@ -46,7 +46,14 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_createCon
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_readNode
 (JNIEnv *env, jobject obj, jstring deviceId, jstring id) {
-	return NULL;
+	wstring cDeviceId(jStringToWchar(env, deviceId));
+	wstring cId(jStringToWchar(env, id));
+	MTPContentNode node = readNode(cDeviceId, cId);
+	jobject jnode = nullptr;
+	if (node.isValid) {
+		jnode = toJMTPContentNode(env, node);
+	}
+	return jnode;
 }
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_copyNode

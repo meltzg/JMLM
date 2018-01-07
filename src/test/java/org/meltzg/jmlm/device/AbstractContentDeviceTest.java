@@ -24,6 +24,11 @@ public abstract class AbstractContentDeviceTest {
         boolean addRoot1 = device.addLibraryRoot(testLib1);
         boolean addRoot2 = device.addLibraryRoot(testLib2);
         boolean addDup = device.addLibraryRoot(testLib1);
+        
+        if (testChildFolder == null) {
+        	testChildFolder = device.getChildIds(testLib1).get(0);
+        }
+        
         boolean addChild = device.addLibraryRoot(testChildFolder);
 
         assertTrue("Device should be able to add a library root: ", addRoot1);

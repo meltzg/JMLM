@@ -22,7 +22,6 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
         Properties props = TestConfig.getProps();
         testLib1 = props.getProperty("test.mtpcd.lib1");
         testLib2 = props.getProperty("test.mtpcd.lib2");
-        testChildFolder = props.getProperty("test.mtpcd.child");
 
         testDevId = props.getProperty("test.mtpcd.id");
         testDesc = props.getProperty("test.mtpcd.desc");

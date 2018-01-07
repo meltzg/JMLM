@@ -5,8 +5,16 @@ using std::wstring;
 
 namespace LibJMTP {
 
-	class MTPContentNode {
+	struct MTPContentNode {
+		wstring id;
+		wstring pId;
+		wstring origName;
+		wstring name;
+		bool isDir;
+		unsigned long long size;
+		unsigned long long capacity;
 
+		bool isValid;
 	};
 
 	struct MTPDeviceInfo {
