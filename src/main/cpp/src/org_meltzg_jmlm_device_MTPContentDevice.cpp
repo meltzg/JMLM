@@ -13,7 +13,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevice
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDeviceInfo
 (JNIEnv *env, jclass obj, jstring id) {
-	wstring cId(jStringToWchar(env, id));
+	wstring cId = jStringToWString(env, id);
 	MTPDeviceInfo info = getDeviceInfo(cId);
 	jobject jInfo = toJMTPDeviceInfo(env, obj, info);
 	return jInfo;
@@ -21,8 +21,8 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevice
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds
 (JNIEnv *env, jobject obj, jstring deviceId, jstring parentId) {
-	wstring cDeviceId(jStringToWchar(env, deviceId));
-	wstring cParentId(jStringToWchar(env, parentId));
+	wstring cDeviceId = jStringToWString(env, deviceId);
+	wstring cParentId = jStringToWString(env, parentId);
 	vector<wstring> childIds = getChildIds(cDeviceId, cParentId);
 
 	jobject jList = getNewArrayList(env);
@@ -36,18 +36,36 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getChildI
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_createDirNode
 (JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring name) {
-	return NULL;
+	wstring cDeviceId = jStringToWString(env, deviceId);
+	wstring cParentId = jStringToWString(env, parentId);
+	wstring cName = jStringToWString(env, name);
+	
+	MTPContentNode node = createDirNode(cDeviceId, cParentId, cName);
+	jobject jnode = nullptr;
+	if (node.isValid) {
+		jnode = toJMTPContentNode(env, node);
+	}
+	return jnode;
 }
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_createContentNode
 (JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring file) {
-	return NULL;
+	wstring cDeviceId = jStringToWString(env, deviceId);
+	wstring cParentId = jStringToWString(env, parentId);
+	wstring cFile = jStringToWString(env, file);
+
+	MTPContentNode node = createContentNode(cDeviceId, cParentId, cFile);
+	jobject jnode = nullptr;
+	if (node.isValid) {
+		jnode = toJMTPContentNode(env, node);
+	}
+	return jnode;
 }
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_readNode
 (JNIEnv *env, jobject obj, jstring deviceId, jstring id) {
-	wstring cDeviceId(jStringToWchar(env, deviceId));
-	wstring cId(jStringToWchar(env, id));
+	wstring cDeviceId = jStringToWString(env, deviceId);
+	wstring cId = jStringToWString(env, id);
 	MTPContentNode node = readNode(cDeviceId, cId);
 	jobject jnode = nullptr;
 	if (node.isValid) {

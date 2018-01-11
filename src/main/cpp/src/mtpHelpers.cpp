@@ -238,6 +238,66 @@ namespace LibJMTP {
 		HRESULT hr = values->GetGuidValue(key, destination);
 	}
 
+	HRESULT setStringDeviceValue(IPortableDeviceValues * values, REFPROPERTYKEY key, const wchar_t * val) {
+		HRESULT hr = values->SetStringValue(key, val);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to set String device value: ", hr);
+		}
+
+		return hr;
+	}
+
+	HRESULT setULongLongDeviceValue(IPortableDeviceValues * values, REFPROPERTYKEY key, unsigned long long val) {
+		HRESULT hr = values->SetUnsignedLargeIntegerValue(key, val);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to set ULongLong device value: ", hr);
+		}
+
+		return hr;
+	}
+
+	HRESULT setGUIDDeviceValue(IPortableDeviceValues * values, REFPROPERTYKEY key, GUID val) {
+		HRESULT hr = values->SetGuidValue(key, val);
+		if (FAILED(hr)) {
+			logErr("!!! Failed to set GUID device value: ", hr);
+		}
+
+		return hr;
+	}
+
+	HRESULT streamCopy(IStream *source, IStream *dest, DWORD transferSize) {
+		HRESULT hr = E_FAIL;
+
+		if (source != nullptr && dest != nullptr) {
+			BYTE *objData = new (nothrow) BYTE[transferSize];
+			if (objData == nullptr) {
+				logErr("!!! Failed to allocate transfer buffer: ", hr);
+			}
+			else {
+				DWORD bytesRead = 0;
+				DWORD bytesWritten = 0;
+
+				do {
+					hr = source->Read(objData, transferSize, &bytesRead);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to read from source stream: ", hr);
+					}
+					else {
+						hr = dest->Write(objData, bytesRead, &bytesWritten);
+						if (FAILED(hr)) {
+							logErr("!!! Failed to write to destination stream: ", hr);
+						}
+					}
+				} while (SUCCEEDED(hr) && bytesRead > 0);
+			}
+
+			delete[] objData;
+			objData = nullptr;
+		}
+
+		return hr;
+	}
+	
 	vector<MTPDeviceInfo> getDevicesInfo() {
 		vector<MTPDeviceInfo> devices;
 		if (SUCCEEDED(initCOM())) {
@@ -346,11 +406,227 @@ namespace LibJMTP {
 
 	MTPContentNode createDirNode(wstring deviceId, wstring parentId, wstring name)
 	{
-		return MTPContentNode();
+		ComPtr<IPortableDevice> device = nullptr;
+		ComPtr<IPortableDeviceContent> content = nullptr;
+		ComPtr<IPortableDeviceValues> objVals = nullptr;
+		MTPContentNode node;
+		wchar_t *folderId = nullptr;
+
+		if SUCCEEDED(initCOM()) {
+			HRESULT hr = getPortableDevice(device, deviceId);
+			if (SUCCEEDED(hr)) {
+				hr = device->Content(&content);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IPortbleDeviceContent: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = CoCreateInstance(CLSID_PortableDeviceValues,
+					nullptr,
+					CLSCTX_INPROC_SERVER,
+					IID_PPV_ARGS(&objVals));
+				if (FAILED(hr)) {
+					logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = setStringDeviceValue(objVals.Get(), WPD_OBJECT_PARENT_ID, parentId.c_str());
+			}
+			if (SUCCEEDED(hr)) {
+				hr = setStringDeviceValue(objVals.Get(), WPD_OBJECT_NAME, name.c_str());
+			}
+			if (SUCCEEDED(hr)) {
+				hr = setGUIDDeviceValue(objVals.Get(), WPD_OBJECT_CONTENT_TYPE, WPD_CONTENT_TYPE_FOLDER);
+			}
+
+			if (FAILED(hr)) {
+				logErr("!!! Failed to create Folder Properties: ", hr);
+			}
+			else {
+				hr = content->CreateObjectWithPropertiesOnly(objVals.Get(), &folderId);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to create folder: ", hr);
+				}
+			}
+
+			device.Reset();
+			content.Reset();
+			objVals.Reset();
+			closeCOM();
+
+			if (SUCCEEDED(hr)) {
+				node = readNode(deviceId, wstring(folderId));
+			}
+		}
+		return node;
 	}
+	
 	MTPContentNode createContentNode(wstring deviceId, wstring parentId, wstring file)
 	{
-		return MTPContentNode();
+		ComPtr<IPortableDevice> device = nullptr;
+		ComPtr<IPortableDeviceContent> content = nullptr;
+		ComPtr<IPortableDeviceValues> objVals = nullptr;
+		ComPtr<IPortableDeviceDataStream> objStream = nullptr;
+		ComPtr<IStream> fileStream = nullptr;
+		ComPtr<IStream> tmpStream = nullptr;
+
+		wstring filename = file.substr(file.rfind(L'\\')+1);
+		size_t dotIndex = filename.rfind(L'.');
+		
+		MTPContentNode node;
+		wstring newIdStr;
+
+		if SUCCEEDED(initCOM()) {
+			HRESULT hr = getPortableDevice(device, deviceId);
+			if (SUCCEEDED(hr)) {
+				hr = device->Content(&content);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IPortbleDeviceContent: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = CoCreateInstance(CLSID_PortableDeviceValues,
+					nullptr,
+					CLSCTX_INPROC_SERVER,
+					IID_PPV_ARGS(&objVals));
+				if (FAILED(hr)) {
+					logErr("!!! Failed to CoCreateInstance CLSID_PortableDeviceValues: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = SHCreateStreamOnFileEx(file.c_str(), STGM_READ, FILE_ATTRIBUTE_NORMAL, FALSE, nullptr, &fileStream);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to open file for transfer: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = setStringDeviceValue(objVals.Get(), WPD_OBJECT_PARENT_ID, parentId.c_str());
+			}
+
+			if (SUCCEEDED(hr)) {
+				// File Size
+				STATSTG statstg = { 0 };
+				hr = fileStream->Stat(&statstg, STATFLAG_NONAME);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get file's total size: ", hr);
+				}
+				else {
+					hr = setULongLongDeviceValue(objVals.Get(), WPD_OBJECT_SIZE, statstg.cbSize.QuadPart);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = setStringDeviceValue(objVals.Get(), WPD_OBJECT_ORIGINAL_FILE_NAME, filename.c_str());
+			}
+
+			if (SUCCEEDED(hr)) {
+				// File name
+				wstring strName;
+
+				if (dotIndex == wstring::npos) {
+					strName = filename;
+				}
+				else {
+					strName = filename.substr(0, dotIndex - 1);
+				}
+
+				hr = setStringDeviceValue(objVals.Get(), WPD_OBJECT_NAME, strName.c_str());
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = setGUIDDeviceValue(objVals.Get(), WPD_OBJECT_CONTENT_TYPE, WPD_CONTENT_TYPE_AUDIO);
+				if (dotIndex == wstring::npos) {
+					hr = E_FAIL;
+					logErr("!!! File has no extension: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				GUID format;
+				wstring extension = filename.substr(dotIndex+1, filename.length());
+
+				if (_wcsicmp(extension.c_str(), L"flac") == 0) {
+					format = WPD_OBJECT_FORMAT_FLAC;
+				}
+				else if (_wcsicmp(extension.c_str(), L"mp3") == 0) {
+					format = WPD_OBJECT_FORMAT_MP3;
+				}
+				else if (_wcsicmp(extension.c_str(), L"wma") == 0) {
+					format = WPD_OBJECT_FORMAT_WMA;
+				}
+				else if (_wcsicmp(extension.c_str(), L"m4a") == 0) {
+					format = WPD_OBJECT_FORMAT_M4A;
+				}
+				else {
+					format = WPD_OBJECT_FORMAT_UNSPECIFIED;
+				}
+
+				hr = setGUIDDeviceValue(objVals.Get(), WPD_OBJECT_FORMAT, format);
+			}
+
+			if (SUCCEEDED(hr)) {
+				DWORD optimalTransferSizeBytes = 0;
+
+				hr = content->CreateObjectWithPropertiesAndData(objVals.Get(),
+					&tmpStream,
+					&optimalTransferSizeBytes,
+					nullptr);
+
+				if (SUCCEEDED(hr)) {
+					hr = tmpStream.As(&objStream);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to QueryInterface for IPortableDeviceDataStream: ", hr);
+					}
+				}
+
+				if (SUCCEEDED(hr)) {
+					DWORD bytesWritten = 0;
+					hr = streamCopy(fileStream.Get(), objStream.Get(), optimalTransferSizeBytes);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to transfer object to device: ", hr);
+					}
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = objStream->Commit(STGC_DEFAULT);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to commit object to device: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				PWSTR newId = nullptr;
+				hr = objStream->GetObjectID(&newId);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get newly transferred object's ID: ", hr);
+				}
+				else {
+					newIdStr.assign(newId);
+				}
+				CoTaskMemFree(newId);
+				newId = nullptr;
+			}
+
+			device.Reset();
+			content.Reset();
+			objVals.Reset();
+			objStream.Reset();
+			fileStream.Reset();
+			tmpStream.Reset();
+
+			closeCOM();
+
+			if (SUCCEEDED(hr)) {
+				node = readNode(deviceId, newIdStr);
+			}
+		}
+		return node;
 	}
 	MTPContentNode readNode(wstring deviceId, wstring id)
 	{

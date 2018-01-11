@@ -40,7 +40,7 @@ namespace LibJMTP {
         return env->NewObject(bigIntClass, bigIntConstructor, jStrNum);
     }
 
-    wchar_t* jStringToWchar(JNIEnv *env, jstring jStr)
+    wstring jStringToWString(JNIEnv *env, jstring jStr)
     {
         if (jStr == NULL) {
             return nullptr;
@@ -54,7 +54,10 @@ namespace LibJMTP {
         wStr.assign(raw, raw + len);
         wcscpy_s(wStr_c, len + 1, wStr.c_str());
 
-        return wStr_c;
+		wstring ret(wStr_c);
+		delete[] wStr_c;
+
+        return ret;
     }
 
     jobject getNewArrayList(JNIEnv *env) {

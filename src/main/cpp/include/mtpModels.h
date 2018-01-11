@@ -15,6 +15,8 @@ namespace LibJMTP {
 		unsigned long long capacity;
 
 		bool isValid;
+
+		MTPContentNode() { isValid = false; }
 	};
 
 	struct MTPDeviceInfo {
