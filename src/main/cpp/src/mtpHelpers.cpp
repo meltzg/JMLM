@@ -5,6 +5,7 @@
 #include <wrl/client.h>
 #include <shlwapi.h>
 #include <guiddef.h>
+#include <propvarutil.h>
 
 #include "mtpHelpers.h"
 #include "commonHelpers.h"
@@ -729,16 +730,157 @@ namespace LibJMTP {
 
 		return node;
 	}
+	
 	MTPContentNode copyNode(wstring deviceId, wstring parentId, wstring id, wstring tmpFolder)
 	{
-		return MTPContentNode();
+		MTPContentNode toTransfer = readNode(deviceId, id);
+		MTPContentNode node;
+
+		if (retrieveNode(deviceId, id, tmpFolder)) {
+			wstring tmpFile = tmpFolder + L"\\" + toTransfer.origName;
+			node = createContentNode(deviceId, parentId, tmpFile);
+
+			if (_wremove(tmpFile.c_str()) != 0) {
+				logErr("!!! Failed to remove temporary file: ", E_FAIL);
+			}
+		}
+		else {
+			logErr("!!! Failed to move file to temporary directory: ", E_FAIL);
+		}
+		
+		return node;
 	}
+	
 	bool deleteNode(wstring deviceId, wstring id)
 	{
-		return false;
+		ComPtr<IPortableDevice> device = nullptr;
+		ComPtr<IPortableDeviceContent> content = nullptr;
+		ComPtr<IPortableDevicePropVariantCollection> objsToDelete = nullptr;
+
+		HRESULT hr = initCOM();
+		if (SUCCEEDED(hr)) {
+			HRESULT hr = getPortableDevice(device, deviceId);
+			if (SUCCEEDED(hr)) {
+				hr = device->Content(&content);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IPortbleDeviceContent: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = CoCreateInstance(CLSID_PortableDevicePropVariantCollection,
+					nullptr,
+					CLSCTX_INPROC_SERVER,
+					IID_PPV_ARGS(&objsToDelete));
+
+				if (FAILED(hr)) {
+					logErr("!!! Failed to CoCreateInstance CLSID_PortableDevicePropVariantCollection: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				PROPVARIANT pv = { 0 };
+				hr = InitPropVariantFromString(id.c_str(), &pv);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to InitPropVariantFromString: ", hr);
+				}
+				else {
+					hr = objsToDelete->Add(&pv);
+					if (FAILED(hr)) {
+						logErr("!!! Failed to add object to IPortableDevicePropVariantCollection: ", hr);
+					}
+					else {
+						hr = content->Delete(PORTABLE_DEVICE_DELETE_NO_RECURSION,
+							objsToDelete.Get(),
+							nullptr);
+
+						if (hr != S_OK) {
+							logErr("!!! Failed to delete object: ", hr);
+						}
+					}
+				}
+
+				PropVariantClear(&pv);
+			}
+
+			device.Reset();
+			content.Reset();
+			objsToDelete.Reset();
+			closeCOM();
+		}
+
+		return hr == S_OK;
 	}
+	
 	bool retrieveNode(wstring deviceId, wstring id, wstring destFolder)
 	{
-		return false;
+		ComPtr<IPortableDevice> device = nullptr;
+		ComPtr<IPortableDeviceContent> content = nullptr;
+		ComPtr<IPortableDeviceResources> resources;
+		ComPtr<IStream> objStream;
+		ComPtr<IStream> fileStream;
+
+		MTPContentNode toTransfer = readNode(deviceId, id);
+		
+		HRESULT hr = initCOM();
+		DWORD optimalTransferSizeBytes = 0;
+
+		if (SUCCEEDED(hr) && toTransfer.isValid) {
+			HRESULT hr = getPortableDevice(device, deviceId);
+			if (SUCCEEDED(hr)) {
+				hr = device->Content(&content);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IPortbleDeviceContent: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = content->Transfer(&resources);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IPortableDeviceResources from IPortableDeviceContent: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = resources->GetStream(id.c_str(),
+					WPD_RESOURCE_DEFAULT,
+					STGM_READ,
+					&optimalTransferSizeBytes,
+					&objStream);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to get IStream for the object data: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				wstring fullpath = destFolder + L"\\" + toTransfer.origName;
+
+				hr = SHCreateStreamOnFileEx(fullpath.c_str(),
+					STGM_CREATE | STGM_WRITE,
+					FILE_ATTRIBUTE_NORMAL,
+					FALSE,
+					nullptr,
+					&fileStream);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to create temporary file to transfer object: ", hr);
+				}
+			}
+
+			if (SUCCEEDED(hr)) {
+				hr = streamCopy(objStream.Get(), fileStream.Get(), optimalTransferSizeBytes);
+				if (FAILED(hr)) {
+					logErr("!!! Failed to transfer object from device: ", hr);
+				}
+			}
+
+			device.Reset();
+			content.Reset();
+			resources.Reset();
+			objStream.Reset();
+			fileStream.Reset();
+			closeCOM();
+		}
+
+		return hr == S_OK;
 	}
 }

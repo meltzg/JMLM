@@ -14,6 +14,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDevice
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_getDeviceInfo
 (JNIEnv *env, jclass obj, jstring id) {
 	wstring cId = jStringToWString(env, id);
+	
 	MTPDeviceInfo info = getDeviceInfo(cId);
 	jobject jInfo = toJMTPDeviceInfo(env, obj, info);
 	return jInfo;
@@ -66,6 +67,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_readNode
 (JNIEnv *env, jobject obj, jstring deviceId, jstring id) {
 	wstring cDeviceId = jStringToWString(env, deviceId);
 	wstring cId = jStringToWString(env, id);
+	
 	MTPContentNode node = readNode(cDeviceId, cId);
 	jobject jnode = nullptr;
 	if (node.isValid) {
@@ -76,15 +78,32 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_readNode
 
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_copyNode
 (JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring id, jstring tmpFolder) {
-	return NULL;
+	wstring cDeviceId = jStringToWString(env, deviceId);
+	wstring cParentId = jStringToWString(env, parentId);
+	wstring cId = jStringToWString(env, id);
+	wstring cTempFolder = jStringToWString(env, tmpFolder);
+
+	MTPContentNode node = copyNode(cDeviceId, cParentId, cId, cTempFolder);
+	jobject jnode = nullptr;
+	if (node.isValid) {
+		jnode = toJMTPContentNode(env, node);
+	}
+	return jnode;
 }
 
 JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_deleteNode
 (JNIEnv *env, jobject obj, jstring deviceId, jstring id) {
-	return false;
+	wstring cDeviceId = jStringToWString(env, deviceId);
+	wstring cId = jStringToWString(env, id);
+	
+	return deleteNode(cDeviceId, cId);
 }
 
 JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_device_MTPContentDevice_retrieveNode
 (JNIEnv *env, jobject obj, jstring deviceId, jstring id, jstring destFolder) {
-	return false;
+	wstring cDeviceId = jStringToWString(env, deviceId);
+	wstring cId = jStringToWString(env, id);
+	wstring cDestFolder = jStringToWString(env, destFolder);
+	
+	return retrieveNode(cDeviceId, cId, cDestFolder);
 }
