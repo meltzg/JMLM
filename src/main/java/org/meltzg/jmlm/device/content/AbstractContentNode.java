@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * An abstract representation of a content node.  This can be used to represent dir/file hierarchies.
@@ -83,6 +84,14 @@ public abstract class AbstractContentNode {
     public BigInteger getCapacity() {
         return capacity;
     }
+    
+    /**
+     * Sets the capacity metadata for this node.
+     * @param capacity
+     */
+    public void setCapacity(BigInteger capacity) {
+    	this.capacity = capacity;
+    }
 
     /** @return the children of this node */
     public Collection<AbstractContentNode> getChildren() {
@@ -131,5 +140,22 @@ public abstract class AbstractContentNode {
             }
         }
         return null;
+    }
+    
+    /**
+     * @return the total size of this node and all of its decendants
+     */
+    public BigInteger getTotalSize() {
+    	BigInteger total = BigInteger.ZERO;
+    	
+    	Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
+    	stack.add(this);
+    	while (!stack.empty()) {
+    		AbstractContentNode node = stack.pop();
+    		total = total.add(node.size);
+    		stack.addAll(node.getChildren());
+    	}
+    	
+    	return total;
     }
 }

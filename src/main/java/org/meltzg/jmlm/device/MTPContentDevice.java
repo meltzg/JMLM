@@ -1,7 +1,13 @@
 package org.meltzg.jmlm.device;
 
 import java.io.File;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 
@@ -57,6 +63,47 @@ public class MTPContentDevice extends AbstractContentDevice {
 	@Override
 	protected boolean retrieveNode(String id, String destFolder) {
 		return retrieveNode(this.deviceId, id, destFolder);
+	}
+	
+	@Override
+	protected void assignLibCapacities() {
+		// MTP Devices have objects representing storage devices (SD cards, internal storage)
+		// The MTPContentNode represents these as directories with a non-zero capacity
+		List<AbstractContentNode> storageDevices = new ArrayList<AbstractContentNode>();
+		Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<String, List<AbstractContentNode>>();
+
+		Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
+		
+		// Find the storage devices
+		stack.add(content.getNode(AbstractContentNode.ROOT_ID));
+		while (!stack.empty()) {
+			AbstractContentNode node = stack.pop();
+			if (node.getCapacity().compareTo(BigInteger.ZERO) > 0) {
+				storageDevices.add(node);
+			} else {
+				stack.addAll(node.getChildren());
+			}
+		}
+		
+		for (String libRoot: libRoots) {
+			for (AbstractContentNode device : storageDevices) {
+				ContentRootWrapper wrapper = new ContentRootWrapper(device);
+				if (wrapper.contains(libRoot)) {
+					if (!storageDeviceMap.containsKey(device.getId())) {
+						storageDeviceMap.put(device.getId(), new ArrayList<AbstractContentNode>());
+					}
+					storageDeviceMap.get(device.getId()).add(content.getNode(libRoot));
+				}
+			}
+		}
+		
+		for (Map.Entry<String, List<AbstractContentNode>> storageMapping : storageDeviceMap.entrySet()) {
+			BigInteger cap = content.getNode(storageMapping.getKey()).getCapacity();
+			cap = cap.divide(BigInteger.valueOf(storageMapping.getValue().size()));
+			for (AbstractContentNode node : storageMapping.getValue()) {
+				node.setCapacity(cap);
+			}
+		}
 	}
 
 	private native List<String> getChildIds(String dId, String pId);

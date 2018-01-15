@@ -2,12 +2,17 @@ package org.meltzg.jmlm.device;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 import org.meltzg.jmlm.device.content.FSAudioContentNode;
@@ -158,5 +163,48 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 	protected String validateId(String id) throws InvalidContentIDException {
 		id = Paths.get(id).toAbsolutePath().toString();
 		return super.validateId(id);
+	}
+
+	@Override
+	protected void assignLibCapacities() {
+		Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<String, List<AbstractContentNode>>();
+		
+		for (String libRoot : libRoots) {
+			Path libpath = Paths.get(libRoot);
+			try {
+				FileStore fs = Files.getFileStore(libpath);
+				String device = fs.name();
+				if (device.length() == 0) {
+					device = libpath.getRoot().toString();
+				}
+				if (!storageDeviceMap.containsKey(device)) {
+					storageDeviceMap.put(device, new ArrayList<AbstractContentNode>());
+				}
+				storageDeviceMap.get(device).add(content.getNode(libRoot));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		for (Map.Entry<String, List<AbstractContentNode>> storageMapping : storageDeviceMap.entrySet()) {
+			Path storage = Paths.get(storageMapping.getKey());
+			long freespace = 0;
+			
+			try {
+				freespace = Files.getFileStore(storage).getUsableSpace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				freespace = 0;
+			}
+			
+			freespace /= storageMapping.getValue().size();
+			for (AbstractContentNode node : storageMapping.getValue()) {
+				BigInteger currSize = node.getTotalSize();
+				currSize = currSize.add(BigInteger.valueOf(freespace));
+				node.setCapacity(currSize);
+			}
+		}
 	}
 }

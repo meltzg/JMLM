@@ -58,6 +58,8 @@ public abstract class AbstractContentDevice {
                 System.err.println("Library root must be a directory: " + id);
                 return false;
             }
+            
+            assignLibCapacities();
 
             return true;
         } catch (InvalidContentIDException e) {
@@ -72,7 +74,10 @@ public abstract class AbstractContentDevice {
      * @return success of removal
      */
     public boolean removeLibRoot(String libRoot) {
-        return libRoots.remove(libRoot);
+        boolean success = libRoots.remove(libRoot);
+        assignLibCapacities();
+        return success;
+        
 	}
 
     /** @return the set of library roots */
@@ -412,6 +417,12 @@ public abstract class AbstractContentDevice {
      * @return true if transfer is successful
      */
     protected abstract boolean retrieveNode(String id, String destFolder);
+    
+    /**
+     * Assigns storage capacities to the Library root nodes.
+     * Libraries that exist on the same storage device should each be given an equal share
+     */
+    protected abstract void assignLibCapacities();
     
     /**
      * Represents the work done when creating a folder path.
