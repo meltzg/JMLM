@@ -69,9 +69,12 @@ public abstract class AbstractContentDeviceTest {
 
         assertNotNull("Should be able to move file on device: ", move1);
         assertNotNull("Should be able to move another file on device: ", move2);
+        
+        leaf1 = getLeaf(move1);
+        leaf2 = getLeaf(move2);
 
-        boolean remove1 = device.removeFromDevice(node1.getId());
-        boolean remove2 = device.removeFromDevice(node2.getId());
+        boolean remove1 = device.removeFromDevice(leaf1.getId());
+        boolean remove2 = device.removeFromDevice(leaf2.getId());
 
         assertTrue("Should be able to remove test file 1", remove1);
         assertTrue("Should be able to remove test file 2", remove2);

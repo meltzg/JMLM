@@ -7,7 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
+
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 
@@ -169,7 +171,7 @@ public abstract class AbstractContentDevice {
         } catch(Exception e) {
             e.printStackTrace();
         } finally {
-            content.refreshRootInfo();
+            cleanDevice();
         }
         return success;
     }
@@ -194,9 +196,9 @@ public abstract class AbstractContentDevice {
             FolderPair fPair = createFolderPath(destId, destFolderPath);
             highestCreatNode = fPair.createdNode;
             AbstractContentNode movedNode = copyNode(fPair.lastNode.getId(), id, tmpFolder);
+            fPair.lastNode.addChild(movedNode);
             if (highestCreatNode == null && movedNode != null) {
                 highestCreatNode = movedNode;
-                fPair.lastNode.addChild(movedNode);
             }
             if (movedNode != null) {
                 removeFromDevice(id);
@@ -204,7 +206,7 @@ public abstract class AbstractContentDevice {
         } catch (InvalidContentIDException e) {
             e.printStackTrace();
         } finally {
-            content.refreshRootInfo();
+            cleanDevice();
         }
         return highestCreatNode;
     }
@@ -235,6 +237,33 @@ public abstract class AbstractContentDevice {
 
         return root;
     }
+    
+    /**
+     * Removes all empty directories from the device and refreshes the content root's metadata
+     */
+    public void cleanDevice() {
+    	Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
+    	Set<String> visited = new HashSet<String>();
+    	stack.add(content.getNode(AbstractContentNode.ROOT_ID));
+    	
+    	while (!stack.empty()) {
+    		if (!visited.contains(stack.peek().getId()) && stack.peek().getChildren().size() > 0) {
+    			visited.add(stack.peek().getId());
+    			for (AbstractContentNode child : stack.peek().getChildren()) {
+    				stack.add(child);
+    			}
+    		} else {
+    			AbstractContentNode node = stack.pop();
+    			if (node.isDir() && node.getChildren().size() == 0) {
+    				if (deleteNode(node.getId())) {
+    					content.getNode(node.getPId()).removeChild(node.getId());
+    				}
+    			}
+    		}
+    	}
+    	
+    	content.refreshRootInfo();
+     }
 
     /**
      * Validates a given ID.  A validated ID is returned. The returned ID may not be an exact match to the input.  
