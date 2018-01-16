@@ -2,9 +2,14 @@ package org.meltzg.jmlm.device;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
@@ -269,6 +274,39 @@ public abstract class AbstractContentDevice {
     	
     	content.refreshRootInfo();
      }
+    
+    /**
+     * Creates a map of the non dir content keyed by their path from their library root
+     * @return Map<path from lib to node, node>
+     */
+    public Map<String, AbstractContentNode> getPathToContent() {
+    	Map<String, AbstractContentNode> pathToContent = new HashMap<String, AbstractContentNode>();
+    	
+    	Collection<String> roots;
+    	if (libRoots.size() != 0) {
+    		roots = libRoots;
+    	} else {
+    		roots = Arrays.asList(AbstractContentNode.ROOT_ID);
+    	}
+    	
+    	for (String root : roots) {
+    		Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
+    		List<String> currPath = new ArrayList<String>();
+    		stack.add(content.getNode(root));
+    		
+    		while (!stack.empty()) {
+    			AbstractContentNode node = stack.pop();
+    			currPath.add(node.getOrigName());
+    			if (!node.isDir()) {
+    				pathToContent.put(String.join("/", currPath), node);
+    				currPath.remove(currPath.size() - 1);
+    			}
+    			stack.addAll(node.getChildren());
+    		}
+    	}
+    	
+    	return pathToContent;
+    }
 
     /**
      * Validates a given ID.  A validated ID is returned. The returned ID may not be an exact match to the input.  

@@ -22,8 +22,9 @@ public class FSAudioContentDeviceTest extends AbstractContentDeviceTest {
         testDevPath2 = props.getProperty("test.fsacd.path2");
     }
 
-    @Before
-    public void beforeTests() {
-        device = new FSAudioContentDevice();
-    }
+	@Override
+	protected AbstractContentDevice getNewDevice() {
+		// TODO Auto-generated method stub
+		return new FSAudioContentDevice();
+	}
 }

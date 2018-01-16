@@ -1,10 +1,16 @@
 package org.meltzg.jmlm.device;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 
@@ -18,6 +24,11 @@ public abstract class AbstractContentDeviceTest {
     protected static String testDevPath2;
 
     protected AbstractContentDevice device;
+    
+    @Before
+    public void beforeTests() {
+        device = getNewDevice();
+    }
 
     @Test
     public void testLibraryRoots() {
@@ -79,6 +90,35 @@ public abstract class AbstractContentDeviceTest {
         assertTrue("Should be able to remove test file 1", remove1);
         assertTrue("Should be able to remove test file 2", remove2);
     }
+    
+    @Test
+    public void testGetPathToContent() {
+    	AbstractContentDevice device2 = getNewDevice();
+    	
+    	device.addLibraryRoot(testLib1);
+        device.addLibraryRoot(testLib2);
+        
+        device2.addLibraryRoot(testLib1);
+        device2.addLibraryRoot(testLib2);
+        
+        Map<String, AbstractContentNode> pathToNode1 = device.getPathToContent();
+        Map<String, AbstractContentNode> pathToNode2 = device2.getPathToContent();
+        
+        assertEquals("Should have the same number of content nodes: ", pathToNode1.size(), pathToNode2.size());
+        assertTrue("Should have the more than 0 content nodes: ", pathToNode1.size() > 0);
+        
+        boolean hasMatch = true;
+        
+        for (String path : pathToNode1.keySet()) {
+        	if (!pathToNode2.containsKey(path)) {
+        		hasMatch = false;
+        	}
+        }
+        
+        assertTrue("Should have a match for all content", hasMatch);
+    }
+    
+    protected abstract AbstractContentDevice getNewDevice();
 
     private AbstractContentNode getLeaf(AbstractContentNode node) {
         while (!node.getChildren().isEmpty()) {

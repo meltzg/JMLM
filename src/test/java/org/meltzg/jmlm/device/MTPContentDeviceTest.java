@@ -35,11 +35,6 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
         testDevPath2 = props.getProperty("test.mtpcd.path2");
     }
 
-    @Before
-    public void beforeTests() {
-        device = new MTPContentDevice(testDevId);
-    }
-
     @Test
     public void testGetDevices() {
         List<MTPContentDevice.MTPDeviceInfo> deviceInfo = MTPContentDevice.getDevicesInfo();
@@ -61,4 +56,9 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
         assertNotNull("Device found: ", found);
         assertEquals("Specific device is the same as list device", found, found2);
     }
+
+	@Override
+	protected AbstractContentDevice getNewDevice() {
+		return new MTPContentDevice(testDevId);
+	}
 }
