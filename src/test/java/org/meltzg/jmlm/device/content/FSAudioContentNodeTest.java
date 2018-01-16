@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Properties;
 import org.meltzg.TestConfig;
 import org.meltzg.jmlm.device.content.FSAudioContentNode;
@@ -55,7 +56,7 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
         assertEquals("Node should have title set: ", testTitle, node.getTitle());
         assertEquals("Node should have discnum set: ", testDiscNum, node.getDiscNum());
         assertEquals("Node should have tracknum set: ", testTrackNum, node.getTrackNum());
-        assertEquals("Node should have correct size: ", file.length(), node.getSize());
+        assertEquals("Node should have correct size: ", BigInteger.valueOf(file.length()), node.getSize());
         assertFalse("Node should not be a directory: ", node.isDir());
         assertTrue("Node should be valid: ", node.isValid());
     }
@@ -74,7 +75,7 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
         assertNull("Node should not have title set: ", node.getTitle());
         assertEquals("Node should not have discnum set: ", 0, node.getDiscNum());
         assertEquals("Node should not have tracknum set: ", 0, node.getTrackNum());
-        assertEquals("Node should have correct size: ", 0, node.getSize());
+        assertEquals("Node should have correct size: ", BigInteger.ZERO, node.getSize());
         assertTrue("Node should be a directory: ", node.isDir());
         assertTrue("Node should be valid: ", node.isValid());
     }
@@ -93,7 +94,7 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
         assertNull("Node should not have title set: ", node.getTitle());
         assertEquals("Node should not have discnum set: ", 0, node.getDiscNum());
         assertEquals("Node should not have tracknum set: ", 0, node.getTrackNum());
-        assertEquals("Node should have correct size: ", file.length(), node.getSize());
+        assertEquals("Node should have correct size: ", BigInteger.valueOf(file.length()), node.getSize());
         assertFalse("Node should not be a directory: ", node.isDir());
         assertFalse("Node should be invalid: ", node.isValid());
     }
