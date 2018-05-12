@@ -6,9 +6,9 @@
  * user guide available at https://docs.gradle.org/4.1/userguide/java_library_plugin.html
  */
 
-plugins {
-  id "com.ullink.msbuild" version "2.18"
-}
+//plugins {
+//  id "com.ullink.msbuild" version "2.18"
+//}
 
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
@@ -35,13 +35,13 @@ dependencies {
     compile group:'net.jthink', name:'jaudiotagger', version:'2.2.5'
 }
 
-msbuild {
-    solutionFile = 'src/main/cpp/CLibJMTP/CLibJMTP.sln'
-    platform='x64'
-    verbosity = 'detailed'
-    targets = ['Clean', 'Rebuild']
-    parameters.OutDir = '../../../../../build/libs/'
-}
+//msbuild {
+//    solutionFile = 'src/main/cpp/CLibJMTP/CLibJMTP.sln'
+//    platform='x64'
+//    verbosity = 'detailed'
+//    targets = ['Clean', 'Rebuild']
+//    parameters.OutDir = '../../../../../build/libs/'
+//}
 
 test {
     systemProperty 'java.library.path', 'build/libs'
@@ -52,4 +52,4 @@ task generateHeader(type:Exec) {
     commandLine 'cmd', '/c', 'javah', '-jni', '-verbose', '-classpath', '../../java', 'org.meltzg.jmlm.device.MTPContentDevice'
 }
 
-defaultTasks 'clean', 'msbuild', 'build', 'jacocoTestReport'
+defaultTasks 'clean', 'build', 'jacocoTestReport'

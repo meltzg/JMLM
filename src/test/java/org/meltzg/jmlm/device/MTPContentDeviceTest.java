@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Properties;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.meltzg.TestConfig;
 
+@Ignore
 public class MTPContentDeviceTest extends AbstractContentDeviceTest {
 	private static String testDevId;
 	private static String testDesc;

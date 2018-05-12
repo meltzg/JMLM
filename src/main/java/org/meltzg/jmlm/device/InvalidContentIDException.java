@@ -2,6 +2,7 @@ package org.meltzg.jmlm.device;
 
 /**
  * Used to represent invalid content ID states
+ *
  * @author Greg Meltzer
  * @author https://github.com/meltzg
  */

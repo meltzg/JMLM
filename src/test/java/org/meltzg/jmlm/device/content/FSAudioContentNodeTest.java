@@ -7,10 +7,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Properties;
+
+import org.junit.Ignore;
 import org.meltzg.TestConfig;
 import org.meltzg.jmlm.device.content.FSAudioContentNode;
 import org.junit.BeforeClass;
 
+@Ignore
 public class FSAudioContentNodeTest extends AbstractContentNodeTest {
     
     private static String testFile;

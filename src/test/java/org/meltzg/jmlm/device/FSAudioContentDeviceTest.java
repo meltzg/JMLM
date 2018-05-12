@@ -6,8 +6,10 @@ import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.meltzg.TestConfig;
 
+@Ignore
 public class FSAudioContentDeviceTest extends AbstractContentDeviceTest {
     @BeforeClass
     public static void setupBeforeClass() throws FileNotFoundException, IOException {
