@@ -90,7 +90,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
     }
 
     @Override
-    protected AbstractContentNode copyNode(String pId, String id, String tmpFolder) {
+    protected org.meltzg.jmlm.device.content.TestContentNode copyNode(String pId, String id, String tmpFolder) {
         try {
             pId = validateId(pId);
             id = validateId(id);
@@ -162,6 +162,13 @@ public class FSAudioContentDevice extends AbstractContentDevice {
         return super.validateId(id);
     }
 
+    /**
+     * Assigns storage capacities to the Library root nodes.
+     * Libraries that exist on the same storage device should each be given an equal share
+     *
+     * The size of a library is determined by the total size of the library content +
+     * an equal share of the free space available on the hdd the library is on
+     */
     @Override
     protected void assignLibCapacities() {
         Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<String, List<AbstractContentNode>>();

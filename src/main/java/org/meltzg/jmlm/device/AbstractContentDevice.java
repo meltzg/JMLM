@@ -5,6 +5,7 @@ import org.meltzg.jmlm.device.content.ContentRootWrapper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -332,6 +333,51 @@ public abstract class AbstractContentDevice {
     }
 
     /**
+     * Assigns storage capacities to the Library root nodes.
+     * Libraries that exist on the same storage device should each be given an equal share
+     *
+     * This implementation assumes that storage devices on the device are represented as
+     * directories with a capacity of > 0
+     */
+    protected void assignLibCapacities() {
+        List<AbstractContentNode> storageDevices = new ArrayList<AbstractContentNode>();
+        Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<String, List<AbstractContentNode>>();
+
+        Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
+
+        // Find the storage devices
+        stack.add(content.getNode(AbstractContentNode.ROOT_ID));
+        while (!stack.empty()) {
+            AbstractContentNode node = stack.pop();
+            if (node.getCapacity().compareTo(BigInteger.ZERO) > 0) {
+                storageDevices.add(node);
+            } else {
+                stack.addAll(node.getChildren());
+            }
+        }
+
+        for (String libRoot : libRoots) {
+            for (AbstractContentNode device : storageDevices) {
+                ContentRootWrapper wrapper = new ContentRootWrapper(device);
+                if (wrapper.contains(libRoot)) {
+                    if (!storageDeviceMap.containsKey(device.getId())) {
+                        storageDeviceMap.put(device.getId(), new ArrayList<AbstractContentNode>());
+                    }
+                    storageDeviceMap.get(device.getId()).add(content.getNode(libRoot));
+                }
+            }
+        }
+
+        for (Map.Entry<String, List<AbstractContentNode>> storageMapping : storageDeviceMap.entrySet()) {
+            BigInteger cap = content.getNode(storageMapping.getKey()).getCapacity();
+            cap = cap.divide(BigInteger.valueOf(storageMapping.getValue().size()));
+            for (AbstractContentNode node : storageMapping.getValue()) {
+                node.setCapacity(cap);
+            }
+        }
+    }
+
+    /**
      * Recursive helper function to delete device content.  Will likely be made iterative in a later version
      *
      * @param id ID of the node to remove from the device
@@ -441,8 +487,8 @@ public abstract class AbstractContentDevice {
     /**
      * copies content from one location on the device to another. DOES NOT WORK ON DIRECTORIES
      *
-     * @param id        the id of the content to move
      * @param pId       the ID of the content node to transfer the file under
+     * @param id        the id of the content to move
      * @param tmpFolder a temporary file that can be used as an intermediary (not all devices support a direct move)
      * @return the moved content node
      */
@@ -465,12 +511,6 @@ public abstract class AbstractContentDevice {
      * @return true if transfer is successful
      */
     protected abstract boolean retrieveNode(String id, String destFolder);
-
-    /**
-     * Assigns storage capacities to the Library root nodes.
-     * Libraries that exist on the same storage device should each be given an equal share
-     */
-    protected abstract void assignLibCapacities();
 
     /**
      * Represents the work done when creating a folder path.
