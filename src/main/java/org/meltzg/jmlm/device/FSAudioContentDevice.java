@@ -90,7 +90,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
     }
 
     @Override
-    protected org.meltzg.jmlm.device.content.TestContentNode copyNode(String pId, String id, String tmpFolder) {
+    protected AbstractContentNode copyNode(String pId, String id, String tmpFolder) {
         try {
             pId = validateId(pId);
             id = validateId(id);

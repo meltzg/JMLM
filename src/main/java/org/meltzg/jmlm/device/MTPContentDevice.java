@@ -54,7 +54,7 @@ public class MTPContentDevice extends AbstractContentDevice {
     }
 
     @Override
-    protected org.meltzg.jmlm.device.content.TestContentNode copyNode(String pId, String id, String tmpFolder) {
+    protected AbstractContentNode copyNode(String pId, String id, String tmpFolder) {
         return copyNode(this.deviceId, pId, id, tmpFolder);
     }
 
