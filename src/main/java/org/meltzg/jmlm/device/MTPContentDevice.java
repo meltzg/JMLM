@@ -111,11 +111,7 @@ public class MTPContentDevice extends AbstractContentDevice {
             if (!this.manufacturer.equals(oInfo.manufacturer)) {
                 return false;
             }
-            if (!this.friendlyName.equals(oInfo.friendlyName)) {
-                return false;
-            }
-
-            return true;
+            return this.friendlyName.equals(oInfo.friendlyName);
         }
     }
 }

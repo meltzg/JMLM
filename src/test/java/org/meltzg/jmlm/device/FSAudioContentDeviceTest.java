@@ -12,7 +12,7 @@ import org.meltzg.TestConfig;
 @Ignore
 public class FSAudioContentDeviceTest extends AbstractContentDeviceTest {
     @BeforeClass
-    public static void setupBeforeClass() throws FileNotFoundException, IOException {
+    public static void setupBeforeClass() throws IOException {
         Properties props = TestConfig.getProps();
         testLib1 = props.getProperty("test.fsacd.lib1");
         testLib2 = props.getProperty("test.fsacd.lib2");

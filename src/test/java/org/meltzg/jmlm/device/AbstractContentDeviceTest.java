@@ -48,7 +48,7 @@ public abstract class AbstractContentDeviceTest {
         assertFalse("Device should not be able to add a child of a library as a library: ", addChild);
         assertEquals("Device should have 2 library roots: ", device.getLibRoots().size(), 2);
 
-        Set<String> libRoots = new HashSet<String>(device.getLibRoots());
+        Set<String> libRoots = new HashSet<>(device.getLibRoots());
         for (String libRoot : libRoots) {
             device.removeLibRoot(libRoot);
         }

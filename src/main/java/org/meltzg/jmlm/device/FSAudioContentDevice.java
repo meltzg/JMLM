@@ -45,7 +45,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 
     @Override
     protected List<String> getChildIds(String pId) {
-        List<String> childIds = new ArrayList<String>();
+        List<String> childIds = new ArrayList<>();
         File[] children = (new File(pId)).listFiles();
         if (children != null) {
             for (File child : children) {
@@ -171,7 +171,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
      */
     @Override
     protected void assignLibCapacities() {
-        Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<String, List<AbstractContentNode>>();
+        Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<>();
 
         for (String libRoot : libRoots) {
             Path libpath = Paths.get(libRoot);
@@ -182,7 +182,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
                     device = libpath.getRoot().toString();
                 }
                 if (!storageDeviceMap.containsKey(device)) {
-                    storageDeviceMap.put(device, new ArrayList<AbstractContentNode>());
+                    storageDeviceMap.put(device, new ArrayList<>());
                 }
                 storageDeviceMap.get(device).add(content.getNode(libRoot));
             } catch (IOException e) {

@@ -35,12 +35,12 @@ public abstract class AbstractContentNode {
     protected boolean isValid;
 
     public AbstractContentNode() {
-        this.children = new HashMap<String, AbstractContentNode>();
+        this.children = new HashMap<>();
     }
 
     public AbstractContentNode(String id) {
         this.id = id;
-        this.children = new HashMap<String, AbstractContentNode>();
+        this.children = new HashMap<>();
     }
 
     public AbstractContentNode(String id, String pId, String origName, boolean isDir, BigInteger size, BigInteger capacity) {
@@ -50,7 +50,7 @@ public abstract class AbstractContentNode {
         this.isDir = isDir;
         this.size = size;
         this.capacity = capacity;
-        this.children = new HashMap<String, AbstractContentNode>();
+        this.children = new HashMap<>();
     }
 
     /**
@@ -170,7 +170,7 @@ public abstract class AbstractContentNode {
     public BigInteger getTotalSize() {
         BigInteger total = BigInteger.ZERO;
 
-        Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
+        Stack<AbstractContentNode> stack = new Stack<>();
         stack.add(this);
         while (!stack.empty()) {
             AbstractContentNode node = stack.pop();

@@ -65,7 +65,7 @@ public class ContentRootWrapper {
      */
     public void refreshRootInfo() {
         this.idToNodes = new HashMap<>();
-        Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
+        Stack<AbstractContentNode> stack = new Stack<>();
         stack.add(root);
         while (!stack.empty()) {
             AbstractContentNode node = stack.pop();

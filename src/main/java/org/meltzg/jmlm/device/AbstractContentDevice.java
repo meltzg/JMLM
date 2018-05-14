@@ -25,7 +25,7 @@ public abstract class AbstractContentDevice {
 
     public AbstractContentDevice() {
         this.deviceId = UUID.randomUUID().toString();
-        this.libRoots = new HashSet<String>();
+        this.libRoots = new HashSet<>();
     }
 
     /**
@@ -231,7 +231,7 @@ public abstract class AbstractContentDevice {
         AbstractContentNode root = readNode(id);
 
         if (root != null) {
-            Queue<AbstractContentNode> nodeQueue = new LinkedList<AbstractContentNode>();
+            Queue<AbstractContentNode> nodeQueue = new LinkedList<>();
             nodeQueue.add(root);
             while (!nodeQueue.isEmpty()) {
                 AbstractContentNode node = nodeQueue.poll();
@@ -253,8 +253,8 @@ public abstract class AbstractContentDevice {
      * Removes all empty directories from the device and refreshes the content root's metadata
      */
     public void cleanDevice() {
-        Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
-        Set<String> visited = new HashSet<String>();
+        Stack<AbstractContentNode> stack = new Stack<>();
+        Set<String> visited = new HashSet<>();
         stack.add(content.getNode(AbstractContentNode.ROOT_ID));
 
         while (!stack.empty()) {
@@ -282,7 +282,7 @@ public abstract class AbstractContentDevice {
      * @return Map<path       from       lib       to       node   ,       node>
      */
     public Map<String, AbstractContentNode> getPathToContent() {
-        Map<String, AbstractContentNode> pathToContent = new HashMap<String, AbstractContentNode>();
+        Map<String, AbstractContentNode> pathToContent = new HashMap<>();
 
         Collection<String> roots;
         if (libRoots.size() != 0) {
@@ -292,8 +292,8 @@ public abstract class AbstractContentDevice {
         }
 
         for (String root : roots) {
-            Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
-            List<String> currPath = new ArrayList<String>();
+            Stack<AbstractContentNode> stack = new Stack<>();
+            List<String> currPath = new ArrayList<>();
             stack.add(content.getNode(root));
 
             while (!stack.empty()) {
@@ -340,10 +340,10 @@ public abstract class AbstractContentDevice {
      * directories with a capacity of > 0
      */
     protected void assignLibCapacities() {
-        List<AbstractContentNode> storageDevices = new ArrayList<AbstractContentNode>();
-        Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<String, List<AbstractContentNode>>();
+        List<AbstractContentNode> storageDevices = new ArrayList<>();
+        Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<>();
 
-        Stack<AbstractContentNode> stack = new Stack<AbstractContentNode>();
+        Stack<AbstractContentNode> stack = new Stack<>();
 
         // Find the storage devices
         stack.add(content.getNode(AbstractContentNode.ROOT_ID));
@@ -361,7 +361,7 @@ public abstract class AbstractContentDevice {
                 ContentRootWrapper wrapper = new ContentRootWrapper(device);
                 if (wrapper.contains(libRoot)) {
                     if (!storageDeviceMap.containsKey(device.getId())) {
-                        storageDeviceMap.put(device.getId(), new ArrayList<AbstractContentNode>());
+                        storageDeviceMap.put(device.getId(), new ArrayList<>());
                     }
                     storageDeviceMap.get(device.getId()).add(content.getNode(libRoot));
                 }

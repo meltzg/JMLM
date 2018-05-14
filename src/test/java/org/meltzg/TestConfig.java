@@ -8,12 +8,12 @@ import java.util.Properties;
 public class TestConfig {
     private static Properties props;
 
-    private static void readProps() throws FileNotFoundException, IOException {
+    private static void readProps() throws IOException {
         props = new Properties();
         props.load(new FileReader("./src/test/resources/test-props.properties"));
     }
 
-    public static Properties getProps() throws FileNotFoundException, IOException {
+    public static Properties getProps() throws IOException {
         if (props == null) {
             readProps();
         }

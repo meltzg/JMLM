@@ -29,7 +29,7 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
     private static int testTrackNum;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws FileNotFoundException, IOException {
+    public static void setUpBeforeClass() throws IOException {
         Properties props = TestConfig.getProps();
         
         testFile = props.getProperty("test.fsacn.file");

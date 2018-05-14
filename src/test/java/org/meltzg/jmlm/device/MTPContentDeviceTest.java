@@ -20,7 +20,7 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
 	private static String testFName;
 	
     @BeforeClass
-    public static void setupBeforeClass() throws FileNotFoundException, IOException {
+    public static void setupBeforeClass() throws IOException {
         Properties props = TestConfig.getProps();
         testLib1 = props.getProperty("test.mtpcd.lib1");
         testLib2 = props.getProperty("test.mtpcd.lib2");

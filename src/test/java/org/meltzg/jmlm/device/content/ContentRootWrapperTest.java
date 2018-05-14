@@ -8,7 +8,7 @@ import org.meltzg.TestConfig;
 
 public class ContentRootWrapperTest {
     @BeforeClass
-    public static void setUpBeforeClass() throws FileNotFoundException, IOException {
+    public static void setUpBeforeClass() throws IOException {
         Properties props = TestConfig.getProps();
     }
 }

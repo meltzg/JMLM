@@ -1,4 +1,6 @@
 {
-  "id": "DEVICE"
+  "id": "DEVICE",
+  "pId": null,
+  "origName": "Test Device",
 
 }
