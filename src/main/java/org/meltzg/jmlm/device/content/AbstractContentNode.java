@@ -1,5 +1,8 @@
 package org.meltzg.jmlm.device.content;
 
+import com.google.gson.*;
+
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,7 +15,8 @@ import java.util.Stack;
  * @author Greg Meltzer
  * @author https://github.com/meltzg
  */
-public abstract class AbstractContentNode {
+public abstract class AbstractContentNode
+        implements JsonSerializer<AbstractContentNode>, JsonDeserializer<AbstractContentNode> {
     public static final String ROOT_ID = "DEVICE";
 
     protected String id;
@@ -180,4 +184,98 @@ public abstract class AbstractContentNode {
 
         return total;
     }
+
+    @Override
+    public JsonElement serialize(AbstractContentNode src, Type typeOfSrc, JsonSerializationContext context) {
+        JsonObject jsonMap = new JsonObject();
+        Stack<AbstractContentNode> stack = new Stack<>();
+        stack.push(src);
+        while (!stack.empty()) {
+            AbstractContentNode node = stack.pop();
+            JsonElement serializedNode = node.serializeProperties();
+
+            jsonMap.add(node.getId(), serializedNode);
+            for (AbstractContentNode child : node.getChildren()) {
+                stack.push(child);
+            }
+        }
+        return jsonMap;
+    }
+
+    @Override
+    public AbstractContentNode deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        JsonObject jsonObject = json.getAsJsonObject();
+        String rootId = null;
+        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+            JsonElement pId = entry.getValue().getAsJsonObject().get("pId");
+            if (rootId == null) {
+                rootId = entry.getKey();
+            } else if (pId == null) {
+                throw new JsonParseException("JSON Object has multiple nodes without a pId");
+            }
+        }
+
+        Stack<String> stack = new Stack<>();
+        Map<String, AbstractContentNode> nodes = new HashMap<>();
+        stack.push(rootId);
+
+        while (!stack.empty()) {
+            String id = stack.pop();
+            JsonObject jsonNode = jsonObject.get(id).getAsJsonObject();
+            AbstractContentNode node = getInstance();
+            try {
+                node.deserializeProperties(jsonNode);
+                if (node.getPId() != null) {
+                    AbstractContentNode parent = nodes.get(node.getPId());
+                    if (parent == null) {
+                        throw new JsonParseException(String.format("Node with id=%s does not exist", node.getPId()));
+                    }
+                    parent.addChild(node);
+                }
+                nodes.put(node.getId(), node);
+                for (JsonElement child : jsonNode.getAsJsonArray("children")) {
+                    stack.push(child.getAsString());
+                }
+            } catch (NullPointerException e) {
+                throw new JsonParseException(e);
+            }
+        }
+
+        return nodes.get(rootId);
+    }
+
+    protected JsonElement serializeProperties() {
+        JsonObject serialized = new JsonObject();
+        serialized.addProperty("id", id);
+        serialized.addProperty("pId", pId);
+        serialized.addProperty("origName", origName);
+        serialized.addProperty("isDir", isDir);
+        serialized.addProperty("size", size);
+        serialized.addProperty("capacity", capacity);
+        serialized.addProperty("isValid", isValid);
+
+        JsonArray childIds = new JsonArray();
+        for (String id : children.keySet()) {
+            childIds.add(id);
+        }
+        serialized.add("children", childIds);
+
+        return serialized;
+    }
+
+    protected void deserializeProperties(JsonElement json) {
+        JsonObject jsonObject = json.getAsJsonObject();
+
+        id = jsonObject.get("id").getAsString();
+        JsonElement jsonPId = jsonObject.get("pId");
+        pId = jsonPId != null ? jsonPId.getAsString() : null;
+        origName = jsonObject.get("origName").getAsString();
+        isDir = jsonObject.get("isDir").getAsBoolean();
+        size = new BigInteger(jsonObject.get("size").getAsString());
+        capacity = new BigInteger(jsonObject.get("capacity").getAsString());
+        isValid = jsonObject.get("isValid").getAsBoolean();
+        children = new HashMap<>();
+    }
+
+    protected abstract AbstractContentNode getInstance();
 }

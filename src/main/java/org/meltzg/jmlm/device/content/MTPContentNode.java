@@ -11,6 +11,11 @@ public class MTPContentNode extends AbstractContentNode {
         this.isValid = true;
     }
 
+    public MTPContentNode() {
+        super();
+    }
+
+
     /**
      * Returns the underlying name of the content, which may be differnt than the
      * name of the content as seen in the browser
@@ -19,5 +24,10 @@ public class MTPContentNode extends AbstractContentNode {
      */
     public String getName() {
         return name;
+    }
+
+    @Override
+    protected AbstractContentNode getInstance() {
+        return new MTPContentNode();
     }
 }

@@ -165,7 +165,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
     /**
      * Assigns storage capacities to the Library root nodes.
      * Libraries that exist on the same storage device should each be given an equal share
-     *
+     * <p>
      * The size of a library is determined by the total size of the library content +
      * an equal share of the free space available on the hdd the library is on
      */

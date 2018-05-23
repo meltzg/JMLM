@@ -4,7 +4,7 @@ import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 
 import java.io.File;
-import java.util.*;
+import java.util.List;
 
 /**
  * Represents an MTP device, such as the AK100ii

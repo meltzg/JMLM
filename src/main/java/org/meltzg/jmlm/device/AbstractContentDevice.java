@@ -279,7 +279,7 @@ public abstract class AbstractContentDevice {
     /**
      * Creates a map of the non dir content keyed by their path from their library root
      *
-     * @return Map<path       from       lib       to       node   ,       node>
+     * @return Map<path               from               lib               to               node       ,               node>
      */
     public Map<String, AbstractContentNode> getPathToContent() {
         Map<String, AbstractContentNode> pathToContent = new HashMap<>();
@@ -335,7 +335,7 @@ public abstract class AbstractContentDevice {
     /**
      * Assigns storage capacities to the Library root nodes.
      * Libraries that exist on the same storage device should each be given an equal share
-     *
+     * <p>
      * This implementation assumes that storage devices on the device are represented as
      * directories with a capacity of > 0
      */

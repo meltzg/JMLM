@@ -124,4 +124,9 @@ public class FSAudioContentNode extends AbstractContentNode {
     public boolean isValid() {
         return isValid;
     }
+
+    @Override
+    protected AbstractContentNode getInstance() {
+        return new FSAudioContentNode();
+    }
 }
