@@ -1,10 +1,10 @@
 package org.meltzg.jmlm.device.content;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Properties;
 import org.junit.BeforeClass;
 import org.meltzg.TestConfig;
+
+import java.io.IOException;
+import java.util.Properties;
 
 public class ContentRootWrapperTest {
     @BeforeClass

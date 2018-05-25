@@ -1,26 +1,24 @@
 package org.meltzg.jmlm.device.content;
 
-import static org.junit.Assert.*;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.meltzg.TestConfig;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Properties;
 
-import org.junit.Ignore;
-import org.meltzg.TestConfig;
-import org.meltzg.jmlm.device.content.FSAudioContentNode;
-import org.junit.BeforeClass;
+import static org.junit.Assert.*;
 
 @Ignore
 public class FSAudioContentNodeTest extends AbstractContentNodeTest {
-    
+
     private static String testFile;
     private static String testDir;
     private static String testInvalidFile;
-    private static String testNotFound;    
-    
+    private static String testNotFound;
+
     private static String testGenre;
     private static String testArtist;
     private static String testAlbum;
@@ -31,12 +29,12 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
         Properties props = TestConfig.getProps();
-        
+
         testFile = props.getProperty("test.fsacn.file");
         testDir = props.getProperty("test.fsacn.dir");
         testInvalidFile = props.getProperty("test.fsacn.invfile");
         testNotFound = props.getProperty("test.fsacn.nonexist");
-        
+
         testGenre = props.getProperty("test.fsacn.genre");
         testArtist = props.getProperty("test.fsacn.artist");
         testAlbum = props.getProperty("test.fsacn.album");

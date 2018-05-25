@@ -131,7 +131,7 @@ public abstract class AbstractContentNode
      * @return false if this node already has a child with the node's id
      */
     public boolean addChild(AbstractContentNode node) {
-        if (!children.containsKey(node.getId())) {
+        if (node != null && !children.containsKey(node.getId())) {
             node.setPId(this.getId());
             children.put(node.getId(), node);
             return true;
@@ -151,6 +151,15 @@ public abstract class AbstractContentNode
             return true;
         }
         return false;
+    }
+
+    /**
+     * Retrieve a child node by ID
+     * @param id
+     * @return
+     */
+    public AbstractContentNode getChild(String id) {
+        return children.get(id);
     }
 
     /**
@@ -244,6 +253,43 @@ public abstract class AbstractContentNode
         return nodes.get(rootId);
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+
+        if (!this.getClass().equals(other.getClass())) {
+            return false;
+        }
+
+        AbstractContentNode oRoot = (AbstractContentNode) other;
+        Stack<AbstractContentNode> thisStack = new Stack<>();
+        Stack<AbstractContentNode> otherStack = new Stack<>();
+
+        thisStack.push(this);
+        otherStack.push(oRoot);
+
+        while (!thisStack.empty() && !otherStack.empty()) {
+            AbstractContentNode thisNode = thisStack.pop();
+            AbstractContentNode otherNode = otherStack.pop();
+            if (!thisNode.equalProps(otherNode)) {
+                return false;
+            }
+
+            for (Map.Entry<String, AbstractContentNode> thisChild : thisNode.children.entrySet()) {
+                thisStack.push(thisChild.getValue());
+                otherStack.push(otherNode.children.get(thisChild.getKey()));
+            }
+        }
+
+        if (!thisStack.empty() || !otherStack.empty()) {
+            return false;
+        }
+
+        return true;
+    }
+
     protected JsonElement serializeProperties() {
         JsonObject serialized = new JsonObject();
         serialized.addProperty("id", id);
@@ -275,6 +321,38 @@ public abstract class AbstractContentNode
         capacity = new BigInteger(jsonObject.get("capacity").getAsString());
         isValid = jsonObject.get("isValid").getAsBoolean();
         children = new HashMap<>();
+    }
+
+    protected boolean equalProps(AbstractContentNode other) {
+        if (other == null) {
+            return false;
+        }
+        if (!id.equals(other.id) ||
+                !origName.equals(other.origName) ||
+                isDir != other.isDir ||
+                !size.equals(other.size) ||
+                !capacity.equals(other.capacity) ||
+                isValid != other.isValid) {
+            return false;
+        }
+
+        if (pId == null) {
+            if (other.pId != null) {
+                return false;
+            }
+        } else if (!pId.equals(other.pId)) {
+            return false;
+        }
+
+        if (children.size() != other.children.size()) {
+            return false;
+        }
+
+        if (!children.keySet().equals(other.children.keySet())) {
+            return false;
+        }
+
+        return true;
     }
 
     protected abstract AbstractContentNode getInstance();

@@ -1,24 +1,24 @@
 package org.meltzg.jmlm.device;
 
-import static org.junit.Assert.*;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.meltzg.TestConfig;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 @Ignore
 public class MTPContentDeviceTest extends AbstractContentDeviceTest {
-	private static String testDevId;
-	private static String testDesc;
-	private static String testManufacturer;
-	private static String testFName;
-	
+    private static String testDevId;
+    private static String testDesc;
+    private static String testManufacturer;
+    private static String testFName;
+
     @BeforeClass
     public static void setupBeforeClass() throws IOException {
         Properties props = TestConfig.getProps();
@@ -30,7 +30,7 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
         testManufacturer = props.getProperty("test.mtpcd.manu");
         testFName = props.getProperty("test.mtpcd.fname");
 
-        
+
         testFile1 = props.getProperty("test.mtpcd.file1");
         testFile2 = props.getProperty("test.mtpcd.file2");
         testDevPath1 = props.getProperty("test.mtpcd.path1");
@@ -41,7 +41,7 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
     public void testGetDevices() {
         List<MTPContentDevice.MTPDeviceInfo> deviceInfo = MTPContentDevice.getDevicesInfo();
         MTPContentDevice.MTPDeviceInfo found = MTPContentDevice.getDeviceInfo(testDevId);
-        MTPContentDevice.MTPDeviceInfo found2 = null;        
+        MTPContentDevice.MTPDeviceInfo found2 = null;
 
         for (MTPContentDevice.MTPDeviceInfo info : deviceInfo) {
             if (info.deviceId.equals(testDevId)) {
@@ -59,8 +59,8 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
         assertEquals("Specific device is the same as list device", found, found2);
     }
 
-	@Override
-	protected AbstractContentDevice getNewDevice() {
-		return new MTPContentDevice(testDevId);
-	}
+    @Override
+    protected AbstractContentDevice getNewDevice() {
+        return new MTPContentDevice(testDevId);
+    }
 }

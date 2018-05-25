@@ -1,13 +1,11 @@
 package org.meltzg.jmlm.device;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Properties;
-
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.meltzg.TestConfig;
+
+import java.io.IOException;
+import java.util.Properties;
 
 @Ignore
 public class FSAudioContentDeviceTest extends AbstractContentDeviceTest {
@@ -24,9 +22,9 @@ public class FSAudioContentDeviceTest extends AbstractContentDeviceTest {
         testDevPath2 = props.getProperty("test.fsacd.path2");
     }
 
-	@Override
-	protected AbstractContentDevice getNewDevice() {
-		// TODO Auto-generated method stub
-		return new FSAudioContentDevice();
-	}
+    @Override
+    protected AbstractContentDevice getNewDevice() {
+        // TODO Auto-generated method stub
+        return new FSAudioContentDevice();
+    }
 }

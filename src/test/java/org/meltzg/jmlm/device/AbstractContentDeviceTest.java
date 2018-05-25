@@ -1,18 +1,17 @@
 package org.meltzg.jmlm.device;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.meltzg.jmlm.device.content.AbstractContentNode;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.meltzg.jmlm.device.content.AbstractContentNode;
+import static org.junit.Assert.*;
 
 public abstract class AbstractContentDeviceTest {
     protected static String testLib1;
@@ -24,7 +23,11 @@ public abstract class AbstractContentDeviceTest {
     protected static String testDevPath2;
 
     protected AbstractContentDevice device;
-    
+
+    @BeforeClass
+    public static void setupBeforeClass() throws IOException {
+    }
+
     @Before
     public void beforeTests() {
         device = getNewDevice();
@@ -35,11 +38,11 @@ public abstract class AbstractContentDeviceTest {
         boolean addRoot1 = device.addLibraryRoot(testLib1);
         boolean addRoot2 = device.addLibraryRoot(testLib2);
         boolean addDup = device.addLibraryRoot(testLib1);
-        
+
         if (testChildFolder == null) {
-        	testChildFolder = device.getChildIds(testLib1).get(0);
+            testChildFolder = device.getChildIds(testLib1).get(0);
         }
-        
+
         boolean addChild = device.addLibraryRoot(testChildFolder);
 
         assertTrue("Device should be able to add a library root: ", addRoot1);
@@ -60,7 +63,7 @@ public abstract class AbstractContentDeviceTest {
     public void testCRUDOps() throws FileNotFoundException {
         boolean addRoot1 = device.addLibraryRoot(testLib1);
         boolean addRoot2 = device.addLibraryRoot(testLib2);
-        
+
         AbstractContentNode node1 = device.transferToDevice(testFile1, testLib1, testDevPath1);
         AbstractContentNode node2 = device.transferToDevice(testFile2, testLib2, testDevPath2);
 
@@ -72,7 +75,7 @@ public abstract class AbstractContentDeviceTest {
         AbstractContentNode leaf2 = getLeaf(node2);
 
         boolean transFrom1 = device.transferFromDevice(leaf1.getId(), "./tmp");
-        
+
         assertTrue("Should be able to transfer file from device: ", transFrom1);
 
         AbstractContentNode move1 = device.moveOnDevice(leaf1.getId(), testLib2, testDevPath2, "./tmp");
@@ -80,7 +83,7 @@ public abstract class AbstractContentDeviceTest {
 
         assertNotNull("Should be able to move file on device: ", move1);
         assertNotNull("Should be able to move another file on device: ", move2);
-        
+
         leaf1 = getLeaf(move1);
         leaf2 = getLeaf(move2);
 
@@ -90,34 +93,34 @@ public abstract class AbstractContentDeviceTest {
         assertTrue("Should be able to remove test file 1", remove1);
         assertTrue("Should be able to remove test file 2", remove2);
     }
-    
+
     @Test
     public void testGetPathToContent() {
-    	AbstractContentDevice device2 = getNewDevice();
-    	
-    	device.addLibraryRoot(testLib1);
+        AbstractContentDevice device2 = getNewDevice();
+
+        device.addLibraryRoot(testLib1);
         device.addLibraryRoot(testLib2);
-        
+
         device2.addLibraryRoot(testLib1);
         device2.addLibraryRoot(testLib2);
-        
+
         Map<String, AbstractContentNode> pathToNode1 = device.getPathToContent();
         Map<String, AbstractContentNode> pathToNode2 = device2.getPathToContent();
-        
+
         assertEquals("Should have the same number of content nodes: ", pathToNode1.size(), pathToNode2.size());
         assertTrue("Should have the more than 0 content nodes: ", pathToNode1.size() > 0);
-        
+
         boolean hasMatch = true;
-        
+
         for (String path : pathToNode1.keySet()) {
-        	if (!pathToNode2.containsKey(path)) {
-        		hasMatch = false;
-        	}
+            if (!pathToNode2.containsKey(path)) {
+                hasMatch = false;
+            }
         }
-        
+
         assertTrue("Should have a match for all content", hasMatch);
     }
-    
+
     protected abstract AbstractContentDevice getNewDevice();
 
     private AbstractContentNode getLeaf(AbstractContentNode node) {
