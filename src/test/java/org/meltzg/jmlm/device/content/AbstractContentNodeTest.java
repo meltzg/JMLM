@@ -4,6 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 
 import static org.junit.Assert.*;
@@ -130,7 +134,7 @@ public class AbstractContentNodeTest {
         assertEquals(BigInteger.valueOf(512), getTestTree().getTotalSize());
     }
 
-    private TestContentNode getTestTree() {
+    private static TestContentNode getTestTree() {
         TestContentNode root = new TestContentNode(AbstractContentNode.ROOT_ID,
                 null,
                 "root",
