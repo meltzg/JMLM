@@ -9,6 +9,7 @@ public class TestContentNode extends AbstractContentNode {
 
     public TestContentNode(String id, String pId, String origName, boolean isDir, BigInteger size, BigInteger capacity) {
         super(id, pId, origName, isDir, size, capacity);
+        isValid = true;
     }
 
     public TestContentNode(AbstractContentNode other) {

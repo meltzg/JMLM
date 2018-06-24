@@ -1,6 +1,6 @@
 package org.meltzg.jmlm.device;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 import org.meltzg.jmlm.device.content.TestContentNode;
@@ -13,19 +13,25 @@ import java.util.UUID;
 
 public class TestContentDevice extends AbstractContentDevice {
 
+    private JsonObject rawContent;
+
     public TestContentDevice(String testFilePath) throws FileNotFoundException {
         super();
         Gson gson = new Gson();
-        this.content = new ContentRootWrapper(gson.fromJson(new FileReader(testFilePath), TestContentNode.class));
+        this.rawContent = gson.fromJson(new FileReader(testFilePath), JsonObject.class);
+        this.content = new ContentRootWrapper(readDeviceContent(AbstractContentNode.ROOT_ID));
     }
 
     @Override
     protected List<String> getChildIds(String pId) {
         List<String> ids = new ArrayList<>();
-        AbstractContentNode parent = this.content.getNode(pId);
-        for (AbstractContentNode child : parent.getChildren()) {
-            ids.add(child.getId());
+        JsonObject node = this.rawContent.getAsJsonObject(pId);
+        JsonArray children = node.getAsJsonArray("children");
+
+        for (JsonElement id : children) {
+            ids.add(id.getAsString());
         }
+
         return ids;
     }
 
@@ -63,7 +69,28 @@ public class TestContentDevice extends AbstractContentDevice {
 
     @Override
     protected AbstractContentNode readNode(String id) {
-        return this.content.getNode(id);
+        JsonObject jNode = this.rawContent.getAsJsonObject(id);
+        if (jNode == null) {
+            return null;
+        }
+
+        JsonPrimitive jPId = jNode.getAsJsonPrimitive("pId");
+
+        String pId = jPId != null ? jPId.getAsString() : null;
+        String origName = jNode.getAsJsonPrimitive("origName").getAsString();
+        boolean isDir = jNode.getAsJsonPrimitive("isDir").getAsBoolean();
+        BigInteger size = new BigInteger(jNode.getAsJsonPrimitive("size").getAsString());
+        BigInteger capacity = new BigInteger(jNode.getAsJsonPrimitive("capacity").getAsString());
+
+        TestContentNode node = new TestContentNode(
+                id,
+                pId,
+                origName,
+                isDir,
+                size,
+                capacity);
+
+        return node;
     }
 
     @Override
