@@ -7,7 +7,6 @@ import org.meltzg.TestConfig;
 import java.io.IOException;
 import java.util.Properties;
 
-@Ignore
 public class FSAudioContentDeviceTest extends AbstractContentDeviceTest {
     @BeforeClass
     public static void setupBeforeClass() throws IOException {

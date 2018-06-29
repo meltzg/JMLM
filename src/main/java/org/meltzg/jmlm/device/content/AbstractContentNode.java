@@ -246,7 +246,7 @@ public abstract class AbstractContentNode
                     stack.push(child.getAsString());
                 }
             } catch (NullPointerException e) {
-                throw new JsonParseException(e);
+                throw new JsonParseException(e.getMessage());
             }
         }
 

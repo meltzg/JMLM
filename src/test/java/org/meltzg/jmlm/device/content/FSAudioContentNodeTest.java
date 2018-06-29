@@ -1,8 +1,11 @@
 package org.meltzg.jmlm.device.content;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.meltzg.TestConfig;
+import org.meltzg.jmlm.device.FSAudioContentDevice;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +14,6 @@ import java.util.Properties;
 
 import static org.junit.Assert.*;
 
-@Ignore
 public class FSAudioContentNodeTest extends AbstractContentNodeTest {
 
     private static String testFile;
@@ -25,6 +27,8 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
     private static String testTitle;
     private static int testDiscNum;
     private static int testTrackNum;
+
+    private static String testLib1;
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
@@ -41,6 +45,8 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
         testTitle = props.getProperty("test.fsacn.title");
         testDiscNum = Integer.parseInt(props.getProperty("test.fsacn.discnum"));
         testTrackNum = Integer.parseInt(props.getProperty("test.fsacn.tracknum"));
+
+        testLib1 = props.getProperty("test.fsacd.lib1");
     }
 
     @Override
@@ -109,5 +115,11 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
         assertEquals("Node should have parent dir as pID: ", file.getParentFile().getAbsolutePath(), node.getPId());
         assertEquals("Node should have folder name as origName: ", file.getName(), node.getOrigName());
         assertFalse("Node should be invalid: ", node.isValid());
+    }
+
+    @Override
+    protected AbstractContentNode getTestTree() {
+        FSAudioContentNode content = (FSAudioContentNode) (new FSAudioContentDevice()).readDeviceContent(testLib1);
+        return content;
     }
 }

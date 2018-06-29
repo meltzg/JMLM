@@ -1,5 +1,9 @@
 package org.meltzg.jmlm.device.content;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -8,6 +12,7 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
+import org.meltzg.jmlm.device.FSAudioContentDevice;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,6 +59,7 @@ public class FSAudioContentNode extends AbstractContentNode {
         this.origName = content.getName();
         this.isDir = content.isDirectory();
         this.size = !this.isDir ? BigInteger.valueOf(content.length()) : BigInteger.ZERO;
+        this.capacity = BigInteger.ZERO;
         this.isValid = true;
 
         if (!this.isDir) {
@@ -128,5 +134,63 @@ public class FSAudioContentNode extends AbstractContentNode {
     @Override
     protected AbstractContentNode getInstance() {
         return new FSAudioContentNode();
+    }
+
+    @Override
+    protected JsonElement serializeProperties() {
+        JsonObject serialized = super.serializeProperties().getAsJsonObject();
+        serialized.addProperty("genre", genre);
+        serialized.addProperty("artist", artist);
+        serialized.addProperty("album", genre);
+        serialized.addProperty("discNum", genre);
+        serialized.addProperty("trackNum", genre);
+        return serialized;
+    }
+
+    @Override
+    protected void deserializeProperties(JsonElement json) {
+        super.deserializeProperties(json);
+        JsonObject jsonObject = json.getAsJsonObject();
+
+        if (!isDir) {
+            genre = jsonObject.get("genre").getAsString();
+            artist = jsonObject.get("artist").getAsString();
+            album = jsonObject.get("album").getAsString();
+            discNum = jsonObject.get("discNum").getAsInt();
+            trackNum = jsonObject.get("trackNum").getAsInt();
+        }
+    }
+
+    @Override
+    protected boolean equalProps(AbstractContentNode other) {
+        if (!other.getClass().equals(this.getClass())) {
+            return false;
+        }
+        if (!super.equalProps(other)) {
+            return false;
+        }
+
+        FSAudioContentNode fsaOther = (FSAudioContentNode) other;
+        if (!isDir && (!genre.equals(fsaOther.genre) ||
+                !artist.equals(fsaOther.artist) ||
+                !album.equals(fsaOther.album) ||
+                !title.equals(fsaOther.title) ||
+                discNum != fsaOther.discNum ||
+                trackNum != fsaOther.trackNum)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static void main(String[] args) {
+        AbstractContentNode root = (new FSAudioContentDevice()).readDeviceContent("/mnt/Data/workspace/testdata/Music");
+
+        final GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(root.getClass(), root);
+        gsonBuilder.setPrettyPrinting();
+        Gson gson = gsonBuilder.create();
+        AbstractContentNode deserialized = gson.fromJson(gson.toJson(root), root.getClass());
+//        System.out.println(gson.toJson(root));
     }
 }

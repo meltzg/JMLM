@@ -42,16 +42,16 @@ public class AbstractContentNodeTest {
         gsonBuilder.registerTypeAdapter(root.getClass(), root);
         gsonBuilder.setPrettyPrinting();
         Gson gson = gsonBuilder.create();
-        AbstractContentNode deserialized = gson.fromJson(gson.toJson(root), TestContentNode.class);
+        AbstractContentNode deserialized = gson.fromJson(gson.toJson(root), root.getClass());
 
         assertEquals(root, deserialized);
     }
 
     @Test
     public void testNodeEquality() {
-        TestContentNode tree1 = getTestTree();
+        AbstractContentNode tree1 = getTestTree();
 
-        TestContentNode tree2 = getTestTree();
+        AbstractContentNode tree2 = getTestTree();
 
         assertEquals(tree1, tree2);
         assertNotEquals(tree1, null);
@@ -134,7 +134,11 @@ public class AbstractContentNodeTest {
         assertEquals(BigInteger.valueOf(512), getTestTree().getTotalSize());
     }
 
-    private static TestContentNode getTestTree() {
+    protected AbstractContentNode getTestTree() {
+        return getTestTestTree();
+    }
+
+    private static TestContentNode getTestTestTree() {
         TestContentNode root = new TestContentNode(AbstractContentNode.ROOT_ID,
                 null,
                 "root",
