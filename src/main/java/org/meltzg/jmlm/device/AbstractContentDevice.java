@@ -265,7 +265,7 @@ public abstract class AbstractContentDevice {
                 }
             } else {
                 AbstractContentNode node = stack.pop();
-                if (node.isDir() && node.getChildren().size() == 0) {
+                if (node.isDir() && node.getChildren().size() == 0 && !libRoots.contains(node.getId())) {
                     if (deleteNode(node.getId())) {
                         content.getNode(node.getPId()).removeChild(node.getId());
                     }
@@ -279,7 +279,7 @@ public abstract class AbstractContentDevice {
     /**
      * Creates a map of the non dir content keyed by their path from their library root
      *
-     * @return Map<path               from               lib               to               node       ,               node>
+     * @return Map<path from lib to node , node>
      */
     public Map<String, AbstractContentNode> getPathToContent() {
         Map<String, AbstractContentNode> pathToContent = new HashMap<>();
@@ -308,6 +308,10 @@ public abstract class AbstractContentDevice {
         }
 
         return pathToContent;
+    }
+
+    public AbstractContentNode getNode(String id) {
+        return content.getNode(id);
     }
 
     /**

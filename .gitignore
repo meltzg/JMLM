@@ -411,3 +411,4 @@ __pycache__/
 build
 out
 !gradle/wrapper/gradle-wrapper.jar
+org_meltzg_jmlm_device_MTPContentDevice.h

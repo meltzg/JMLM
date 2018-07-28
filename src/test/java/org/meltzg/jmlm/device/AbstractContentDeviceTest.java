@@ -7,6 +7,7 @@ import org.meltzg.jmlm.device.content.AbstractContentNode;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -92,6 +93,11 @@ public abstract class AbstractContentDeviceTest {
 
         assertTrue("Should be able to remove test file 1", remove1);
         assertTrue("Should be able to remove test file 2", remove2);
+
+        Collection<String> libRoots = device.getLibRoots();
+        for (String root : libRoots) {
+            assertNotNull(device.getNode(root));
+        }
     }
 
     @Test

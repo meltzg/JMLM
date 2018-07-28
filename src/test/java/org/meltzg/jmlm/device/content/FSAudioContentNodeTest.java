@@ -118,8 +118,13 @@ public class FSAudioContentNodeTest extends AbstractContentNodeTest {
     }
 
     @Override
+    public void testGetTotalSize() {
+    }
+
+    @Override
     protected AbstractContentNode getTestTree() {
         FSAudioContentNode content = (FSAudioContentNode) (new FSAudioContentDevice()).readDeviceContent(testLib1);
+        content.setPId(null);
         return content;
     }
 }

@@ -141,9 +141,10 @@ public class FSAudioContentNode extends AbstractContentNode {
         JsonObject serialized = super.serializeProperties().getAsJsonObject();
         serialized.addProperty("genre", genre);
         serialized.addProperty("artist", artist);
-        serialized.addProperty("album", genre);
-        serialized.addProperty("discNum", genre);
-        serialized.addProperty("trackNum", genre);
+        serialized.addProperty("album", album);
+        serialized.addProperty("title", title);
+        serialized.addProperty("discNum", discNum);
+        serialized.addProperty("trackNum", trackNum);
         return serialized;
     }
 
@@ -156,6 +157,7 @@ public class FSAudioContentNode extends AbstractContentNode {
             genre = jsonObject.get("genre").getAsString();
             artist = jsonObject.get("artist").getAsString();
             album = jsonObject.get("album").getAsString();
+            title = jsonObject.get("title").getAsString();
             discNum = jsonObject.get("discNum").getAsInt();
             trackNum = jsonObject.get("trackNum").getAsInt();
         }
