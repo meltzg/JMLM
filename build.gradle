@@ -32,10 +32,10 @@ model {
     repositories {
         libs(PrebuiltLibraries) {
             mtp {
-                headers.srcDir "/usr/include"
+                headers.srcDir '/usr/include'
             }
 
-            def libDir = "/usr/lib/x86_64-linux-gnu/"
+            def libDir = '/usr/lib/x86_64-linux-gnu/'
 
             mtplib {
                 binaries.withType(SharedLibraryBinary) {
@@ -47,7 +47,11 @@ model {
     binaries {
         all {
             if (toolChain in Gcc && buildType == buildTypes.debug) {
-                cppCompiler.args "-g"
+                if (buildType ==buildTypes.debug) {
+                    cppCompiler.args '-g', '-std=c++17'
+                } else {
+                    cppCompiler.args '-std=c++17'
+                }
             }
             if (toolChain in VisualCpp && buildType == buildTypes.debug) {
                 cppCompiler.args '/Zi'
