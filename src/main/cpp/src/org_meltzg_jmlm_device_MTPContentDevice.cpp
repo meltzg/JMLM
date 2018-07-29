@@ -2,13 +2,7 @@
 #include "mtpHelpers.h"
 #include "jniHelpers.h"
 
-using LibJMTP::MTPDeviceInfo;
-using LibJMTP::getDevicesInfo;
-using LibJMTP::getDeviceInfo;
-using LibJMTP::initMTP;
-using LibJMTP::jStringToWString;
-using LibJMTP::toJMTPDeviceInfo;
-using LibJMTP::toJMTPDeviceInfoList;
+using namespace LibJMTP;
 
 using std::vector;
 using std::wstring;
@@ -44,7 +38,11 @@ Java_org_meltzg_jmlm_device_MTPContentDevice_initMTP(JNIEnv *env, jclass obj)
 JNIEXPORT jobject JNICALL
 Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId)
 {
-    return nullptr;
+    wstring cDeviceId = jStringToWString(env, deviceId);
+    wstring cParentId = jStringToWString(env, parentId);
+    vector<wstring> cChildIds = getChildIds(cDeviceId, cParentId);
+    jobject jChildIds = getNewArrayList(env);
+    return jChildIds;
 }
 
 JNIEXPORT jobject JNICALL

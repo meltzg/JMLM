@@ -12,10 +12,10 @@ namespace LibJMTP {
     void initMTP();
 
     std::vector<std::wstring> getChildIds(std::wstring deviceId, std::wstring parentId);
-    MTPContentNode createDirNode(std::wstring deviceId, std::wstring parentId, std::wstring name);
-    MTPContentNode createContentNode(std::wstring deviceId, std::wstring parentId, std::wstring file);
-    MTPContentNode readNode(std::wstring deviceId, std::wstring id);
-    MTPContentNode copyNode(std::wstring deviceId, std::wstring parentId, std::wstring id, std::wstring tmpFolder);
+    std::optional<MTPContentNode> createDirNode(std::wstring deviceId, std::wstring parentId, std::wstring name);
+    std::optional<MTPContentNode> createContentNode(std::wstring deviceId, std::wstring parentId, std::wstring file);
+    std::optional<MTPContentNode> readNode(std::wstring deviceId, std::wstring id);
+    std::optional<MTPContentNode> copyNode(std::wstring deviceId, std::wstring parentId, std::wstring id, std::wstring tmpFolder);
     bool deleteNode(std::wstring deviceId, std::wstring id);
     bool retrieveNode(std::wstring deviceId, std::wstring id, std::wstring destFolder);
 }
