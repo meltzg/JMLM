@@ -15,7 +15,7 @@ import java.util.List;
 public class MTPContentDevice extends AbstractContentDevice {
 
     static {
-        System.loadLibrary("CLibJMTP");
+        System.loadLibrary("jmtp");
     }
 
     protected MTPDeviceInfo deviceInfo;

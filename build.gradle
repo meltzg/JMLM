@@ -8,13 +8,11 @@
 
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
-apply plugin: "jacoco"
+apply plugin: 'jacoco'
+apply plugin: 'cpp'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
-    // Use jcenter for resolving your dependencies.
-    // You can declare any Maven/Ivy/file repository here.
-    jcenter()
     mavenCentral()
     maven {
         url 'https://dl.bintray.com/ijabz/maven'
@@ -22,10 +20,6 @@ repositories {
 }
 
 dependencies {
-
-    // testCompile "org.mockito:mockito-core:2.+"
-    
-    // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 
     compile group:'net.jthink', name:'jaudiotagger', version:'2.2.5'
@@ -34,12 +28,74 @@ dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version: '2.8.4'
 }
 
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            mtp {
+                headers.srcDir "/usr/include"
+            }
+
+            def libDir = "/usr/lib/x86_64-linux-gnu/"
+
+            mtplib {
+                binaries.withType(SharedLibraryBinary) {
+                    sharedLibraryFile = file(libDir + 'libmtp.so')
+                }
+            }
+        }
+    }
+}
+
+model {
+    components {
+        jmtp(NativeLibrarySpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDir 'src/main/cpp/src'
+                        include '*.cpp'
+                    }
+                    exportedHeaders {
+                        srcDirs 'src/main/cpp/include', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
+                    }
+                }
+
+            }
+            buildTypes {
+                debug
+                release
+            }
+        }
+        jmtpx(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDir 'src/main/cpp/src'
+                        include '*.cpp'
+                    }
+                    exportedHeaders {
+                        srcDirs 'src/main/cpp/include', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
+                    }
+
+                    lib library: 'mtp', linkage: 'api'
+                    lib library: 'mtplib'
+                }
+            }
+            buildTypes {
+                debug
+                release
+            }
+        }
+    }
+}
+
 compileJava {
     options.compilerArgs += ['-h', file('src/main/cpp/include/')]
 }
 
 test {
-    systemProperty 'java.library.path', 'build/libs'
+    systemProperty 'java.library.path', 'build/libs/jmtp/shared/release/'
+    dependsOn 'jmtpReleaseSharedLibrary'
 }
 
 defaultTasks 'clean', 'build', 'jacocoTestReport'

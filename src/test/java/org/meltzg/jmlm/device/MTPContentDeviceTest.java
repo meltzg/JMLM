@@ -12,7 +12,6 @@ import java.util.Properties;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@Ignore
 public class MTPContentDeviceTest extends AbstractContentDeviceTest {
     private static String testDevId;
     private static String testDesc;
