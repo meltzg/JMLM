@@ -44,9 +44,18 @@ model {
             }
         }
     }
-}
-
-model {
+    binaries {
+        all {
+            if (toolChain in Gcc && buildType == buildTypes.debug) {
+                cppCompiler.args "-g"
+            }
+            if (toolChain in VisualCpp && buildType == buildTypes.debug) {
+                cppCompiler.args '/Zi'
+                cppCompiler.define 'DEBUG'
+                linker.args '/DEBUG'
+            }
+        }
+    }
     components {
         jmtp(NativeLibrarySpec) {
             sources {
@@ -58,6 +67,9 @@ model {
                     exportedHeaders {
                         srcDirs 'src/main/cpp/include', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
                     }
+
+                    lib library: 'mtp', linkage: 'api'
+                    lib library: 'mtplib'
                 }
 
             }
@@ -94,8 +106,8 @@ compileJava {
 }
 
 test {
-    systemProperty 'java.library.path', 'build/libs/jmtp/shared/release/'
-    dependsOn 'jmtpReleaseSharedLibrary'
+    systemProperty 'java.library.path', '.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/'
+    dependsOn 'jmtpDebugSharedLibrary'
 }
 
 defaultTasks 'clean', 'build', 'jacocoTestReport'

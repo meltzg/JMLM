@@ -16,7 +16,7 @@ namespace LibJMTP {
 
     jstring wcharToJString(JNIEnv *env, const wchar_t* wstr);
     jobject ulonglongToJBigInt(JNIEnv *env, unsigned long long num);
-    wstring jStringToWString(JNIEnv *env, jstring jStr);
+    std::wstring jStringToWString(JNIEnv *env, jstring jStr);
     jobject getNewArrayList(JNIEnv *env);
     void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 

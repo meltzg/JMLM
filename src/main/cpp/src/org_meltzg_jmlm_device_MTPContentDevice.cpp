@@ -1,46 +1,84 @@
 #include "org_meltzg_jmlm_device_MTPContentDevice.h"
+#include "mtpHelpers.h"
+#include "jniHelpers.h"
+
+using LibJMTP::MTPDeviceInfo;
+using LibJMTP::getDevicesInfo;
+using LibJMTP::getDeviceInfo;
+using LibJMTP::initMTP;
+using LibJMTP::jStringToWString;
+using LibJMTP::toJMTPDeviceInfo;
+using LibJMTP::toJMTPDeviceInfoList;
+
+using std::vector;
+using std::wstring;
+using std::optional;
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_getDevicesInfo(JNIEnv *, jclass) {
+Java_org_meltzg_jmlm_device_MTPContentDevice_getDevicesInfo(JNIEnv *env, jclass obj)
+{
+    vector<MTPDeviceInfo> cDevices = getDevicesInfo();
+    jobject jDevices = toJMTPDeviceInfoList(env, obj, cDevices);
+    return jDevices;
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_meltzg_jmlm_device_MTPContentDevice_getDeviceInfo(JNIEnv *env, jclass obj, jstring jId)
+{
+    wstring id = jStringToWString(env, jId);
+    optional<MTPDeviceInfo> cDevice = getDeviceInfo(id);
+    jobject jDevice = nullptr;
+    if (cDevice)
+    {
+        jDevice = toJMTPDeviceInfo(env, obj, *cDevice);
+    }
+    return jDevice;
+}
+
+JNIEXPORT void JNICALL
+Java_org_meltzg_jmlm_device_MTPContentDevice_initMTP(JNIEnv *env, jclass obj)
+{
+    initMTP();
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId)
+{
     return nullptr;
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_getDeviceInfo(JNIEnv *, jclass, jstring) {
+Java_org_meltzg_jmlm_device_MTPContentDevice_createDirNode(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring name)
+{
     return nullptr;
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds(JNIEnv *, jobject, jstring, jstring) {
+Java_org_meltzg_jmlm_device_MTPContentDevice_createContentNode(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring file)
+{
     return nullptr;
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_createDirNode(JNIEnv *, jobject, jstring, jstring, jstring) {
+Java_org_meltzg_jmlm_device_MTPContentDevice_readNode(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring file)
+{
     return nullptr;
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_createContentNode(JNIEnv *, jobject, jstring, jstring, jstring) {
-    return nullptr;
-}
-
-JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_readNode(JNIEnv *, jobject, jstring, jstring) {
-    return nullptr;
-}
-
-JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_copyNode(JNIEnv *, jobject, jstring, jstring, jstring, jstring) {
+Java_org_meltzg_jmlm_device_MTPContentDevice_copyNode(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring id, jstring tmpFolder)
+{
     return nullptr;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_deleteNode(JNIEnv *, jobject, jstring, jstring) {
+Java_org_meltzg_jmlm_device_MTPContentDevice_deleteNode(JNIEnv *env, jobject obj, jstring deviceId, jstring id)
+{
     return false;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_retrieveNode(JNIEnv *, jobject, jstring, jstring, jstring) {
+Java_org_meltzg_jmlm_device_MTPContentDevice_retrieveNode(JNIEnv *env, jobject obj, jstring deviceId, jstring id, jstring destFolder)
+{
     return false;
 }

@@ -23,19 +23,13 @@ public abstract class AbstractContentDeviceTest {
     protected static String testDevPath1;
     protected static String testDevPath2;
 
-    protected AbstractContentDevice device;
-
     @BeforeClass
     public static void setupBeforeClass() throws IOException {
     }
 
-    @Before
-    public void beforeTests() {
-        device = getNewDevice();
-    }
-
     @Test
     public void testLibraryRoots() {
+        AbstractContentDevice device = getNewDevice();
         boolean addRoot1 = device.addLibraryRoot(testLib1);
         boolean addRoot2 = device.addLibraryRoot(testLib2);
         boolean addDup = device.addLibraryRoot(testLib1);
@@ -62,6 +56,7 @@ public abstract class AbstractContentDeviceTest {
 
     @Test
     public void testCRUDOps() throws FileNotFoundException {
+        AbstractContentDevice device = getNewDevice();
         boolean addRoot1 = device.addLibraryRoot(testLib1);
         boolean addRoot2 = device.addLibraryRoot(testLib2);
 
@@ -102,6 +97,7 @@ public abstract class AbstractContentDeviceTest {
 
     @Test
     public void testGetPathToContent() {
+        AbstractContentDevice device = getNewDevice();
         AbstractContentDevice device2 = getNewDevice();
 
         device.addLibraryRoot(testLib1);

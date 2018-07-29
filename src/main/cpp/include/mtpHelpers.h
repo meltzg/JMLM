@@ -1,22 +1,21 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <optional>
 #include "mtpModels.h"
-
-using std::vector;
-using std::wstring;
 
 namespace LibJMTP {
 	const unsigned int NUM_OBJECTS_TO_REQUEST = 100;
 
-	vector<MTPDeviceInfo> getDevicesInfo();
-	MTPDeviceInfo getDeviceInfo(wstring id);
+	std::vector<MTPDeviceInfo> getDevicesInfo();
+	std::optional<MTPDeviceInfo> getDeviceInfo(std::wstring id);
+    void initMTP();
 
-    vector<wstring> getChildIds(wstring deviceId, wstring parentId);
-    MTPContentNode createDirNode(wstring deviceId, wstring parentId, wstring name);
-    MTPContentNode createContentNode(wstring deviceId, wstring parentId, wstring file);
-    MTPContentNode readNode(wstring deviceId, wstring id);
-    MTPContentNode copyNode(wstring deviceId, wstring parentId, wstring id, wstring tmpFolder);
-    bool deleteNode(wstring deviceId, wstring id);
-    bool retrieveNode(wstring deviceId, wstring id, wstring destFolder);
+    std::vector<std::wstring> getChildIds(std::wstring deviceId, std::wstring parentId);
+    MTPContentNode createDirNode(std::wstring deviceId, std::wstring parentId, std::wstring name);
+    MTPContentNode createContentNode(std::wstring deviceId, std::wstring parentId, std::wstring file);
+    MTPContentNode readNode(std::wstring deviceId, std::wstring id);
+    MTPContentNode copyNode(std::wstring deviceId, std::wstring parentId, std::wstring id, std::wstring tmpFolder);
+    bool deleteNode(std::wstring deviceId, std::wstring id);
+    bool retrieveNode(std::wstring deviceId, std::wstring id, std::wstring destFolder);
 }

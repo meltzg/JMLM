@@ -1,15 +1,13 @@
 #pragma once
 #include <string>
 
-using std::wstring;
-
 namespace LibJMTP {
 
 	struct MTPContentNode {
-		wstring id;
-		wstring pId;
-		wstring origName;
-		wstring name;
+		std::wstring id;
+		std::wstring pId;
+		std::wstring origName;
+		std::wstring name;
 		bool isDir;
 		unsigned long long size;
 		unsigned long long capacity;
@@ -20,9 +18,9 @@ namespace LibJMTP {
 	};
 
 	struct MTPDeviceInfo {
-		wstring deviceId;
-		wstring friendlyName;
-		wstring description;
-		wstring manufacturer;
+		std::wstring deviceId;
+		std::wstring friendlyName;
+		std::wstring description;
+		std::wstring manufacturer;
 	};
 }

@@ -16,6 +16,7 @@ public class MTPContentDevice extends AbstractContentDevice {
 
     static {
         System.loadLibrary("jmtp");
+        MTPContentDevice.initMTP();
     }
 
     protected MTPDeviceInfo deviceInfo;
@@ -67,6 +68,8 @@ public class MTPContentDevice extends AbstractContentDevice {
     protected boolean retrieveNode(String id, String destFolder) {
         return retrieveNode(this.deviceId, id, destFolder);
     }
+
+    private static native void initMTP();
 
     private native List<String> getChildIds(String dId, String pId);
 
