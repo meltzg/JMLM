@@ -46,7 +46,7 @@ model {
     }
     binaries {
         all {
-            if (toolChain in Gcc && buildType == buildTypes.debug) {
+            if (toolChain in Gcc) {
                 if (buildType ==buildTypes.debug) {
                     cppCompiler.args '-g', '-std=c++17'
                 } else {
