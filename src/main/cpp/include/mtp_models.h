@@ -18,7 +18,7 @@ namespace jmtp {
 	};
 
 	struct MTPDeviceInfo {
-		std::wstring deviceId;
+		std::wstring device_id;
 		std::wstring friendlyName;
 		std::wstring description;
 		std::wstring manufacturer;

@@ -91,7 +91,7 @@ jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
 
     jmethodID deviceInfoConstr = env->GetMethodID(deviceInfoClass, JCONSTRUCTOR, sig.str().c_str());
 
-    jstring jDeviceId = wcharToJString(env, info.deviceId.c_str());
+    jstring jDeviceId = wcharToJString(env, info.device_id.c_str());
     jstring jDescription = wcharToJString(env, info.description.c_str());
     jstring jFriendlyName = wcharToJString(env, info.friendlyName.c_str());
     jstring jManufacturer = wcharToJString(env, info.manufacturer.c_str());

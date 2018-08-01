@@ -62,7 +62,7 @@ MTPDeviceInfo toMTPDeviceInfo(LIBMTP_mtpdevice_t *device, uint16_t vendorId, uin
 
     MTPDeviceInfo deviceInfo;
 
-    deviceInfo.deviceId = toIDStr(idInfo);
+    deviceInfo.device_id = toIDStr(idInfo);
     deviceInfo.friendlyName = charToWString(friendly);
     deviceInfo.description = charToWString(description);
     deviceInfo.manufacturer = charToWString(manufacturer);
@@ -158,10 +158,10 @@ void initMTP()
     LIBMTP_Init();
 }
 
-vector<wstring> getChildIds(wstring deviceId, wstring parentId)
+vector<wstring> getChildIds(wstring device_id, wstring parentId)
 {
     vector<wstring> childIds;
-    LIBMTP_mtpdevice_t *device = getOpenDevice(deviceId);
+    LIBMTP_mtpdevice_t *device = getOpenDevice(device_id);
     if (device != nullptr)
     {
         wchar_t *pEnd;
@@ -172,12 +172,12 @@ vector<wstring> getChildIds(wstring deviceId, wstring parentId)
     return childIds;
 }
 
-optional<MTPContentNode> createDirNode(wstring deviceId, wstring parentId, wstring name);
-optional<MTPContentNode> createContentNode(wstring deviceId, wstring parentId, wstring file);
-optional<MTPContentNode> readNode(wstring deviceId, wstring id);
-optional<MTPContentNode> copyNode(wstring deviceId, wstring parentId, wstring id, wstring tmpFolder);
-bool deleteNode(wstring deviceId, wstring id);
-bool retrieveNode(wstring deviceId, wstring id, wstring destFolder);
+optional<MTPContentNode> createDirNode(wstring device_id, wstring parentId, wstring name);
+optional<MTPContentNode> createContentNode(wstring device_id, wstring parentId, wstring file);
+optional<MTPContentNode> readNode(wstring device_id, wstring id);
+optional<MTPContentNode> copyNode(wstring device_id, wstring parentId, wstring id, wstring tmpFolder);
+bool deleteNode(wstring device_id, wstring id);
+bool retrieveNode(wstring device_id, wstring id, wstring destFolder);
 } // namespace jmtp
 
 int main()

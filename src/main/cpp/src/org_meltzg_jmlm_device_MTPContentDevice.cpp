@@ -36,9 +36,9 @@ Java_org_meltzg_jmlm_device_MTPContentDevice_initMTP(JNIEnv *env, jclass obj)
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId)
+Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds(JNIEnv *env, jobject obj, jstring device_id, jstring parentId)
 {
-	wstring cDeviceId = jStringToWString(env, deviceId);
+	wstring cDeviceId = jStringToWString(env, device_id);
 	wstring cParentId = jStringToWString(env, parentId);
 	vector<wstring> cChildIds = getChildIds(cDeviceId, cParentId);
 	jobject jChildIds = getNewArrayList(env);
@@ -46,37 +46,37 @@ Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds(JNIEnv *env, jobject ob
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_createDirNode(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring name)
+Java_org_meltzg_jmlm_device_MTPContentDevice_createDirNode(JNIEnv *env, jobject obj, jstring device_id, jstring parentId, jstring name)
 {
 	return nullptr;
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_createContentNode(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring file)
+Java_org_meltzg_jmlm_device_MTPContentDevice_createContentNode(JNIEnv *env, jobject obj, jstring device_id, jstring parentId, jstring file)
 {
 	return nullptr;
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_readNode(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring file)
+Java_org_meltzg_jmlm_device_MTPContentDevice_readNode(JNIEnv *env, jobject obj, jstring device_id, jstring parentId, jstring file)
 {
 	return nullptr;
 }
 
 JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_copyNode(JNIEnv *env, jobject obj, jstring deviceId, jstring parentId, jstring id, jstring tmpFolder)
+Java_org_meltzg_jmlm_device_MTPContentDevice_copyNode(JNIEnv *env, jobject obj, jstring device_id, jstring parentId, jstring id, jstring tmpFolder)
 {
 	return nullptr;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_deleteNode(JNIEnv *env, jobject obj, jstring deviceId, jstring id)
+Java_org_meltzg_jmlm_device_MTPContentDevice_deleteNode(JNIEnv *env, jobject obj, jstring device_id, jstring id)
 {
 	return false;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_meltzg_jmlm_device_MTPContentDevice_retrieveNode(JNIEnv *env, jobject obj, jstring deviceId, jstring id, jstring destFolder)
+Java_org_meltzg_jmlm_device_MTPContentDevice_retrieveNode(JNIEnv *env, jobject obj, jstring device_id, jstring id, jstring destFolder)
 {
 	return false;
 }
