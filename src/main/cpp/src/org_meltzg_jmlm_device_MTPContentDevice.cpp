@@ -4,27 +4,27 @@
 
 using namespace jmtp;
 
+using std::optional;
 using std::vector;
 using std::wstring;
-using std::optional;
 
 JNIEXPORT jobject JNICALL
 Java_org_meltzg_jmlm_device_MTPContentDevice_getDevicesInfo(JNIEnv *env, jclass obj)
 {
-	vector<MTPDeviceInfo> cDevices = getDevicesInfo();
-	jobject jDevices = toJMTPDeviceInfoList(env, obj, cDevices);
-	return jDevices;
+	vector<MTPDeviceInfo> cdevices = getDevicesInfo();
+	jobject jdevices = toJMTPDeviceInfoList(env, obj, cdevices);
+	return jdevices;
 }
 
 JNIEXPORT jobject JNICALL
 Java_org_meltzg_jmlm_device_MTPContentDevice_getDeviceInfo(JNIEnv *env, jclass obj, jstring jId)
 {
 	wstring id = jStringToWString(env, jId);
-	optional<MTPDeviceInfo> cDevice = getDeviceInfo(id);
+	optional<MTPDeviceInfo> cdevice = getDeviceInfo(id);
 	jobject jDevice = nullptr;
-	if (cDevice)
+	if (cdevice)
 	{
-		jDevice = toJMTPDeviceInfo(env, obj, *cDevice);
+		jDevice = toJMTPDeviceInfo(env, obj, *cdevice);
 	}
 	return jDevice;
 }
@@ -38,9 +38,9 @@ Java_org_meltzg_jmlm_device_MTPContentDevice_initMTP(JNIEnv *env, jclass obj)
 JNIEXPORT jobject JNICALL
 Java_org_meltzg_jmlm_device_MTPContentDevice_getChildIds(JNIEnv *env, jobject obj, jstring device_id, jstring parent_id)
 {
-	wstring cDeviceId = jStringToWString(env, device_id);
-	wstring cParentId = jStringToWString(env, parent_id);
-	vector<wstring> cChildIds = getChildIds(cDeviceId, cParentId);
+	wstring cdevice_id = jStringToWString(env, device_id);
+	wstring cparent_id = jStringToWString(env, parent_id);
+	vector<wstring> cChildIds = getChildIds(cdevice_id, cparent_id);
 	jobject jChildIds = getNewArrayList(env);
 	return jChildIds;
 }

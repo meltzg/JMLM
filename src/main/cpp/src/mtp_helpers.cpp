@@ -129,8 +129,8 @@ vector<MTPDeviceInfo> getDevicesInfo()
         {
             LIBMTP_mtpdevice_t *device = LIBMTP_Open_Raw_Device_Uncached(&raw_devs[i]);
             MTPDeviceInfo device_info = toMTPDeviceInfo(device,
-                                                       raw_devs[i].device_entry.vendor_id,
-                                                       raw_devs[i].device_entry.product_id);
+                                                        raw_devs[i].device_entry.vendor_id,
+                                                        raw_devs[i].device_entry.product_id);
             devices.push_back(device_info);
 
             LIBMTP_Release_Device(device);
