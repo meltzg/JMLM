@@ -49,30 +49,30 @@ MTPDeviceIdInfo fromIDStr(wstring str)
     return info;
 }
 
-MTPDeviceInfo toMTPDeviceInfo(LIBMTP_mtpdevice_t *device, uint16_t vendorId, uint16_t productId)
+MTPDeviceInfo toMTPDeviceInfo(LIBMTP_mtpdevice_t *device, uint16_t vendor_id, uint16_t product_id)
 {
     char *serial = LIBMTP_Get_Serialnumber(device);
     char *friendly = LIBMTP_Get_Friendlyname(device);
     char *description = LIBMTP_Get_Modelname(device);
     char *manufacturer = LIBMTP_Get_Manufacturername(device);
-    MTPDeviceIdInfo idInfo;
-    idInfo.vendor_id = vendorId;
-    idInfo.product_id = productId;
-    idInfo.serial = charToWString(serial);
+    MTPDeviceIdInfo id_info;
+    id_info.vendor_id = vendor_id;
+    id_info.product_id = product_id;
+    id_info.serial = charToWString(serial);
 
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo device_info;
 
-    deviceInfo.device_id = toIDStr(idInfo);
-    deviceInfo.friendly_name = charToWString(friendly);
-    deviceInfo.description = charToWString(description);
-    deviceInfo.manufacturer = charToWString(manufacturer);
+    device_info.device_id = toIDStr(id_info);
+    device_info.friendly_name = charToWString(friendly);
+    device_info.description = charToWString(description);
+    device_info.manufacturer = charToWString(manufacturer);
 
     free(serial);
     free(friendly);
     free(description);
     free(manufacturer);
 
-    return deviceInfo;
+    return device_info;
 }
 
 LIBMTP_mtpdevice_t *getOpenDevice(wstring id)
@@ -90,13 +90,13 @@ LIBMTP_mtpdevice_t *getOpenDevice(wstring id)
         {
             LIBMTP_mtpdevice_t *found_device = LIBMTP_Open_Raw_Device_Uncached(&raw_devs[i]);
             char *serial = LIBMTP_Get_Serialnumber(found_device);
-            MTPDeviceIdInfo idInfo;
-            idInfo.vendor_id = raw_devs[i].device_entry.vendor_id;
-            idInfo.product_id = raw_devs[i].device_entry.product_id;
-            idInfo.serial = charToWString(serial);
+            MTPDeviceIdInfo id_info;
+            id_info.vendor_id = raw_devs[i].device_entry.vendor_id;
+            id_info.product_id = raw_devs[i].device_entry.product_id;
+            id_info.serial = charToWString(serial);
             free(serial);
 
-            wstring found_id = toIDStr(idInfo);
+            wstring found_id = toIDStr(id_info);
             if (found_id.compare(id.c_str()))
             {
                 open_device = found_device;
@@ -128,10 +128,10 @@ vector<MTPDeviceInfo> getDevicesInfo()
         for (int i = 0; i < numdevs; i++)
         {
             LIBMTP_mtpdevice_t *device = LIBMTP_Open_Raw_Device_Uncached(&raw_devs[i]);
-            MTPDeviceInfo deviceInfo = toMTPDeviceInfo(device,
+            MTPDeviceInfo device_info = toMTPDeviceInfo(device,
                                                        raw_devs[i].device_entry.vendor_id,
                                                        raw_devs[i].device_entry.product_id);
-            devices.push_back(deviceInfo);
+            devices.push_back(device_info);
 
             LIBMTP_Release_Device(device);
         }
@@ -145,10 +145,10 @@ optional<MTPDeviceInfo> getDeviceInfo(wstring id)
     LIBMTP_mtpdevice_t *device = getOpenDevice(id);
     if (device != nullptr)
     {
-        MTPDeviceIdInfo idInfo = fromIDStr(id);
-        MTPDeviceInfo deviceInfo = toMTPDeviceInfo(device, idInfo.vendor_id, idInfo.product_id);
+        MTPDeviceIdInfo id_info = fromIDStr(id);
+        MTPDeviceInfo device_info = toMTPDeviceInfo(device, id_info.vendor_id, id_info.product_id);
         LIBMTP_Release_Device(device);
-        return deviceInfo;
+        return device_info;
     }
     return std::nullopt;
 }
@@ -160,7 +160,7 @@ void initMTP()
 
 vector<wstring> getChildIds(wstring device_id, wstring parent_id)
 {
-    vector<wstring> childIds;
+    vector<wstring> child_ids;
     LIBMTP_mtpdevice_t *device = getOpenDevice(device_id);
     if (device != nullptr)
     {
@@ -169,7 +169,7 @@ vector<wstring> getChildIds(wstring device_id, wstring parent_id)
         LIBMTP_file_t *children = LIBMTP_Get_Files_And_Folders(device, nParentId, 0);
         LIBMTP_Release_Device(device);
     }
-    return childIds;
+    return child_ids;
 }
 
 optional<MTPContentNode> createDirNode(wstring device_id, wstring parent_id, wstring name);
@@ -185,6 +185,6 @@ int main()
     jmtp::initMTP();
     wstringstream wss;
     wss << LIBMTP_FILES_AND_FOLDERS_ROOT;
-    auto childIds = jmtp::getChildIds(L"16642:4497:F2000018D562F2A412B4", wss.str());
+    auto child_ids = jmtp::getChildIds(L"16642:4497:F2000018D562F2A412B4", wss.str());
     wcout << endl;
 }

@@ -42,23 +42,23 @@ jobject ulonglongToJBigInt(JNIEnv *env, unsigned long long num)
     return env->NewObject(big_int_class, big_int_constructor, jstr_num);
 }
 
-wstring jStringToWString(JNIEnv *env, jstring jStr)
+wstring jStringToWString(JNIEnv *env, jstring jstr)
 {
-    if (jStr == NULL)
+    if (jstr == NULL)
     {
         return nullptr;
     }
 
-    const jchar *raw = env->GetStringChars(jStr, 0);
-    jsize len = env->GetStringLength(jStr);
+    const jchar *raw = env->GetStringChars(jstr, 0);
+    jsize len = env->GetStringLength(jstr);
     wstring wstr;
-    wchar_t *wStr_c = new wchar_t[len + 1];
+    wchar_t *wstr_c = new wchar_t[len + 1];
 
     wstr.assign(raw, raw + len);
-    wcscpy(wStr_c, wstr.c_str());
+    wcscpy(wstr_c, wstr.c_str());
 
-    wstring ret(wStr_c);
-    delete[] wStr_c;
+    wstring ret(wstr_c);
+    delete[] wstr_c;
 
     return ret;
 }
