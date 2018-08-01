@@ -5,21 +5,21 @@ namespace jmtp {
 
 	struct MTPContentNode {
 		std::wstring id;
-		std::wstring pId;
-		std::wstring origName;
+		std::wstring parent_id;
+		std::wstring orig_name;
 		std::wstring name;
-		bool isDir;
+		bool is_directory;
 		unsigned long long size;
 		unsigned long long capacity;
 
-		bool isValid;
+		bool is_valid;
 
-		MTPContentNode() { isValid = false; }
+		MTPContentNode() { is_valid = false; }
 	};
 
 	struct MTPDeviceInfo {
 		std::wstring device_id;
-		std::wstring friendlyName;
+		std::wstring friendly_name;
 		std::wstring description;
 		std::wstring manufacturer;
 	};

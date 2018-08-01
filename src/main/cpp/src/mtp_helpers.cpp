@@ -63,7 +63,7 @@ MTPDeviceInfo toMTPDeviceInfo(LIBMTP_mtpdevice_t *device, uint16_t vendorId, uin
     MTPDeviceInfo deviceInfo;
 
     deviceInfo.device_id = toIDStr(idInfo);
-    deviceInfo.friendlyName = charToWString(friendly);
+    deviceInfo.friendly_name = charToWString(friendly);
     deviceInfo.description = charToWString(description);
     deviceInfo.manufacturer = charToWString(manufacturer);
 

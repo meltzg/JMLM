@@ -93,7 +93,7 @@ jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
 
     jstring jDeviceId = wcharToJString(env, info.device_id.c_str());
     jstring jDescription = wcharToJString(env, info.description.c_str());
-    jstring jFriendlyName = wcharToJString(env, info.friendlyName.c_str());
+    jstring jFriendlyName = wcharToJString(env, info.friendly_name.c_str());
     jstring jManufacturer = wcharToJString(env, info.manufacturer.c_str());
 
     jobject jInfo = env->NewObject(deviceInfoClass,
@@ -137,19 +137,19 @@ jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node)
     jmethodID contentNodeConstr = env->GetMethodID(contentNodeClass, JCONSTRUCTOR, sig.str().c_str());
 
     jstring id = wcharToJString(env, node.id.c_str());
-    jstring pId = wcharToJString(env, node.pId.c_str());
+    jstring parent_id = wcharToJString(env, node.parent_id.c_str());
     jstring name = wcharToJString(env, node.name.c_str());
-    jstring origName = wcharToJString(env, node.origName.c_str());
+    jstring orig_name = wcharToJString(env, node.orig_name.c_str());
     jobject size = ulonglongToJBigInt(env, node.size);
     jobject capacity = ulonglongToJBigInt(env, node.capacity);
 
     jobject jNode = env->NewObject(contentNodeClass,
                                    contentNodeConstr,
                                    id,
-                                   pId,
+                                   parent_id,
                                    name,
-                                   origName,
-                                   node.isDir,
+                                   orig_name,
+                                   node.is_directory,
                                    size,
                                    capacity);
 
