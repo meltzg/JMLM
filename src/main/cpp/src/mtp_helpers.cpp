@@ -158,26 +158,26 @@ void initMTP()
     LIBMTP_Init();
 }
 
-vector<wstring> getChildIds(wstring device_id, wstring parentId)
+vector<wstring> getChildIds(wstring device_id, wstring parent_id)
 {
     vector<wstring> childIds;
     LIBMTP_mtpdevice_t *device = getOpenDevice(device_id);
     if (device != nullptr)
     {
         wchar_t *pEnd;
-        uint32_t nParentId = wcstoul(parentId.c_str(), &pEnd, 10);
+        uint32_t nParentId = wcstoul(parent_id.c_str(), &pEnd, 10);
         LIBMTP_file_t *children = LIBMTP_Get_Files_And_Folders(device, nParentId, 0);
         LIBMTP_Release_Device(device);
     }
     return childIds;
 }
 
-optional<MTPContentNode> createDirNode(wstring device_id, wstring parentId, wstring name);
-optional<MTPContentNode> createContentNode(wstring device_id, wstring parentId, wstring file);
+optional<MTPContentNode> createDirNode(wstring device_id, wstring parent_id, wstring name);
+optional<MTPContentNode> createContentNode(wstring device_id, wstring parent_id, wstring file);
 optional<MTPContentNode> readNode(wstring device_id, wstring id);
-optional<MTPContentNode> copyNode(wstring device_id, wstring parentId, wstring id, wstring tmpFolder);
+optional<MTPContentNode> copyNode(wstring device_id, wstring parent_id, wstring id, wstring tmp_folder);
 bool deleteNode(wstring device_id, wstring id);
-bool retrieveNode(wstring device_id, wstring id, wstring destFolder);
+bool retrieveNode(wstring device_id, wstring id, wstring dest_folder);
 } // namespace jmtp
 
 int main()
