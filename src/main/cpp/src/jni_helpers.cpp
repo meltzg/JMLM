@@ -26,20 +26,20 @@ jstring wcharToJString(JNIEnv *env, const wchar_t *wstr)
 
 jobject ulonglongToJBigInt(JNIEnv *env, unsigned long long num)
 {
-    jclass bigIntClass = env->FindClass(JBIGINT);
+    jclass big_int_class = env->FindClass(JBIGINT);
 
     ostringstream sig;
     sig << "("
         << JSTRING
         << ")V";
 
-    jmethodID bigIntConstructor = env->GetMethodID(bigIntClass, JCONSTRUCTOR, sig.str().c_str());
+    jmethodID big_int_constructor = env->GetMethodID(big_int_class, JCONSTRUCTOR, sig.str().c_str());
 
     // the number needs to be a string for BigInteger's constructor
-    wstring strNum = to_wstring(num);
-    jstring jStrNum = wcharToJString(env, strNum.c_str());
+    wstring str_num = to_wstring(num);
+    jstring jstr_num = wcharToJString(env, str_num.c_str());
 
-    return env->NewObject(bigIntClass, bigIntConstructor, jStrNum);
+    return env->NewObject(big_int_class, big_int_constructor, jstr_num);
 }
 
 wstring jStringToWString(JNIEnv *env, jstring jStr)
@@ -51,11 +51,11 @@ wstring jStringToWString(JNIEnv *env, jstring jStr)
 
     const jchar *raw = env->GetStringChars(jStr, 0);
     jsize len = env->GetStringLength(jStr);
-    wstring wStr;
+    wstring wstr;
     wchar_t *wStr_c = new wchar_t[len + 1];
 
-    wStr.assign(raw, raw + len);
-    wcscpy(wStr_c, wStr.c_str());
+    wstr.assign(raw, raw + len);
+    wcscpy(wStr_c, wstr.c_str());
 
     wstring ret(wStr_c);
     delete[] wStr_c;
@@ -65,20 +65,20 @@ wstring jStringToWString(JNIEnv *env, jstring jStr)
 
 jobject getNewArrayList(JNIEnv *env)
 {
-    jclass arrayListClass = env->FindClass(JARRLIST);
-    jmethodID arrayListConstructor = env->GetMethodID(arrayListClass, "<init>", "()V");
-    return env->NewObject(arrayListClass, arrayListConstructor);
+    jclass array_list_class = env->FindClass(JARRLIST);
+    jmethodID array_list_constructor = env->GetMethodID(array_list_class, "<init>", "()V");
+    return env->NewObject(array_list_class, array_list_constructor);
 }
 
 void arrayListAdd(JNIEnv *env, jobject list, jobject element)
 {
-    jclass arrayListClass = env->FindClass(JARRLIST);
-    jmethodID arrayListAdd = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
-    env->CallBooleanMethod(list, arrayListAdd, element);
+    jclass array_list_class = env->FindClass(JARRLIST);
+    jmethodID array_list_add = env->GetMethodID(array_list_class, "add", "(Ljava/lang/Object;)Z");
+    env->CallBooleanMethod(list, array_list_add, element);
 }
 jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
 {
-    jclass deviceInfoClass = env->FindClass(JMTPDEVICEINFO);
+    jclass device_info_class = env->FindClass(JMTPDEVICEINFO);
 
     ostringstream sig;
     sig << "("
@@ -89,22 +89,22 @@ jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
         << JSTRING
         << ")V";
 
-    jmethodID deviceInfoConstr = env->GetMethodID(deviceInfoClass, JCONSTRUCTOR, sig.str().c_str());
+    jmethodID device_info_constr = env->GetMethodID(device_info_class, JCONSTRUCTOR, sig.str().c_str());
 
-    jstring jDeviceId = wcharToJString(env, info.device_id.c_str());
-    jstring jDescription = wcharToJString(env, info.description.c_str());
-    jstring jFriendlyName = wcharToJString(env, info.friendly_name.c_str());
-    jstring jManufacturer = wcharToJString(env, info.manufacturer.c_str());
+    jstring jdevice_id = wcharToJString(env, info.device_id.c_str());
+    jstring jdescription = wcharToJString(env, info.description.c_str());
+    jstring jfriendly_name = wcharToJString(env, info.friendly_name.c_str());
+    jstring jmanufacturer = wcharToJString(env, info.manufacturer.c_str());
 
-    jobject jInfo = env->NewObject(deviceInfoClass,
-                                   deviceInfoConstr,
+    jobject jinfo = env->NewObject(device_info_class,
+                                   device_info_constr,
                                    obj,
-                                   jDeviceId,
-                                   jFriendlyName,
-                                   jDescription,
-                                   jManufacturer);
+                                   jdevice_id,
+                                   jfriendly_name,
+                                   jdescription,
+                                   jmanufacturer);
 
-    return jInfo;
+    return jinfo;
 }
 jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, vector<MTPDeviceInfo> info)
 {
@@ -112,16 +112,16 @@ jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, vector<MTPDeviceInfo> inf
 
     for (auto iter = info.begin(); iter != info.end(); iter++)
     {
-        jobject jInfo = toJMTPDeviceInfo(env, obj, *iter);
+        jobject jinfo = toJMTPDeviceInfo(env, obj, *iter);
 
-        arrayListAdd(env, jlist, jInfo);
+        arrayListAdd(env, jlist, jinfo);
     }
     return jlist;
 }
 
 jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node)
 {
-    jclass contentNodeClass = env->FindClass(JMTPCONTENTNODE);
+    jclass content_node_class = env->FindClass(JMTPCONTENTNODE);
 
     ostringstream sig;
     sig << "("
@@ -134,7 +134,7 @@ jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node)
         << JBIGINT
         << ")V";
 
-    jmethodID contentNodeConstr = env->GetMethodID(contentNodeClass, JCONSTRUCTOR, sig.str().c_str());
+    jmethodID content_node_constr = env->GetMethodID(content_node_class, JCONSTRUCTOR, sig.str().c_str());
 
     jstring id = wcharToJString(env, node.id.c_str());
     jstring parent_id = wcharToJString(env, node.parent_id.c_str());
@@ -143,8 +143,8 @@ jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node)
     jobject size = ulonglongToJBigInt(env, node.size);
     jobject capacity = ulonglongToJBigInt(env, node.capacity);
 
-    jobject jNode = env->NewObject(contentNodeClass,
-                                   contentNodeConstr,
+    jobject jnode = env->NewObject(content_node_class,
+                                   content_node_constr,
                                    id,
                                    parent_id,
                                    name,
@@ -153,6 +153,6 @@ jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node)
                                    size,
                                    capacity);
 
-    return jNode;
+    return jnode;
 }
 } // namespace jmtp
