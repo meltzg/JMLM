@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace LibJMTP {
+namespace jmtp {
 
 	struct MTPContentNode {
 		std::wstring id;

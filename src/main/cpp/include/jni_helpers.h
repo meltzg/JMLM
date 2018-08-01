@@ -1,9 +1,9 @@
 #pragma once
 #include <jni.h>
 #include <vector>
-#include "mtpModels.h"
+#include "mtp_models.h"
 
-namespace LibJMTP {
+namespace jmtp {
     const char * const JCONSTRUCTOR = "<init>";
     const char * const JSTRING = "Ljava/lang/String;";
     const char * const JARRLIST = "Ljava/util/ArrayList;";

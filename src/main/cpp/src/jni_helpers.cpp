@@ -3,7 +3,7 @@
 #include <wchar.h>
 #include <stdio.h>
 #include <string.h>
-#include "jniHelpers.h"
+#include "jni_helpers.h"
 
 using std::ostringstream;
 using std::string;
@@ -11,7 +11,7 @@ using std::to_wstring;
 using std::vector;
 using std::wstring;
 
-namespace LibJMTP
+namespace jmtp
 {
 jstring wcharToJString(JNIEnv *env, const wchar_t *wstr)
 {
@@ -155,4 +155,4 @@ jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node)
 
     return jNode;
 }
-} // namespace LibJMTP
+} // namespace jmtp

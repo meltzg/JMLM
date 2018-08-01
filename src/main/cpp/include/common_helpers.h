@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 
-namespace LibJMTP
+namespace jmtp
 {
 void wcsAllocCpy(wchar_t **destination, const wchar_t *source);
-std::wstring charToWstring(char *str);
-} // namespace LibJMTP
+std::wstring charToWString(char *str);
+} // namespace jmtp

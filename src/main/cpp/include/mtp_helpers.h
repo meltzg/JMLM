@@ -2,9 +2,9 @@
 #include <vector>
 #include <string>
 #include <optional>
-#include "mtpModels.h"
+#include "mtp_models.h"
 
-namespace LibJMTP {
+namespace jmtp {
 	const unsigned int NUM_OBJECTS_TO_REQUEST = 100;
 
 	std::vector<MTPDeviceInfo> getDevicesInfo();

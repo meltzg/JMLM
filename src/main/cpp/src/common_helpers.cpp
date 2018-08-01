@@ -1,14 +1,14 @@
 #include <cstring>
-#include "commonHelpers.h"
+#include "common_helpers.h"
 
 using std::wstring;
 
-namespace LibJMTP
+namespace jmtp
 {
 void wcsAllocCpy(wchar_t **destination, const wchar_t *source)
 {
 }
-wstring charToWstring(char *str)
+wstring charToWString(char *str)
 {
     if (str != nullptr)
     {
@@ -19,4 +19,4 @@ wstring charToWstring(char *str)
     }
     return wstring();
 }
-} // namespace LibJMTP
+} // namespace jmtp

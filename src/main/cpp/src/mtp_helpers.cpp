@@ -1,8 +1,8 @@
 #include <libmtp.h>
 #include <sstream>
 #include <cwchar>
-#include "mtpHelpers.h"
-#include "commonHelpers.h"
+#include "mtp_helpers.h"
+#include "common_helpers.h"
 
 #include <iostream>
 
@@ -13,7 +13,7 @@ using std::wcout;
 using std::wstring;
 using std::wstringstream;
 
-namespace LibJMTP
+namespace jmtp
 {
 struct MTPDeviceIdInfo
 {
@@ -58,14 +58,14 @@ MTPDeviceInfo toMTPDeviceInfo(LIBMTP_mtpdevice_t *device, uint16_t vendorId, uin
     MTPDeviceIdInfo idInfo;
     idInfo.vendor_id = vendorId;
     idInfo.product_id = productId;
-    idInfo.serial = charToWstring(serial);
+    idInfo.serial = charToWString(serial);
 
     MTPDeviceInfo deviceInfo;
 
     deviceInfo.deviceId = toIDStr(idInfo);
-    deviceInfo.friendlyName = charToWstring(friendly);
-    deviceInfo.description = charToWstring(description);
-    deviceInfo.manufacturer = charToWstring(manufacturer);
+    deviceInfo.friendlyName = charToWString(friendly);
+    deviceInfo.description = charToWString(description);
+    deviceInfo.manufacturer = charToWString(manufacturer);
 
     free(serial);
     free(friendly);
@@ -93,7 +93,7 @@ LIBMTP_mtpdevice_t *getOpenDevice(wstring id)
             MTPDeviceIdInfo idInfo;
             idInfo.vendor_id = raw_devs[i].device_entry.vendor_id;
             idInfo.product_id = raw_devs[i].device_entry.product_id;
-            idInfo.serial = charToWstring(serial);
+            idInfo.serial = charToWString(serial);
             free(serial);
 
             wstring found_id = toIDStr(idInfo);
@@ -178,13 +178,13 @@ optional<MTPContentNode> readNode(wstring deviceId, wstring id);
 optional<MTPContentNode> copyNode(wstring deviceId, wstring parentId, wstring id, wstring tmpFolder);
 bool deleteNode(wstring deviceId, wstring id);
 bool retrieveNode(wstring deviceId, wstring id, wstring destFolder);
-} // namespace LibJMTP
+} // namespace jmtp
 
 int main()
 {
-    LibJMTP::initMTP();
+    jmtp::initMTP();
     wstringstream wss;
     wss << LIBMTP_FILES_AND_FOLDERS_ROOT;
-    auto childIds = LibJMTP::getChildIds(L"16642:4497:F2000018D562F2A412B4", wss.str());
+    auto childIds = jmtp::getChildIds(L"16642:4497:F2000018D562F2A412B4", wss.str());
     wcout << endl;
 }
