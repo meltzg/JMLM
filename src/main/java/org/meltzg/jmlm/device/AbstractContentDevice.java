@@ -2,6 +2,7 @@ package org.meltzg.jmlm.device;
 
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
+import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,6 +19,7 @@ import java.util.*;
 public abstract class AbstractContentDevice {
     protected String deviceId;
     protected ContentRootWrapper content;
+    Map<String, StorageDevice> storageDevices;
     /**
      * A device may contain several directories that make up the overall library of the device
      */
@@ -25,6 +27,7 @@ public abstract class AbstractContentDevice {
 
     public AbstractContentDevice() {
         this.deviceId = UUID.randomUUID().toString();
+        this.storageDevices = new HashMap<>();
         this.libRoots = new HashSet<>();
     }
 
@@ -344,39 +347,22 @@ public abstract class AbstractContentDevice {
      * directories with a capacity of > 0
      */
     protected void assignLibCapacities() {
-        List<AbstractContentNode> storageDevices = new ArrayList<>();
-        Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<>();
-
-        Stack<AbstractContentNode> stack = new Stack<>();
-
-        // Find the storage devices
-        stack.add(content.getNode(AbstractContentNode.ROOT_ID));
-        while (!stack.empty()) {
-            AbstractContentNode node = stack.pop();
-            if (node.getCapacity().compareTo(BigInteger.ZERO) > 0) {
-                storageDevices.add(node);
-            } else {
-                stack.addAll(node.getChildren());
-            }
-        }
-
+        Map<StorageDevice, List<String>> libStorageMapping = new HashMap<>();
         for (String libRoot : libRoots) {
-            for (AbstractContentNode device : storageDevices) {
-                ContentRootWrapper wrapper = new ContentRootWrapper(device);
-                if (wrapper.contains(libRoot)) {
-                    if (!storageDeviceMap.containsKey(device.getId())) {
-                        storageDeviceMap.put(device.getId(), new ArrayList<>());
-                    }
-                    storageDeviceMap.get(device.getId()).add(content.getNode(libRoot));
-                }
+            StorageDevice libStorage = getStorageDevice(libRoot);
+            storageDevices.put(libStorage.getId(), libStorage);
+            if (!libStorageMapping.containsKey(libStorage.getId())) {
+                libStorageMapping.put(libStorage, new ArrayList<>());
             }
+            libStorageMapping.get(libStorage).add(libRoot);
         }
 
-        for (Map.Entry<String, List<AbstractContentNode>> storageMapping : storageDeviceMap.entrySet()) {
-            BigInteger cap = content.getNode(storageMapping.getKey()).getCapacity();
-            cap = cap.divide(BigInteger.valueOf(storageMapping.getValue().size()));
-            for (AbstractContentNode node : storageMapping.getValue()) {
-                node.setCapacity(cap);
+        for (Map.Entry<StorageDevice, List<String>> libStorageMap : libStorageMapping.entrySet()) {
+            StorageDevice storage = libStorageMap.getKey();
+            List<String> libs = libStorageMap.getValue();
+            BigInteger subCapacity = storage.getCapacity().divide(BigInteger.valueOf(libs.size()));
+            for (String lib : libs) {
+                content.getNode(lib).setCapacity(subCapacity);
             }
         }
     }
@@ -515,6 +501,8 @@ public abstract class AbstractContentDevice {
      * @return true if transfer is successful
      */
     protected abstract boolean retrieveNode(String id, String destFolder);
+
+    protected abstract StorageDevice getStorageDevice(String id);
 
     /**
      * Represents the work done when creating a folder path.

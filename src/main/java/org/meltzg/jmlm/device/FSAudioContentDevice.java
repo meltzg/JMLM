@@ -3,6 +3,7 @@ package org.meltzg.jmlm.device;
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 import org.meltzg.jmlm.device.content.FSAudioContentNode;
+import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.File;
 import java.io.IOException;
@@ -157,58 +158,13 @@ public class FSAudioContentDevice extends AbstractContentDevice {
     }
 
     @Override
+    protected StorageDevice getStorageDevice(String id) {
+        return null;
+    }
+
+    @Override
     protected String validateId(String id) throws InvalidContentIDException {
         id = Paths.get(id).toAbsolutePath().toString();
         return super.validateId(id);
-    }
-
-    /**
-     * Assigns storage capacities to the Library root nodes.
-     * Libraries that exist on the same storage device should each be given an equal share
-     * <p>
-     * The size of a library is determined by the total size of the library content +
-     * an equal share of the free space available on the hdd the library is on
-     */
-    @Override
-    protected void assignLibCapacities() {
-        Map<String, List<AbstractContentNode>> storageDeviceMap = new HashMap<>();
-
-        for (String libRoot : libRoots) {
-            Path libpath = Paths.get(libRoot);
-            try {
-                FileStore fs = Files.getFileStore(libpath);
-                String device = fs.name();
-                if (device.length() == 0) {
-                    device = libpath.getRoot().toString();
-                }
-                if (!storageDeviceMap.containsKey(device)) {
-                    storageDeviceMap.put(device, new ArrayList<>());
-                }
-                storageDeviceMap.get(device).add(content.getNode(libRoot));
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-
-        for (Map.Entry<String, List<AbstractContentNode>> storageMapping : storageDeviceMap.entrySet()) {
-            Path storage = Paths.get(storageMapping.getKey());
-            long freespace = 0;
-
-            try {
-                freespace = Files.getFileStore(storage).getUsableSpace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                freespace = 0;
-            }
-
-            freespace /= storageMapping.getValue().size();
-            for (AbstractContentNode node : storageMapping.getValue()) {
-                BigInteger currSize = node.getTotalSize();
-                currSize = currSize.add(BigInteger.valueOf(freespace));
-                node.setCapacity(currSize);
-            }
-        }
     }
 }

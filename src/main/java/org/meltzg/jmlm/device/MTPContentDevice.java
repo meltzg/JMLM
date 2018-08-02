@@ -2,6 +2,7 @@ package org.meltzg.jmlm.device;
 
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
+import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.File;
 import java.util.List;
@@ -69,6 +70,9 @@ public class MTPContentDevice extends AbstractContentDevice {
         return retrieveNode(this.deviceId, id, destFolder);
     }
 
+    @Override
+    protected StorageDevice getStorageDevice(String id) { return getStorageDevice(this.deviceId, id); }
+
     private static native void initMTP();
 
     private native List<String> getChildIds(String dId, String pId);
@@ -84,6 +88,8 @@ public class MTPContentDevice extends AbstractContentDevice {
     private native boolean deleteNode(String dId, String id);
 
     private native boolean retrieveNode(String dId, String id, String destFolder);
+
+    private native  StorageDevice getStorageDevice(String dId, String id);
 
     public class MTPDeviceInfo {
         public final String deviceId;

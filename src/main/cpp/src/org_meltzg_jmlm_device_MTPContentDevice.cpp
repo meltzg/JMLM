@@ -80,3 +80,8 @@ Java_org_meltzg_jmlm_device_MTPContentDevice_retrieveNode(JNIEnv *env, jobject o
 {
 	return false;
 }
+
+JNIEXPORT jobject JNICALL
+Java_org_meltzg_jmlm_device_MTPContentDevice_getStorageDevice(JNIEnv *env, jobject obj, jstring device_id, jstring id) {
+	return nullptr;
+}

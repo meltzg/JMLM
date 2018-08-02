@@ -26,4 +26,10 @@ struct MTPDeviceInfo
 	std::wstring description;
 	std::wstring manufacturer;
 };
+
+struct MTPStorageDevice
+{
+	std::wstring id;
+	unsigned long long capacity;
+};
 } // namespace jmtp

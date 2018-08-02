@@ -14,6 +14,7 @@ const char *const JBIGINT = "Ljava/math/BigInteger;";
 const char *const JMTPDEVICE = "Lorg/meltzg/jmlm/device/MTPContentDevice;";
 const char *const JMTPDEVICEINFO = "Lorg/meltzg/jmlm/device/MTPContentDevice$MTPDeviceInfo;";
 const char *const JMTPCONTENTNODE = "Lorg/meltzg/jmlm/device/content/MTPContentNode;";
+const char *const JMTPSTORAGEDEVICE = "Lorg/meltzg/jmlm/device/storage/StorageDevice;";
 
 jstring wcharToJString(JNIEnv *env, const wchar_t *wstr);
 jobject ulonglongToJBigInt(JNIEnv *env, unsigned long long num);
@@ -24,4 +25,5 @@ void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info);
 jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, std::vector<MTPDeviceInfo> info);
 jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node);
+jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice storage_device);
 } // namespace jmtp

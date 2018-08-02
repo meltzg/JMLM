@@ -178,6 +178,7 @@ optional<MTPContentNode> readNode(wstring device_id, wstring id);
 optional<MTPContentNode> copyNode(wstring device_id, wstring parent_id, wstring id, wstring tmp_folder);
 bool deleteNode(wstring device_id, wstring id);
 bool retrieveNode(wstring device_id, wstring id, wstring dest_folder);
+optional<MTPStorageDevice> getStorageDevice(wstring device_id, wstring id);
 } // namespace jmtp
 
 int main()

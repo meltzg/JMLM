@@ -155,4 +155,5 @@ jobject toJMTPContentNode(JNIEnv *env, MTPContentNode node)
 
     return jnode;
 }
+jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice storage_device);
 } // namespace jmtp

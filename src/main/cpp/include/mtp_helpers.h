@@ -19,4 +19,5 @@ std::optional<MTPContentNode> readNode(std::wstring device_id, std::wstring id);
 std::optional<MTPContentNode> copyNode(std::wstring device_id, std::wstring parent_id, std::wstring id, std::wstring tmp_folder);
 bool deleteNode(std::wstring device_id, std::wstring id);
 bool retrieveNode(std::wstring device_id, std::wstring id, std::wstring dest_folder);
+std::optional<MTPStorageDevice> getStorageDevice(std::wstring device_id, std::wstring id);
 } // namespace jmtp
