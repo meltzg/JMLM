@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -159,7 +160,26 @@ public class FSAudioContentDevice extends AbstractContentDevice {
 
     @Override
     protected StorageDevice getStorageDevice(String id) {
-        return null;
+        StorageDevice device = new StorageDevice();
+        Path idPath = Paths.get(id);
+        File idFile = new File(idPath.toString());
+        BigInteger capacity = content.getNode(AbstractContentNode.ROOT_ID).getTotalSize();
+        capacity.add(BigInteger.valueOf(idFile.getUsableSpace()));
+
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            device.setId(idPath.getRoot().toString());
+        } else {
+            try {
+                BasicFileAttributes fileAttrs = Files.readAttributes(Paths.get(id), BasicFileAttributes.class);
+                Object fileKey = fileAttrs.fileKey();
+                System.out.println(fileAttrs.getClass().getCanonicalName());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        device.setCapacity(capacity);
+        return device;
     }
 
     @Override
@@ -167,4 +187,5 @@ public class FSAudioContentDevice extends AbstractContentDevice {
         id = Paths.get(id).toAbsolutePath().toString();
         return super.validateId(id);
     }
+
 }

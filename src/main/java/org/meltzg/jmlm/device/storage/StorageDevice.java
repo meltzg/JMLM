@@ -11,6 +11,11 @@ public class StorageDevice {
         this.capacity = capacity;
     }
 
+    public StorageDevice() {
+        id = null;
+        capacity = BigInteger.valueOf(-1);
+    }
+
     public String getId() {
         return id;
     }

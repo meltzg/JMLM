@@ -45,6 +45,7 @@ public abstract class AbstractContentNode
     public AbstractContentNode(String id) {
         this.id = id;
         this.children = new HashMap<>();
+        this.size = BigInteger.ZERO;
     }
 
     public AbstractContentNode(String id, String pId, String origName, boolean isDir, BigInteger size, BigInteger capacity) {

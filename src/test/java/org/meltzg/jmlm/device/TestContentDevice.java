@@ -4,6 +4,7 @@ import com.google.gson.*;
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 import org.meltzg.jmlm.device.content.ContentRootWrapper;
 import org.meltzg.jmlm.device.content.TestContentNode;
+import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -130,5 +131,10 @@ public class TestContentDevice extends AbstractContentDevice {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    protected StorageDevice getStorageDevice(String id) {
+        return null;
     }
 }
