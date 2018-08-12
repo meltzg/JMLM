@@ -170,9 +170,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
             device.setId(idPath.getRoot().toString());
         } else {
             try {
-                BasicFileAttributes fileAttrs = Files.readAttributes(Paths.get(id), BasicFileAttributes.class);
-                Object fileKey = fileAttrs.fileKey();
-                System.out.println(fileAttrs.getClass().getCanonicalName());
+                device.setId(Files.getAttribute(Paths.get(id), "unix:dev").toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
