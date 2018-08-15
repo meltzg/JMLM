@@ -1,12 +1,12 @@
 package org.meltzg.jmlm.device;
 
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.meltzg.jmlm.device.content.AbstractContentNode;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -123,7 +123,18 @@ public abstract class AbstractContentDeviceTest {
         assertTrue("Should have a match for all content", hasMatch);
     }
 
+    @Test
+    public void testStorageDeviceCapacitys() {
+        AbstractContentDevice device = getNewDevice();
+        device.addLibraryRoot(testLib1);
+
+        AbstractContentNode libRoot = device.getNode(device.getLibRoots().iterator().next());
+        assertEquals(getLibCapacity(device, libRoot), libRoot.getCapacity());
+    }
+
     protected abstract AbstractContentDevice getNewDevice();
+
+    protected abstract BigInteger getLibCapacity(AbstractContentDevice device, AbstractContentNode node);
 
     private AbstractContentNode getLeaf(AbstractContentNode node) {
         while (!node.getChildren().isEmpty()) {

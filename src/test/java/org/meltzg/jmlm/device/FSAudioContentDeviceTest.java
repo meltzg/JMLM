@@ -2,9 +2,14 @@ package org.meltzg.jmlm.device;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.meltzg.TestConfig;
+import org.meltzg.jmlm.device.content.AbstractContentNode;
 
+import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 public class FSAudioContentDeviceTest extends AbstractContentDeviceTest {
@@ -25,5 +30,10 @@ public class FSAudioContentDeviceTest extends AbstractContentDeviceTest {
     protected AbstractContentDevice getNewDevice() {
         // TODO Auto-generated method stub
         return new FSAudioContentDevice();
+    }
+
+    @Override
+    protected BigInteger getLibCapacity(AbstractContentDevice device, AbstractContentNode node) {
+        return BigInteger.valueOf(new File(node.getId()).getUsableSpace()).add(node.getTotalSize());
     }
 }

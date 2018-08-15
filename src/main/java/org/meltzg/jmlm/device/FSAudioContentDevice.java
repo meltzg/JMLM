@@ -164,7 +164,7 @@ public class FSAudioContentDevice extends AbstractContentDevice {
         Path idPath = Paths.get(id);
         File idFile = new File(idPath.toString());
         BigInteger capacity = content.getNode(AbstractContentNode.ROOT_ID).getTotalSize();
-        capacity.add(BigInteger.valueOf(idFile.getUsableSpace()));
+        capacity = capacity.add(BigInteger.valueOf(idFile.getUsableSpace()));
 
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             device.setId(idPath.getRoot().toString());

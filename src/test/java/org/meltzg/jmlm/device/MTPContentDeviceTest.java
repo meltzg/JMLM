@@ -4,8 +4,10 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.meltzg.TestConfig;
+import org.meltzg.jmlm.device.content.AbstractContentNode;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Properties;
 
@@ -61,5 +63,10 @@ public class MTPContentDeviceTest extends AbstractContentDeviceTest {
     @Override
     protected AbstractContentDevice getNewDevice() {
         return new MTPContentDevice(testDevId);
+    }
+
+    @Override
+    protected BigInteger getLibCapacity(AbstractContentDevice device, AbstractContentNode node) {
+        return null;
     }
 }
