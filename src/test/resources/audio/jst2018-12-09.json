@@ -1,0 +1,13 @@
+{
+  "libraryRoots": [
+    "/home/meltzg/workspace/JMLM/./src/test/resources/audio/jst2018-12-09"
+  ],
+  "content": {},
+  "storageDevices": [
+    {
+      "id": "66305",
+      "capacity": 491180957696,
+      "partitions": 1
+    }
+  ]
+}

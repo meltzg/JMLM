@@ -4,16 +4,16 @@ import java.math.BigInteger;
 
 public class StorageDevice {
     private String id;
-    private BigInteger capacity;
+    private long capacity;
+    private int partitions;
 
-    public StorageDevice(String id, BigInteger capacity) {
+    public StorageDevice(String id, long capacity, int partitions) {
         this.id = id;
         this.capacity = capacity;
+        this.partitions = partitions;
     }
 
-    public StorageDevice() {
-        id = null;
-        capacity = BigInteger.valueOf(-1);
+    private StorageDevice() {
     }
 
     public String getId() {
@@ -24,11 +24,19 @@ public class StorageDevice {
         this.id = id;
     }
 
-    public BigInteger getCapacity() {
+    public long getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(BigInteger capacity) {
+    public void setCapacity(long capacity) {
         this.capacity = capacity;
+    }
+
+    public int getPartitions() {
+        return partitions;
+    }
+
+    public void setPartitions(int partitions) {
+        this.partitions = partitions;
     }
 }

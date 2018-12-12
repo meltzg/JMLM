@@ -9,7 +9,6 @@
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
 apply plugin: 'jacoco'
-apply plugin: 'cpp'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -22,96 +21,17 @@ repositories {
 dependencies {
     testImplementation 'junit:junit:4.12'
 
-    compile group:'net.jthink', name:'jaudiotagger', version:'2.2.5'
+    compile group: 'net.jthink', name: 'jaudiotagger', version: '2.2.5'
 
     // https://mvnrepository.com/artifact/com.google.code.gson/gson
     compile group: 'com.google.code.gson', name: 'gson', version: '2.8.4'
-}
 
-model {
-    repositories {
-        libs(PrebuiltLibraries) {
-            mtp {
-                headers.srcDir '/usr/include'
-            }
+    // https://mvnrepository.com/artifact/commons-codec/commons-codec
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.11'
 
-            def libDir = '/usr/lib/x86_64-linux-gnu/'
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    compile group: 'com.google.guava', name: 'guava', version: '27.0.1-jre'
 
-            mtplib {
-                binaries.withType(SharedLibraryBinary) {
-                    sharedLibraryFile = file(libDir + 'libmtp.so')
-                }
-            }
-        }
-    }
-    binaries {
-        all {
-            if (toolChain in Gcc) {
-                if (buildType ==buildTypes.debug) {
-                    cppCompiler.args '-g', '-std=c++17'
-                } else {
-                    cppCompiler.args '-std=c++17'
-                }
-            }
-            if (toolChain in VisualCpp && buildType == buildTypes.debug) {
-                cppCompiler.args '/Zi'
-                cppCompiler.define 'DEBUG'
-                linker.args '/DEBUG'
-            }
-        }
-    }
-    components {
-        jmtp(NativeLibrarySpec) {
-            sources {
-                cpp {
-                    source {
-                        srcDir 'src/main/cpp/src'
-                        include '*.cpp'
-                    }
-                    exportedHeaders {
-                        srcDirs 'src/main/cpp/include', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
-                    }
-
-                    lib library: 'mtp', linkage: 'api'
-                    lib library: 'mtplib'
-                }
-
-            }
-            buildTypes {
-                debug
-                release
-            }
-        }
-        jmtpx(NativeExecutableSpec) {
-            sources {
-                cpp {
-                    source {
-                        srcDir 'src/main/cpp/src'
-                        include '*.cpp'
-                    }
-                    exportedHeaders {
-                        srcDirs 'src/main/cpp/include', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
-                    }
-
-                    lib library: 'mtp', linkage: 'api'
-                    lib library: 'mtplib'
-                }
-            }
-            buildTypes {
-                debug
-                release
-            }
-        }
-    }
-}
-
-compileJava {
-    options.compilerArgs += ['-h', file('src/main/cpp/include/')]
-}
-
-test {
-    systemProperty 'java.library.path', '.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/'
-    dependsOn 'jmtpDebugSharedLibrary'
 }
 
 defaultTasks 'clean', 'build', 'jacocoTestReport'
