@@ -412,3 +412,5 @@ build
 out
 !gradle/wrapper/gradle-wrapper.jar
 org_meltzg_jmlm_device_MTPContentDevice.h
+src/test/resources/device/*
+!src/test/resources/device/.gitkeep

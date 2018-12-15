@@ -9,7 +9,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -48,6 +47,7 @@ public class FileSystemAudioContentDeviceTest {
         var libraryRootFile = new File(libraryRootPath);
         assertTrue(storageDevice.getCapacity() >= libraryRootFile.getFreeSpace());
         assertTrue(storageDevice.getCapacity() < libraryRootFile.getTotalSpace());
+        assertEquals(expectedDevice.getContent(), device.getContent());
     }
 
     @Test
@@ -58,8 +58,9 @@ public class FileSystemAudioContentDeviceTest {
         };
 
         for (var root : libraryRoots) {
-            device.addLibraryRoot(root);
+            device.addLibraryRoot(root, false);
         }
+        device.scanDeviceContent();
 
         assertEquals(libraryRoots.length, device.getLibraryRoots().size());
         for (var root : device.getLibraryRoots()) {

@@ -3,12 +3,20 @@ package org.meltzg.jmlm.device;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.*;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.TagException;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,6 +49,10 @@ public class FileSystemAudioContentDevice
     }
 
     public void addLibraryRoot(String libraryPath) {
+        this.addLibraryRoot(libraryPath, true);
+    }
+
+    public void addLibraryRoot(String libraryPath, boolean scanContent) {
         var libPath = Paths.get(libraryPath);
         if (!Files.isDirectory(libPath)) {
             throw new IllegalArgumentException("Library root must be a valid directory (" +
@@ -67,6 +79,10 @@ public class FileSystemAudioContentDevice
             }
 
             libStorage.setPartitions(libStorage.getPartitions() + 1);
+        }
+
+        if (scanContent) {
+            this.scanDeviceContent();
         }
     }
 
@@ -103,15 +119,66 @@ public class FileSystemAudioContentDevice
         return device;
     }
 
+    public void scanDeviceContent() {
+        for (var libRoot : this.libraryRoots) {
+            Path libPath = Paths.get(libRoot);
+            var stack = new Stack<Path>();
+            stack.push(libPath);
+
+            while (!stack.empty()) {
+                var path = stack.pop();
+                if (Files.isDirectory(path)) {
+                    try (var ds = Files.newDirectoryStream(path)) {
+                        for (var child : ds) {
+                            stack.push(child);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try (var isfs = Files.newInputStream(path)) {
+                        var af = AudioFileIO.read(path.toFile());
+                        var tag = af.getTag();
+
+                        var contentId = DigestUtils.md2Hex(isfs);
+                        var libSubPath = path.toAbsolutePath().toString().substring(
+                                libPath.toAbsolutePath().toString().length());
+                        var size = Files.size(path);
+
+                        var genre = tag.getFirst(FieldKey.GENRE);
+                        var artist = tag.getFirst(FieldKey.ARTIST);
+                        var album = tag.getFirst(FieldKey.ALBUM);
+                        var title = tag.getFirst(FieldKey.TITLE);
+                        var trackNum = Integer.parseInt(tag.getFirst(FieldKey.TRACK));
+
+                        String strDiscNum = tag.getFirst(FieldKey.DISC_NO);
+                        var discNum = strDiscNum.length() > 0 ? Integer.parseInt(strDiscNum) : 1;
+
+                        var content = new AudioContent(contentId, libSubPath, size, genre, artist,
+                                album, title, discNum, trackNum);
+                        this.content.put(content.getId(), content);
+                    } catch (IOException | CannotReadException | ReadOnlyFileException | TagException | InvalidAudioFrameException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public FileSystemAudioContentDevice deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         var jsonObject = json.getAsJsonObject();
         var device = new FileSystemAudioContentDevice();
 
         device.libraryRoots = context.deserialize(jsonObject.get("libraryRoots"), Set.class);
-        device.content = context.deserialize(jsonObject.get("content"), Map.class);
+        device.content = new HashMap<>();
         device.storageDevices = HashBiMap.create();
         device.libraryRootToStorage = context.deserialize(jsonObject.get("libraryRootToStorage"), Map.class);
+
+        for (var contentJson : jsonObject.getAsJsonArray("content")) {
+            AudioContent content = context.deserialize(contentJson, AudioContent.class);
+            device.content.put(content.getId(), content);
+        }
 
         for (var storageJson : jsonObject.getAsJsonArray("storageDevices")) {
             StorageDevice storage = context.deserialize(storageJson, StorageDevice.class);
@@ -125,7 +192,7 @@ public class FileSystemAudioContentDevice
     public JsonElement serialize(FileSystemAudioContentDevice src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject jsonMap = new JsonObject();
         jsonMap.add("libraryRoots", context.serialize(src.libraryRoots));
-        jsonMap.add("content", context.serialize(src.content));
+        jsonMap.add("content", context.serialize(src.content.values()));
         jsonMap.add("storageDevices", context.serialize(src.storageDevices.values()));
         jsonMap.add("libraryRootToStorage", context.serialize(src.libraryRootToStorage));
         return jsonMap;

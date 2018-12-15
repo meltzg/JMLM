@@ -13,8 +13,7 @@ public class StorageDevice {
         this.partitions = partitions;
     }
 
-    private StorageDevice() {
-    }
+    private StorageDevice() {}
 
     public String getId() {
         return id;

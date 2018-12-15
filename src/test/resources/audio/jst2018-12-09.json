@@ -2,12 +2,137 @@
   "libraryRoots": [
     "/home/meltzg/workspace/JMLM/./src/test/resources/audio/jst2018-12-09"
   ],
-  "content": {},
+  "content": [
+    {
+      "id": "23d746b9a0e120d35e5371844ddb3df8",
+      "libraryPath": "/jst2018-12-09t05.flac",
+      "size": 4636716,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track5",
+      "discNum": 1,
+      "trackNum": 5
+    },
+    {
+      "id": "75e17b088c64abf7e41f93531fe9fcc6",
+      "libraryPath": "/jst2018-12-09t04.flac",
+      "size": 24354514,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track4",
+      "discNum": 1,
+      "trackNum": 4
+    },
+    {
+      "id": "e5c71bbffc806fdbe33be57d3e8d3acf",
+      "libraryPath": "/jst2018-12-09t11.flac",
+      "size": 31093209,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track11",
+      "discNum": 1,
+      "trackNum": 11
+    },
+    {
+      "id": "3f99ccbdc2a94efe9131b8bc4963ccc6",
+      "libraryPath": "/jst2018-12-09t10.flac",
+      "size": 42891064,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track10",
+      "discNum": 1,
+      "trackNum": 10
+    },
+    {
+      "id": "94e7427b971974027866985c5d702e38",
+      "libraryPath": "/jst2018-12-09t07.flac",
+      "size": 21598505,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track7",
+      "discNum": 1,
+      "trackNum": 7
+    },
+    {
+      "id": "2b5ede24a4a368d897b37846697cc5f9",
+      "libraryPath": "/jst2018-12-09t01.flac",
+      "size": 35270297,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track1",
+      "discNum": 1,
+      "trackNum": 1
+    },
+    {
+      "id": "089a17921f27c7bc10295766bd360a34",
+      "libraryPath": "/jst2018-12-09t06.flac",
+      "size": 26864454,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track6",
+      "discNum": 1,
+      "trackNum": 6
+    },
+    {
+      "id": "dc630779578133814253e25e7609ddd8",
+      "libraryPath": "/jst2018-12-09t02.flac",
+      "size": 27366563,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track2",
+      "discNum": 1,
+      "trackNum": 2
+    },
+    {
+      "id": "b1f1e3a7f7dffc70c442dce91eb31b9b",
+      "libraryPath": "/jst2018-12-09t09.flac",
+      "size": 27084445,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track9",
+      "discNum": 1,
+      "trackNum": 9
+    },
+    {
+      "id": "f48ecdaa47b67d3d21a1d8b22ca5fe46",
+      "libraryPath": "/jst2018-12-09t03.flac",
+      "size": 36680123,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track3",
+      "discNum": 1,
+      "trackNum": 3
+    },
+    {
+      "id": "1bcb548e8b311c187a735265fe061542",
+      "libraryPath": "/jst2018-12-09t08.flac",
+      "size": 27712550,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track8",
+      "discNum": 1,
+      "trackNum": 8
+    }
+  ],
   "storageDevices": [
     {
-      "id": "66305",
-      "capacity": 491180957696,
+      "id": "66306",
+      "capacity": 474537435136,
       "partitions": 1
     }
-  ]
+  ],
+  "libraryRootToStorage": {
+    "/home/meltzg/workspace/JMLM/./src/test/resources/audio/jst2018-12-09": "66306"
+  }
 }
