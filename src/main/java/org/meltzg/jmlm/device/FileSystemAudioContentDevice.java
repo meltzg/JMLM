@@ -12,21 +12,20 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class FileSystemAudioContentDevice
         implements JsonSerializer<FileSystemAudioContentDevice>, JsonDeserializer<FileSystemAudioContentDevice> {
     private Set<String> libraryRoots;
     private BiMap<String, StorageDevice> storageDevices;
     private Map<String, AudioContent> content;
+    private Map<String, String> libraryRootToStorage;
 
     public FileSystemAudioContentDevice() {
         this.libraryRoots = new HashSet<>();
         this.storageDevices = HashBiMap.create();
         this.content = new HashMap<>();
+        this.libraryRootToStorage = new HashMap<>();
     }
 
     public Set<String> getLibraryRoots() {
@@ -59,16 +58,36 @@ public class FileSystemAudioContentDevice
 
             this.libraryRoots.add(libPath.toString());
             var libStorage = this.getStorageDevice(libPath);
-            this.storageDevices.put(libStorage.getId(),
-                    this.storageDevices.getOrDefault(libStorage.getId(), libStorage));
+            this.libraryRootToStorage.put(libPath.toString(), libStorage.getId());
+
+            if (!this.storageDevices.containsKey(libStorage.getId())) {
+                this.storageDevices.put(libStorage.getId(), libStorage);
+            } else {
+                libStorage = this.storageDevices.get(libStorage.getId());
+            }
+
             libStorage.setPartitions(libStorage.getPartitions() + 1);
         }
+    }
+
+    public Map<String, Long> getLibraryRootCapacities() {
+        var libCapacities = new HashMap<String, Long>();
+        for (var entry : this.libraryRootToStorage.entrySet()) {
+            var storage = this.storageDevices.get(entry.getValue());
+            libCapacities.put(entry.getKey(), storage.getCapacity() / storage.getPartitions());
+        }
+
+        return libCapacities;
     }
 
     protected StorageDevice getStorageDevice(Path path) {
         String deviceId = null;
         var idFile = new File(path.toString());
-        var capacity = idFile.getTotalSpace();
+        var capacity = idFile.getFreeSpace();
+
+        for (var file : this.content.values()) {
+            capacity += file.getSize();
+        }
 
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             deviceId = path.getRoot().toString();
@@ -92,6 +111,7 @@ public class FileSystemAudioContentDevice
         device.libraryRoots = context.deserialize(jsonObject.get("libraryRoots"), Set.class);
         device.content = context.deserialize(jsonObject.get("content"), Map.class);
         device.storageDevices = HashBiMap.create();
+        device.libraryRootToStorage = context.deserialize(jsonObject.get("libraryRootToStorage"), Map.class);
 
         for (var storageJson : jsonObject.getAsJsonArray("storageDevices")) {
             StorageDevice storage = context.deserialize(storageJson, StorageDevice.class);
@@ -107,6 +127,23 @@ public class FileSystemAudioContentDevice
         jsonMap.add("libraryRoots", context.serialize(src.libraryRoots));
         jsonMap.add("content", context.serialize(src.content));
         jsonMap.add("storageDevices", context.serialize(src.storageDevices.values()));
+        jsonMap.add("libraryRootToStorage", context.serialize(src.libraryRootToStorage));
         return jsonMap;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FileSystemAudioContentDevice that = (FileSystemAudioContentDevice) o;
+        return libraryRoots.equals(that.libraryRoots) &&
+                storageDevices.equals(that.storageDevices) &&
+                content.equals(that.content) &&
+                libraryRootToStorage.equals(that.libraryRootToStorage);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(libraryRoots, storageDevices, content, libraryRootToStorage);
     }
 }

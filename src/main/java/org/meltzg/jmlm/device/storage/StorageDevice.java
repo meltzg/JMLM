@@ -1,6 +1,6 @@
 package org.meltzg.jmlm.device.storage;
 
-import java.math.BigInteger;
+import java.util.Objects;
 
 public class StorageDevice {
     private String id;
@@ -38,5 +38,20 @@ public class StorageDevice {
 
     public void setPartitions(int partitions) {
         this.partitions = partitions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StorageDevice that = (StorageDevice) o;
+        return getCapacity() == that.getCapacity() &&
+                getPartitions() == that.getPartitions() &&
+                getId().equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getCapacity(), getPartitions());
     }
 }
