@@ -1,7 +1,7 @@
 {
-  "libraryRoots": [
-    "/home/meltzg/workspace/JMLM/./src/test/resources/audio/jst2018-12-09"
-  ],
+  "libraryRoots": {
+    "d0725a12-c8bf-45e7-b7c6-924faefdaa80": "/home/meltzg/workspace/JMLM/./src/test/resources/audio/jst2018-12-09"
+  },
   "content": [
     {
       "id": "23d746b9a0e120d35e5371844ddb3df8",
@@ -125,14 +125,29 @@
       "trackNum": 8
     }
   ],
+  "libraryContent": {
+    "d0725a12-c8bf-45e7-b7c6-924faefdaa80": [
+      "23d746b9a0e120d35e5371844ddb3df8",
+      "75e17b088c64abf7e41f93531fe9fcc6",
+      "e5c71bbffc806fdbe33be57d3e8d3acf",
+      "3f99ccbdc2a94efe9131b8bc4963ccc6",
+      "94e7427b971974027866985c5d702e38",
+      "2b5ede24a4a368d897b37846697cc5f9",
+      "089a17921f27c7bc10295766bd360a34",
+      "dc630779578133814253e25e7609ddd8",
+      "b1f1e3a7f7dffc70c442dce91eb31b9b",
+      "f48ecdaa47b67d3d21a1d8b22ca5fe46",
+      "1bcb548e8b311c187a735265fe061542"
+    ]
+  },
   "storageDevices": [
     {
       "id": "66306",
-      "capacity": 474537435136,
+      "capacity": 473828519936,
       "partitions": 1
     }
   ],
   "libraryRootToStorage": {
-    "/home/meltzg/workspace/JMLM/./src/test/resources/audio/jst2018-12-09": "66306"
+    "d0725a12-c8bf-45e7-b7c6-924faefdaa80": "66306"
   }
 }

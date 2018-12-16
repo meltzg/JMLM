@@ -15,8 +15,8 @@ import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,19 +24,21 @@ import java.util.*;
 
 public class FileSystemAudioContentDevice
         implements JsonSerializer<FileSystemAudioContentDevice>, JsonDeserializer<FileSystemAudioContentDevice> {
-    private Set<String> libraryRoots;
+    private Map<UUID, String> libraryRoots;
     private BiMap<String, StorageDevice> storageDevices;
     private Map<String, AudioContent> content;
-    private Map<String, String> libraryRootToStorage;
+    private Map<UUID, String> libraryRootToStorage;
+    private Map<UUID, Set<String>> libraryContent;
 
     public FileSystemAudioContentDevice() {
-        this.libraryRoots = new HashSet<>();
+        this.libraryRoots = new HashMap<>();
         this.storageDevices = HashBiMap.create();
         this.content = new HashMap<>();
         this.libraryRootToStorage = new HashMap<>();
+        this.libraryContent = new HashMap<>();
     }
 
-    public Set<String> getLibraryRoots() {
+    public Map<UUID, String> getLibraryRoots() {
         return libraryRoots;
     }
 
@@ -60,17 +62,22 @@ public class FileSystemAudioContentDevice
         }
         libPath = libPath.toAbsolutePath();
 
-        if (!this.libraryRoots.contains(libPath.toString())) {
-            for (var existingLib : this.libraryRoots) {
+        if (!this.libraryRoots.values().contains(libPath.toString())) {
+            for (var existingLib : this.libraryRoots.values()) {
                 var existingPath = Paths.get(existingLib).toAbsolutePath();
                 if (existingPath.startsWith(libPath) || libPath.startsWith(existingPath)) {
                     throw new IllegalArgumentException("Library root cannot be a child of another library root");
                 }
             }
 
-            this.libraryRoots.add(libPath.toString());
+            var libId = UUID.randomUUID();
+            this.libraryRoots.put(libId, libPath.toString());
             var libStorage = this.getStorageDevice(libPath);
-            this.libraryRootToStorage.put(libPath.toString(), libStorage.getId());
+            this.libraryRootToStorage.put(libId, libStorage.getId());
+
+            if (!this.libraryContent.containsKey(libId)) {
+                this.libraryContent.put(libId, new HashSet<>());
+            }
 
             if (!this.storageDevices.containsKey(libStorage.getId())) {
                 this.storageDevices.put(libStorage.getId(), libStorage);
@@ -86,8 +93,8 @@ public class FileSystemAudioContentDevice
         }
     }
 
-    public Map<String, Long> getLibraryRootCapacities() {
-        var libCapacities = new HashMap<String, Long>();
+    public Map<UUID, Long> getLibraryRootCapacities() {
+        var libCapacities = new HashMap<UUID, Long>();
         for (var entry : this.libraryRootToStorage.entrySet()) {
             var storage = this.storageDevices.get(entry.getValue());
             libCapacities.put(entry.getKey(), storage.getCapacity() / storage.getPartitions());
@@ -120,8 +127,9 @@ public class FileSystemAudioContentDevice
     }
 
     public void scanDeviceContent() {
-        for (var libRoot : this.libraryRoots) {
-            Path libPath = Paths.get(libRoot);
+        for (var libRoot : this.libraryRoots.entrySet()) {
+            UUID libId = libRoot.getKey();
+            Path libPath = Paths.get(libRoot.getValue());
             var stack = new Stack<Path>();
             stack.push(libPath);
 
@@ -157,6 +165,7 @@ public class FileSystemAudioContentDevice
                         var content = new AudioContent(contentId, libSubPath, size, genre, artist,
                                 album, title, discNum, trackNum);
                         this.content.put(content.getId(), content);
+                        this.libraryContent.get(libId).add(content.getId());
                     } catch (IOException | CannotReadException | ReadOnlyFileException | TagException | InvalidAudioFrameException e) {
                         e.printStackTrace();
                     }
@@ -165,24 +174,41 @@ public class FileSystemAudioContentDevice
         }
     }
 
+    public AudioContent addContentToDevice(InputStream bytes, UUID libraryId, String subLibPath) {
+        return null;
+    }
+
     @Override
     public FileSystemAudioContentDevice deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         var jsonObject = json.getAsJsonObject();
         var device = new FileSystemAudioContentDevice();
 
-        device.libraryRoots = context.deserialize(jsonObject.get("libraryRoots"), Set.class);
+        device.libraryRoots = new HashMap<>();
         device.content = new HashMap<>();
+        device.libraryContent = new HashMap<>();
         device.storageDevices = HashBiMap.create();
-        device.libraryRootToStorage = context.deserialize(jsonObject.get("libraryRootToStorage"), Map.class);
+        device.libraryRootToStorage = new HashMap<>();
+
+        for(var entry : jsonObject.getAsJsonObject("libraryRoots").entrySet()) {
+            device.libraryRoots.put(UUID.fromString(entry.getKey()), entry.getValue().getAsString());
+        }
 
         for (var contentJson : jsonObject.getAsJsonArray("content")) {
             AudioContent content = context.deserialize(contentJson, AudioContent.class);
             device.content.put(content.getId(), content);
         }
 
+        for(var entry : jsonObject.getAsJsonObject("libraryContent").entrySet()) {
+            device.libraryContent.put(UUID.fromString(entry.getKey()), context.deserialize(entry.getValue(), Set.class));
+        }
+
         for (var storageJson : jsonObject.getAsJsonArray("storageDevices")) {
             StorageDevice storage = context.deserialize(storageJson, StorageDevice.class);
             device.storageDevices.put(storage.getId(), storage);
+        }
+
+        for (var entry : jsonObject.getAsJsonObject("libraryRootToStorage").entrySet()) {
+            device.libraryRootToStorage.put(UUID.fromString(entry.getKey()), entry.getValue().getAsString());
         }
 
         return device;
@@ -193,6 +219,7 @@ public class FileSystemAudioContentDevice
         JsonObject jsonMap = new JsonObject();
         jsonMap.add("libraryRoots", context.serialize(src.libraryRoots));
         jsonMap.add("content", context.serialize(src.content.values()));
+        jsonMap.add("libraryContent", context.serialize(src.libraryContent));
         jsonMap.add("storageDevices", context.serialize(src.storageDevices.values()));
         jsonMap.add("libraryRootToStorage", context.serialize(src.libraryRootToStorage));
         return jsonMap;
@@ -206,11 +233,12 @@ public class FileSystemAudioContentDevice
         return libraryRoots.equals(that.libraryRoots) &&
                 storageDevices.equals(that.storageDevices) &&
                 content.equals(that.content) &&
-                libraryRootToStorage.equals(that.libraryRootToStorage);
+                libraryRootToStorage.equals(that.libraryRootToStorage) &&
+                libraryContent.equals(that.libraryContent);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(libraryRoots, storageDevices, content, libraryRootToStorage);
+        return Objects.hash(libraryRoots, storageDevices, content, libraryRootToStorage, libraryContent);
     }
 }

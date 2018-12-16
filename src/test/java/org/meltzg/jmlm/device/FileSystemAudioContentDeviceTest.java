@@ -2,6 +2,7 @@ package org.meltzg.jmlm.device;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -9,13 +10,19 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class FileSystemAudioContentDeviceTest {
+
+
+    protected static final String RESOURCEDIR = "./src/test/resources";
+    protected static final String TMPDIR = RESOURCEDIR + "/temp";
 
     private static Gson gson;
 
@@ -32,15 +39,21 @@ public class FileSystemAudioContentDeviceTest {
     @Before
     public void before() {
         this.device = new FileSystemAudioContentDevice();
+        assertTrue(Paths.get(TMPDIR).toFile().mkdirs());
+    }
+
+    @After
+    public void after() {
+        assertTrue(Paths.get(TMPDIR).toFile().delete());
     }
 
     @Test
     public void addLibraryRoot() throws FileNotFoundException {
-        var libraryRootPath = "./src/test/resources/audio/jst2018-12-09";
+        var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         device.addLibraryRoot(libraryRootPath);
-        var expectedDevice = gson.fromJson(new FileReader("./src/test/resources/audio/jst2018-12-09.json"), FileSystemAudioContentDevice.class);
+        var expectedDevice = gson.fromJson(new FileReader(RESOURCEDIR + "/audio/jst2018-12-09.json"), FileSystemAudioContentDevice.class);
 
-        assertEquals(expectedDevice.getLibraryRoots(), device.getLibraryRoots());
+        assertTrue(expectedDevice.getLibraryRoots().values().containsAll(device.getLibraryRoots().values()));
         assertEquals(1, device.getStorageDevices().size());
 
         var storageDevice = new ArrayList<>(device.getStorageDevices()).get(0);
@@ -53,8 +66,8 @@ public class FileSystemAudioContentDeviceTest {
     @Test
     public void addMultipleLibraryRoot() throws FileNotFoundException {
         String[] libraryRoots = {
-                "./src/test/resources/audio/jst2018-12-09",
-                "./src/test/resources/audio/kwgg2016-10-29"
+                RESOURCEDIR + "/audio/jst2018-12-09",
+                RESOURCEDIR + "/audio/kwgg2016-10-29"
         };
 
         for (var root : libraryRoots) {
@@ -63,7 +76,7 @@ public class FileSystemAudioContentDeviceTest {
         device.scanDeviceContent();
 
         assertEquals(libraryRoots.length, device.getLibraryRoots().size());
-        for (var root : device.getLibraryRoots()) {
+        for (var root : device.getLibraryRoots().values()) {
             assertTrue(Arrays.stream(libraryRoots).anyMatch(root::endsWith));
         }
         assertEquals(1, device.getStorageDevices().size());
@@ -76,7 +89,7 @@ public class FileSystemAudioContentDeviceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddParentOfLibraryRoot() {
-        var libraryRootPath = "./src/test/resources/audio/jst2018-12-09";
+        var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         var parentLibraryPath = libraryRootPath.substring(0, libraryRootPath.lastIndexOf('/'));
         device.addLibraryRoot(libraryRootPath);
         device.addLibraryRoot(parentLibraryPath);
@@ -84,7 +97,7 @@ public class FileSystemAudioContentDeviceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddChildOfLibraryRoot() {
-        var libraryRootPath = "./src/test/resources/audio/jst2018-12-09";
+        var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         var parentLibraryPath = libraryRootPath.substring(0, libraryRootPath.lastIndexOf('/'));
         device.addLibraryRoot(parentLibraryPath);
         device.addLibraryRoot(libraryRootPath);
@@ -92,20 +105,36 @@ public class FileSystemAudioContentDeviceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddNotDirectoryLibraryRoot() {
-        device.addLibraryRoot("./src/test/resources/audio/jst2018-12-09.json");
+        device.addLibraryRoot(RESOURCEDIR + "/audio/jst2018-12-09.json");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddNotExistLibraryRoot() {
-        device.addLibraryRoot("./src/test/resources/audio/NotFound");
+        device.addLibraryRoot(RESOURCEDIR + "/audio/NotFound");
     }
 
     @Test
     public void testSerialization() {
-        var libraryRootPath = "./src/test/resources/audio/jst2018-12-09";
+        var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         device.addLibraryRoot(libraryRootPath);
         var deserialized = gson.fromJson(gson.toJson(device), FileSystemAudioContentDevice.class);
 
-        assertTrue(device.equals(deserialized));
+        assertEquals(device, deserialized);
+    }
+
+    @Test
+    public void testMoveToDevice() {
+        device.addLibraryRoot(TMPDIR);
+        var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
+        var testSubLibPath = testFile.substring(testFile.substring(1).indexOf('/'));
+
+        try (var isfs = Files.newInputStream(Paths.get(testFile))) {
+            var content = device.addContentToDevice(isfs, device.getLibraryRoots().keySet().iterator().next(),
+                    testSubLibPath);
+            assertTrue(device.getContent().containsKey(content.getId()));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 }
