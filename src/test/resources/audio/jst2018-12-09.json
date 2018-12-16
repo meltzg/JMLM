@@ -1,10 +1,11 @@
 {
   "libraryRoots": {
-    "d0725a12-c8bf-45e7-b7c6-924faefdaa80": "/home/meltzg/workspace/JMLM/./src/test/resources/audio/jst2018-12-09"
+    "15eedca3-364d-4ee8-9003-a9f55d063818": "/home/meltzg/workspace/JMLM/./src/test/resources/audio/jst2018-12-09"
   },
   "content": [
     {
       "id": "23d746b9a0e120d35e5371844ddb3df8",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t05.flac",
       "size": 4636716,
       "genre": "Bluegrass",
@@ -16,6 +17,7 @@
     },
     {
       "id": "75e17b088c64abf7e41f93531fe9fcc6",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t04.flac",
       "size": 24354514,
       "genre": "Bluegrass",
@@ -27,6 +29,7 @@
     },
     {
       "id": "e5c71bbffc806fdbe33be57d3e8d3acf",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t11.flac",
       "size": 31093209,
       "genre": "Bluegrass",
@@ -38,6 +41,7 @@
     },
     {
       "id": "3f99ccbdc2a94efe9131b8bc4963ccc6",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t10.flac",
       "size": 42891064,
       "genre": "Bluegrass",
@@ -49,6 +53,7 @@
     },
     {
       "id": "94e7427b971974027866985c5d702e38",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t07.flac",
       "size": 21598505,
       "genre": "Bluegrass",
@@ -60,6 +65,7 @@
     },
     {
       "id": "2b5ede24a4a368d897b37846697cc5f9",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t01.flac",
       "size": 35270297,
       "genre": "Bluegrass",
@@ -71,6 +77,7 @@
     },
     {
       "id": "089a17921f27c7bc10295766bd360a34",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t06.flac",
       "size": 26864454,
       "genre": "Bluegrass",
@@ -82,6 +89,7 @@
     },
     {
       "id": "dc630779578133814253e25e7609ddd8",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t02.flac",
       "size": 27366563,
       "genre": "Bluegrass",
@@ -93,6 +101,7 @@
     },
     {
       "id": "b1f1e3a7f7dffc70c442dce91eb31b9b",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t09.flac",
       "size": 27084445,
       "genre": "Bluegrass",
@@ -104,6 +113,7 @@
     },
     {
       "id": "f48ecdaa47b67d3d21a1d8b22ca5fe46",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t03.flac",
       "size": 36680123,
       "genre": "Bluegrass",
@@ -115,6 +125,7 @@
     },
     {
       "id": "1bcb548e8b311c187a735265fe061542",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
       "libraryPath": "/jst2018-12-09t08.flac",
       "size": 27712550,
       "genre": "Bluegrass",
@@ -126,7 +137,7 @@
     }
   ],
   "libraryContent": {
-    "d0725a12-c8bf-45e7-b7c6-924faefdaa80": [
+    "15eedca3-364d-4ee8-9003-a9f55d063818": [
       "23d746b9a0e120d35e5371844ddb3df8",
       "75e17b088c64abf7e41f93531fe9fcc6",
       "e5c71bbffc806fdbe33be57d3e8d3acf",
@@ -143,11 +154,11 @@
   "storageDevices": [
     {
       "id": "66306",
-      "capacity": 473828519936,
+      "capacity": 473798025216,
       "partitions": 1
     }
   ],
   "libraryRootToStorage": {
-    "d0725a12-c8bf-45e7-b7c6-924faefdaa80": "66306"
+    "15eedca3-364d-4ee8-9003-a9f55d063818": "66306"
   }
 }

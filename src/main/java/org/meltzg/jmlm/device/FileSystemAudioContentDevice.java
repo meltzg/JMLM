@@ -198,13 +198,17 @@ public class FileSystemAudioContentDevice
         String strDiscNum = tag.getFirst(FieldKey.DISC_NO);
         var discNum = strDiscNum.length() > 0 ? Integer.parseInt(strDiscNum) : 1;
 
-        return new AudioContent(contentId, libSubPath, size, genre, artist,
+        return new AudioContent(contentId, libId, libSubPath, size, genre, artist,
                 album, title, discNum, trackNum);
     }
 
     private void registerContent(AudioContent contentData, UUID libId) {
         this.content.put(contentData.getId(), contentData);
         this.libraryContent.get(libId).add(contentData.getId());
+    }
+
+    private void unregisterContent(AudioContent contentData) {
+
     }
 
     @Override

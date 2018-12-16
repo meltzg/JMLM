@@ -1,9 +1,11 @@
 package org.meltzg.jmlm.device.content;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class AudioContent {
     protected String id;
+    protected UUID libraryId;
     protected String libraryPath;
     protected long size;
 
@@ -14,9 +16,10 @@ public class AudioContent {
     protected int discNum;
     protected int trackNum;
 
-    public AudioContent(String id, String libraryPath, long size, String genre, String artist,
-                        String album, String title, int discNum, int trackNum) {
+    public AudioContent(String id, UUID libraryId, String libraryPath, long size, String genre,
+                        String artist, String album, String title, int discNum, int trackNum) {
         this.id = id;
+        this.libraryId = libraryId;
         this.libraryPath = libraryPath;
         this.size = size;
         this.genre = genre;
@@ -35,6 +38,14 @@ public class AudioContent {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public UUID getLibraryId() {
+        return libraryId;
+    }
+
+    public void setLibraryId(UUID libraryId) {
+        this.libraryId = libraryId;
     }
 
     public String getLibraryPath() {

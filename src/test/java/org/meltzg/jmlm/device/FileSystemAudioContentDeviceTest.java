@@ -51,7 +51,7 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test
-    public void addLibraryRoot() throws FileNotFoundException {
+    public void testAddLibraryRoot() throws FileNotFoundException {
         var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         device.addLibraryRoot(libraryRootPath);
         var expectedDevice = gson.fromJson(new FileReader(RESOURCEDIR + "/audio/jst2018-12-09.json"), FileSystemAudioContentDevice.class);
@@ -67,7 +67,7 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test
-    public void addMultipleLibraryRoot() throws FileNotFoundException {
+    public void testAddMultipleLibraryRoot() throws FileNotFoundException {
         String[] libraryRoots = {
                 RESOURCEDIR + "/audio/jst2018-12-09",
                 RESOURCEDIR + "/audio/kwgg2016-10-29"
@@ -140,6 +140,42 @@ public class FileSystemAudioContentDeviceTest {
         } catch (IOException e) {
             e.printStackTrace();
             fail();
+        }
+    }
+
+    @Test
+    public void testMoveInvalidTypeToDevice() {
+        device.addLibraryRoot(TMPDIR);
+        var testFile = RESOURCEDIR + "/audio/jst2018-12-09.json";
+        var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
+        var contentData = new AudioContent();
+        contentData.setLibraryPath(testSubLibPath);
+
+        try (var isfs = Files.newInputStream(Paths.get(testFile))) {
+            var content = device.addContentToDevice(isfs, contentData,
+                    device.getLibraryRoots().keySet().iterator().next());
+            assertNull(content);
+            assertTrue(!Paths.get(TMPDIR, testSubLibPath).toFile().exists());
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void testMoveDirectoryToDevice() {
+        device.addLibraryRoot(TMPDIR);
+        var testFile = RESOURCEDIR + "/audio/jst2018-12-09";
+        var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
+        var contentData = new AudioContent();
+        contentData.setLibraryPath(testSubLibPath);
+
+        try (var isfs = Files.newInputStream(Paths.get(testFile))) {
+            device.addContentToDevice(isfs, contentData,
+                    device.getLibraryRoots().keySet().iterator().next());
+            assertTrue(!Paths.get(TMPDIR, testSubLibPath).toFile().exists());
+        } catch (IOException e) {
+            assertEquals("Is a directory", e.getMessage());
         }
     }
 }
