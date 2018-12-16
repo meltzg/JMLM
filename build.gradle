@@ -42,4 +42,11 @@ dependencies {
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.+'
 }
 
+test {
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
+}
+
 defaultTasks 'clean', 'build', 'jacocoTestReport'
