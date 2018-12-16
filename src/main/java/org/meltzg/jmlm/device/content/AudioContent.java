@@ -27,7 +27,7 @@ public class AudioContent {
         this.trackNum = trackNum;
     }
 
-    private AudioContent() {}
+    public AudioContent() {}
 
     public String getId() {
         return id;

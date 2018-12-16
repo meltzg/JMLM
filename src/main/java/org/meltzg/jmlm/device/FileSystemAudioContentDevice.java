@@ -14,6 +14,7 @@ import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
@@ -103,6 +104,55 @@ public class FileSystemAudioContentDevice
         return libCapacities;
     }
 
+    public void scanDeviceContent() {
+        for (var libRoot : this.libraryRoots.entrySet()) {
+            UUID libId = libRoot.getKey();
+            Path libPath = Paths.get(libRoot.getValue());
+            var stack = new Stack<Path>();
+            stack.push(libPath);
+
+            while (!stack.empty()) {
+                var path = stack.pop();
+                if (Files.isDirectory(path)) {
+                    try (var ds = Files.newDirectoryStream(path)) {
+                        for (var child : ds) {
+                            stack.push(child);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    AudioContent contentData = null;
+                    try {
+                        contentData = makeAudioContent(path.toString(), libId);
+                        registerContent(contentData, libId);
+                    } catch (TagException | ReadOnlyFileException | CannotReadException | InvalidAudioFrameException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    public AudioContent addContentToDevice(InputStream bytes, AudioContent metadata, UUID libraryId) throws IOException {
+        var destination = Paths.get(libraryRoots.get(libraryId), metadata.getLibraryPath());
+        if (!destination.getParent().toFile().mkdirs()) {
+            throw new IOException("Could not create intermediate directories for " + destination);
+        }
+        Files.copy(bytes, destination);
+        try {
+            var contentData = makeAudioContent(destination.toString(), libraryId);
+            registerContent(contentData, libraryId);
+            return contentData;
+
+        } catch (TagException | ReadOnlyFileException | CannotReadException | InvalidAudioFrameException e) {
+            e.printStackTrace();
+            Files.delete(destination);
+        }
+
+        return null;
+    }
+
     protected StorageDevice getStorageDevice(Path path) {
         String deviceId = null;
         var idFile = new File(path.toString());
@@ -122,60 +172,39 @@ public class FileSystemAudioContentDevice
             }
         }
 
-        var device = new StorageDevice(deviceId, capacity, 0);
-        return device;
+        return new StorageDevice(deviceId, capacity, 0);
     }
 
-    public void scanDeviceContent() {
-        for (var libRoot : this.libraryRoots.entrySet()) {
-            UUID libId = libRoot.getKey();
-            Path libPath = Paths.get(libRoot.getValue());
-            var stack = new Stack<Path>();
-            stack.push(libPath);
+    protected AudioContent makeAudioContent(String path, UUID libId) throws TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException, IOException {
+        var fsPath = Paths.get(path).toAbsolutePath();
+        var isfs = Files.newInputStream(fsPath);
 
-            while (!stack.empty()) {
-                var path = stack.pop();
-                if (Files.isDirectory(path)) {
-                    try (var ds = Files.newDirectoryStream(path)) {
-                        for (var child : ds) {
-                            stack.push(child);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    try (var isfs = Files.newInputStream(path)) {
-                        var af = AudioFileIO.read(path.toFile());
-                        var tag = af.getTag();
+        var libPath = Paths.get(libraryRoots.get(libId));
 
-                        var contentId = DigestUtils.md2Hex(isfs);
-                        var libSubPath = path.toAbsolutePath().toString().substring(
-                                libPath.toAbsolutePath().toString().length());
-                        var size = Files.size(path);
+        var af = AudioFileIO.read(fsPath.toFile());
+        var tag = af.getTag();
 
-                        var genre = tag.getFirst(FieldKey.GENRE);
-                        var artist = tag.getFirst(FieldKey.ARTIST);
-                        var album = tag.getFirst(FieldKey.ALBUM);
-                        var title = tag.getFirst(FieldKey.TITLE);
-                        var trackNum = Integer.parseInt(tag.getFirst(FieldKey.TRACK));
+        var contentId = DigestUtils.md2Hex(isfs);
+        var libSubPath = fsPath.toAbsolutePath().toString().substring(
+                libPath.toAbsolutePath().toString().length());
+        var size = Files.size(fsPath);
 
-                        String strDiscNum = tag.getFirst(FieldKey.DISC_NO);
-                        var discNum = strDiscNum.length() > 0 ? Integer.parseInt(strDiscNum) : 1;
+        var genre = tag.getFirst(FieldKey.GENRE);
+        var artist = tag.getFirst(FieldKey.ARTIST);
+        var album = tag.getFirst(FieldKey.ALBUM);
+        var title = tag.getFirst(FieldKey.TITLE);
+        var trackNum = Integer.parseInt(tag.getFirst(FieldKey.TRACK));
 
-                        var content = new AudioContent(contentId, libSubPath, size, genre, artist,
-                                album, title, discNum, trackNum);
-                        this.content.put(content.getId(), content);
-                        this.libraryContent.get(libId).add(content.getId());
-                    } catch (IOException | CannotReadException | ReadOnlyFileException | TagException | InvalidAudioFrameException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
+        String strDiscNum = tag.getFirst(FieldKey.DISC_NO);
+        var discNum = strDiscNum.length() > 0 ? Integer.parseInt(strDiscNum) : 1;
+
+        return new AudioContent(contentId, libSubPath, size, genre, artist,
+                album, title, discNum, trackNum);
     }
 
-    public AudioContent addContentToDevice(InputStream bytes, UUID libraryId, String subLibPath) {
-        return null;
+    private void registerContent(AudioContent contentData, UUID libId) {
+        this.content.put(contentData.getId(), contentData);
+        this.libraryContent.get(libId).add(contentData.getId());
     }
 
     @Override
@@ -189,7 +218,7 @@ public class FileSystemAudioContentDevice
         device.storageDevices = HashBiMap.create();
         device.libraryRootToStorage = new HashMap<>();
 
-        for(var entry : jsonObject.getAsJsonObject("libraryRoots").entrySet()) {
+        for (var entry : jsonObject.getAsJsonObject("libraryRoots").entrySet()) {
             device.libraryRoots.put(UUID.fromString(entry.getKey()), entry.getValue().getAsString());
         }
 
@@ -198,7 +227,7 @@ public class FileSystemAudioContentDevice
             device.content.put(content.getId(), content);
         }
 
-        for(var entry : jsonObject.getAsJsonObject("libraryContent").entrySet()) {
+        for (var entry : jsonObject.getAsJsonObject("libraryContent").entrySet()) {
             device.libraryContent.put(UUID.fromString(entry.getKey()), context.deserialize(entry.getValue(), Set.class));
         }
 

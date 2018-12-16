@@ -2,10 +2,13 @@ package org.meltzg.jmlm.device;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.meltzg.jmlm.device.content.AudioContent;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,14 +40,14 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Before
-    public void before() {
+    public void before() throws IOException {
         this.device = new FileSystemAudioContentDevice();
-        assertTrue(Paths.get(TMPDIR).toFile().mkdirs());
+        FileUtils.forceMkdir(Paths.get(TMPDIR).toFile());
     }
 
     @After
-    public void after() {
-        assertTrue(Paths.get(TMPDIR).toFile().delete());
+    public void after() throws IOException {
+        FileUtils.deleteDirectory(Paths.get(TMPDIR).toFile());
     }
 
     @Test
@@ -126,11 +129,13 @@ public class FileSystemAudioContentDeviceTest {
     public void testMoveToDevice() {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
-        var testSubLibPath = testFile.substring(testFile.substring(1).indexOf('/'));
+        var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
+        var contentData = new AudioContent();
+        contentData.setLibraryPath(testSubLibPath);
 
         try (var isfs = Files.newInputStream(Paths.get(testFile))) {
-            var content = device.addContentToDevice(isfs, device.getLibraryRoots().keySet().iterator().next(),
-                    testSubLibPath);
+            var content = device.addContentToDevice(isfs, contentData,
+                    device.getLibraryRoots().keySet().iterator().next());
             assertTrue(device.getContent().containsKey(content.getId()));
         } catch (IOException e) {
             e.printStackTrace();
