@@ -147,7 +147,11 @@ public class FileSystemAudioContentDevice
         }
     }
 
-    public AudioContent addContentToDevice(InputStream stream, String librarySubPath, UUID libraryId) throws ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException, IOException {
+    public AudioContent getContent(String id) {
+        return content.get(id);
+    }
+
+    public AudioContent addContent(InputStream stream, String librarySubPath, UUID libraryId) throws ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException, IOException {
         var destination = Paths.get(libraryRoots.get(libraryId), librarySubPath);
         if (!destination.getParent().toFile().mkdirs()) {
             throw new IOException("Could not create intermediate directories for " + destination);
@@ -184,6 +188,26 @@ public class FileSystemAudioContentDevice
         } catch (IOException e) {
             throw e;
         }
+    }
+
+    public void moveContent(String id, UUID destinationId) throws IOException {
+        var destinationLibrary = libraryRoots.get(destinationId);
+        var content = this.content.get(id);
+
+        if (destinationLibrary == null) {
+            throw new IllegalArgumentException("Invalid destination library");
+        }
+        if (content == null) {
+            throw new FileNotFoundException("Could not find content with ID " + id);
+        }
+
+        var sourceLibrary = libraryRoots.get(content.getLibraryId());
+        var file = Paths.get(sourceLibrary, content.getLibraryPath());
+        var destination = Paths.get(destinationLibrary, content.getLibraryPath());
+
+        FileUtils.moveFile(file.toFile(), destination.toFile());
+        unregisterContent(content);
+        registerContent(content, destinationId);
     }
 
     protected StorageDevice getStorageDevice(Path path) {
@@ -238,6 +262,7 @@ public class FileSystemAudioContentDevice
     private void registerContent(AudioContent contentData, UUID libId) {
         this.content.put(contentData.getId(), contentData);
         this.libraryContent.get(libId).add(contentData.getId());
+        contentData.setLibraryId(libId);
     }
 
     private void unregisterContent(AudioContent contentData) {
