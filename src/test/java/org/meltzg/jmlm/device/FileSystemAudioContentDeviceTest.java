@@ -1,19 +1,20 @@
 package org.meltzg.jmlm.device;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.TagException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.meltzg.jmlm.device.content.AudioContent;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,17 +28,7 @@ public class FileSystemAudioContentDeviceTest {
     protected static final String RESOURCEDIR = "./src/test/resources";
     protected static final String TMPDIR = RESOURCEDIR + "/temp";
 
-    private static Gson gson;
-
     private FileSystemAudioContentDevice device;
-
-    @BeforeClass
-    public static void beforeClass() {
-        gson = new GsonBuilder()
-                .registerTypeAdapter(FileSystemAudioContentDevice.class,
-                        new FileSystemAudioContentDevice())
-                .create();
-    }
 
     @Before
     public void before() throws IOException {
@@ -54,7 +45,7 @@ public class FileSystemAudioContentDeviceTest {
     public void testAddLibraryRoot() throws FileNotFoundException {
         var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         device.addLibraryRoot(libraryRootPath);
-        var expectedDevice = gson.fromJson(new FileReader(RESOURCEDIR + "/audio/jst2018-12-09.json"), FileSystemAudioContentDevice.class);
+        var expectedDevice = device.getGson().fromJson(new FileReader(RESOURCEDIR + "/audio/jst2018-12-09.json"), FileSystemAudioContentDevice.class);
 
         assertTrue(expectedDevice.getLibraryRoots().values().containsAll(device.getLibraryRoots().values()));
         assertEquals(1, device.getStorageDevices().size());
@@ -120,7 +111,7 @@ public class FileSystemAudioContentDeviceTest {
     public void testSerialization() {
         var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         device.addLibraryRoot(libraryRootPath);
-        var deserialized = gson.fromJson(gson.toJson(device), FileSystemAudioContentDevice.class);
+        var deserialized = device.getGson().fromJson(device.getGson().toJson(device), FileSystemAudioContentDevice.class);
 
         assertEquals(device, deserialized);
     }
@@ -130,36 +121,28 @@ public class FileSystemAudioContentDeviceTest {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
-        var contentData = new AudioContent();
-        contentData.setLibraryPath(testSubLibPath);
 
         try (var isfs = Files.newInputStream(Paths.get(testFile))) {
-            var content = device.addContentToDevice(isfs, contentData,
+            var content = device.addContentToDevice(isfs, testSubLibPath,
                     device.getLibraryRoots().keySet().iterator().next());
             assertTrue(device.getContent().containsKey(content.getId()));
-        } catch (IOException e) {
+        } catch (IOException | ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException e) {
             e.printStackTrace();
             fail();
         }
     }
 
-    @Test
-    public void testMoveInvalidTypeToDevice() {
+    @Test(expected = CannotReadException.class)
+    public void testMoveInvalidTypeToDevice() throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09.json";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
-        var contentData = new AudioContent();
-        contentData.setLibraryPath(testSubLibPath);
 
-        try (var isfs = Files.newInputStream(Paths.get(testFile))) {
-            var content = device.addContentToDevice(isfs, contentData,
-                    device.getLibraryRoots().keySet().iterator().next());
-            assertNull(content);
-            assertTrue(!Paths.get(TMPDIR, testSubLibPath).toFile().exists());
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail();
-        }
+        var isfs = Files.newInputStream(Paths.get(testFile));
+        var content = device.addContentToDevice(isfs, testSubLibPath,
+                device.getLibraryRoots().keySet().iterator().next());
+        assertNull(content);
+        assertTrue(!Paths.get(TMPDIR, testSubLibPath).toFile().exists());
     }
 
     @Test
@@ -167,15 +150,64 @@ public class FileSystemAudioContentDeviceTest {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
-        var contentData = new AudioContent();
-        contentData.setLibraryPath(testSubLibPath);
 
         try (var isfs = Files.newInputStream(Paths.get(testFile))) {
-            device.addContentToDevice(isfs, contentData,
+            device.addContentToDevice(isfs, testSubLibPath,
                     device.getLibraryRoots().keySet().iterator().next());
             assertTrue(!Paths.get(TMPDIR, testSubLibPath).toFile().exists());
-        } catch (IOException e) {
+        } catch (IOException | ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException e) {
             assertEquals("Is a directory", e.getMessage());
         }
+    }
+
+    @Test
+    public void testMoveDuplicateToDevice()  {
+        var tmpRoot1 = Paths.get(TMPDIR, "1");
+        var tmpRoot2 = Paths.get(TMPDIR, "2");
+
+        var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
+        var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
+
+        try (var isfs1 = Files.newInputStream(Paths.get(testFile));
+             var isfs2 = Files.newInputStream(Paths.get(testFile))) {
+            FileUtils.forceMkdir(tmpRoot1.toFile());
+            FileUtils.forceMkdir(tmpRoot2.toFile());
+
+            device.addLibraryRoot(tmpRoot1.toString());
+            device.addLibraryRoot(tmpRoot2.toString());
+
+            var libIds = new ArrayList<>(device.getLibraryRoots().keySet());
+
+            device.addContentToDevice(isfs1, testSubLibPath, libIds.get(0));
+            device.addContentToDevice(isfs2, testSubLibPath, libIds.get(1));
+        } catch (FileAlreadyExistsException e) {
+            assertTrue(true);
+        } catch (IOException | ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void testDeleteContent() {
+        device.addLibraryRoot(TMPDIR);
+        var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
+        var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
+
+        try (var isfs = Files.newInputStream(Paths.get(testFile))) {
+            var content = device.addContentToDevice(isfs, testSubLibPath,
+                    device.getLibraryRoots().keySet().iterator().next());
+            device.deleteContent(content.getId());
+            assertTrue(!device.getContent().containsKey(content.getId()));
+        } catch (IOException | ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testDeleteContentNotFound() throws IOException {
+        device.addLibraryRoot(TMPDIR);
+        device.deleteContent("doesn't exist");
     }
 }

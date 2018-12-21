@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.*;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
@@ -14,10 +15,11 @@ import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,12 +33,19 @@ public class FileSystemAudioContentDevice
     private Map<UUID, String> libraryRootToStorage;
     private Map<UUID, Set<String>> libraryContent;
 
+    private Gson gson;
+
     public FileSystemAudioContentDevice() {
         this.libraryRoots = new HashMap<>();
         this.storageDevices = HashBiMap.create();
         this.content = new HashMap<>();
         this.libraryRootToStorage = new HashMap<>();
         this.libraryContent = new HashMap<>();
+
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(this.getClass(),
+                        this)
+                .create();
     }
 
     public Map<UUID, String> getLibraryRoots() {
@@ -49,6 +58,10 @@ public class FileSystemAudioContentDevice
 
     public Set<StorageDevice> getStorageDevices() {
         return storageDevices.values();
+    }
+
+    public Gson getGson() {
+        return this.gson;
     }
 
     public void addLibraryRoot(String libraryPath) {
@@ -134,23 +147,43 @@ public class FileSystemAudioContentDevice
         }
     }
 
-    public AudioContent addContentToDevice(InputStream bytes, AudioContent metadata, UUID libraryId) throws IOException {
-        var destination = Paths.get(libraryRoots.get(libraryId), metadata.getLibraryPath());
+    public AudioContent addContentToDevice(InputStream stream, String librarySubPath, UUID libraryId) throws ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException, IOException {
+        var destination = Paths.get(libraryRoots.get(libraryId), librarySubPath);
         if (!destination.getParent().toFile().mkdirs()) {
             throw new IOException("Could not create intermediate directories for " + destination);
         }
-        Files.copy(bytes, destination);
         try {
+            Files.copy(stream, destination);
+
             var contentData = makeAudioContent(destination.toString(), libraryId);
+            if (this.content.containsKey(contentData.getId())) {
+                throw new FileAlreadyExistsException("Content already exists on device");
+            }
+
             registerContent(contentData, libraryId);
             return contentData;
 
-        } catch (TagException | ReadOnlyFileException | CannotReadException | InvalidAudioFrameException e) {
-            e.printStackTrace();
-            Files.delete(destination);
+        } catch (TagException | ReadOnlyFileException | CannotReadException | InvalidAudioFrameException | IOException e) {
+            FileUtils.deleteQuietly(destination.toFile());
+            throw e;
         }
+    }
 
-        return null;
+    public void deleteContent(String id) throws IOException {
+        var contentData = this.content.get(id);
+        if (contentData == null) {
+            throw new FileNotFoundException("Could not find content with ID " + id);
+        }
+        var libraryId = contentData.getLibraryId();
+        var libraryPath = this.libraryRoots.get(libraryId);
+
+        var path = Paths.get(libraryPath, contentData.getLibraryPath());
+        try {
+            Files.delete(path);
+            this.unregisterContent(contentData);
+        } catch (IOException e) {
+            throw e;
+        }
     }
 
     protected StorageDevice getStorageDevice(Path path) {
@@ -208,7 +241,8 @@ public class FileSystemAudioContentDevice
     }
 
     private void unregisterContent(AudioContent contentData) {
-
+        this.content.remove(contentData.getId());
+        this.libraryContent.get(contentData.getLibraryId()).remove(contentData.getId());
     }
 
     @Override
