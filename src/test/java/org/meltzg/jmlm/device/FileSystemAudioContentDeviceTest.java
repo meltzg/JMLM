@@ -59,7 +59,7 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test
-    public void testAddMultipleLibraryRoot() throws FileNotFoundException {
+    public void testAddLibraryRootMultiple() throws FileNotFoundException {
         String[] libraryRoots = {
                 RESOURCEDIR + "/audio/jst2018-12-09",
                 RESOURCEDIR + "/audio/kwgg2016-10-29"
@@ -83,7 +83,7 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testAddParentOfLibraryRoot() {
+    public void testAddLibraryRootParent() {
         var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         var parentLibraryPath = libraryRootPath.substring(0, libraryRootPath.lastIndexOf('/'));
         device.addLibraryRoot(libraryRootPath);
@@ -91,7 +91,7 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testAddChildOfLibraryRoot() {
+    public void testAddLibraryRootChild() {
         var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         var parentLibraryPath = libraryRootPath.substring(0, libraryRootPath.lastIndexOf('/'));
         device.addLibraryRoot(parentLibraryPath);
@@ -99,17 +99,17 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testAddNotDirectoryLibraryRoot() {
+    public void testAddLibraryRootNotDirectory() {
         device.addLibraryRoot(RESOURCEDIR + "/audio/jst2018-12-09.json");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testAddNotExistLibraryRoot() {
+    public void testAddLibraryRootNotExist() {
         device.addLibraryRoot(RESOURCEDIR + "/audio/NotFound");
     }
 
     @Test
-    public void testSerialization() {
+    public void testSerialize() {
         var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         device.addLibraryRoot(libraryRootPath);
         var deserialized = device.getGson().fromJson(device.getGson().toJson(device), FileSystemAudioContentDevice.class);
@@ -118,7 +118,7 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test
-    public void testMoveToDevice() {
+    public void testAddContent() {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
@@ -134,7 +134,7 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test(expected = CannotReadException.class)
-    public void testMoveInvalidTypeToDevice() throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
+    public void testAddContentInvalidType() throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09.json";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
@@ -146,8 +146,8 @@ public class FileSystemAudioContentDeviceTest {
         assertTrue(!Paths.get(TMPDIR, testSubLibPath).toFile().exists());
     }
 
-    @Test
-    public void testMoveDirectoryToDevice() {
+    @Test()
+    public void testAddContentDirectory() {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
@@ -161,49 +161,40 @@ public class FileSystemAudioContentDeviceTest {
         }
     }
 
-    @Test
-    public void testMoveDuplicateToDevice()  {
+    @Test(expected = FileAlreadyExistsException.class)
+    public void testAddContentDuplicate() throws ReadOnlyFileException, IOException, TagException, InvalidAudioFrameException, CannotReadException {
         var tmpRoot1 = Paths.get(TMPDIR, "1");
         var tmpRoot2 = Paths.get(TMPDIR, "2");
 
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
 
-        try (var isfs1 = Files.newInputStream(Paths.get(testFile));
-             var isfs2 = Files.newInputStream(Paths.get(testFile))) {
-            FileUtils.forceMkdir(tmpRoot1.toFile());
-            FileUtils.forceMkdir(tmpRoot2.toFile());
+        var isfs1 = Files.newInputStream(Paths.get(testFile));
+        var isfs2 = Files.newInputStream(Paths.get(testFile));
+        FileUtils.forceMkdir(tmpRoot1.toFile());
+        FileUtils.forceMkdir(tmpRoot2.toFile());
 
-            device.addLibraryRoot(tmpRoot1.toString());
-            device.addLibraryRoot(tmpRoot2.toString());
+        device.addLibraryRoot(tmpRoot1.toString());
+        device.addLibraryRoot(tmpRoot2.toString());
 
-            var libIds = new ArrayList<>(device.getLibraryRoots().keySet());
+        var libIds = new ArrayList<>(device.getLibraryRoots().keySet());
 
-            device.addContent(isfs1, testSubLibPath, libIds.get(0));
-            device.addContent(isfs2, testSubLibPath, libIds.get(1));
-        } catch (FileAlreadyExistsException e) {
-            assertTrue(true);
-        } catch (IOException | ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException e) {
-            e.printStackTrace();
-            fail();
-        }
+        device.addContent(isfs1, testSubLibPath, libIds.get(0));
+        device.addContent(isfs2, testSubLibPath, libIds.get(1));
     }
 
     @Test
-    public void testDeleteContent() {
+    public void testDeleteContent() throws ReadOnlyFileException, IOException, TagException, InvalidAudioFrameException, CannotReadException {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
 
-        try (var isfs = Files.newInputStream(Paths.get(testFile))) {
-            var content = device.addContent(isfs, testSubLibPath,
-                    device.getLibraryRoots().keySet().iterator().next());
-            device.deleteContent(content.getId());
-            assertTrue(!device.getContent().containsKey(content.getId()));
-        } catch (IOException | ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException e) {
-            e.printStackTrace();
-            fail();
-        }
+        var isfs = Files.newInputStream(Paths.get(testFile));
+        var content = device.addContent(isfs, testSubLibPath,
+                device.getLibraryRoots().keySet().iterator().next());
+        device.deleteContent(content.getId());
+        assertTrue(!device.getContent().containsKey(content.getId()));
+        assertTrue(!Files.exists(Paths.get(TMPDIR, testSubLibPath)));
     }
 
     @Test(expected = FileNotFoundException.class)
@@ -213,33 +204,29 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test
-    public void testMoveContent() {
+    public void testMoveContent() throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
         var tmpRoot1 = Paths.get(TMPDIR, "1");
         var tmpRoot2 = Paths.get(TMPDIR, "2");
 
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
 
-        try (var isfs = Files.newInputStream(Paths.get(testFile))) {
-            FileUtils.forceMkdir(tmpRoot1.toFile());
-            FileUtils.forceMkdir(tmpRoot2.toFile());
+        var isfs = Files.newInputStream(Paths.get(testFile));
+        FileUtils.forceMkdir(tmpRoot1.toFile());
+        FileUtils.forceMkdir(tmpRoot2.toFile());
 
-            device.addLibraryRoot(tmpRoot1.toString());
-            device.addLibraryRoot(tmpRoot2.toString());
+        device.addLibraryRoot(tmpRoot1.toString());
+        device.addLibraryRoot(tmpRoot2.toString());
 
-            var libIds = new ArrayList<>(device.getLibraryRoots().keySet());
+        var libIds = new ArrayList<>(device.getLibraryRoots().keySet());
 
-            var content = device.addContent(isfs, testSubLibPath, libIds.get(0));
-            device.moveContent(content.getId(), libIds.get(1));
+        var content = device.addContent(isfs, testSubLibPath, libIds.get(0));
+        device.moveContent(content.getId(), libIds.get(1));
 
-            content = device.getContent(content.getId());
+        content = device.getContent(content.getId());
 
-            assertEquals(content.getLibraryId(), libIds.get(1));
-            assertTrue(Files.isRegularFile(Paths.get(device.getLibraryRoots().get(libIds.get(1)), content.getLibraryPath())));
-        } catch (IOException | ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException e) {
-            e.printStackTrace();
-            fail();
-        }
+        assertEquals(content.getLibraryId(), libIds.get(1));
+        assertTrue(Files.isRegularFile(Paths.get(device.getLibraryRoots().get(libIds.get(1)), content.getLibraryPath())));
     }
 
     @Test(expected = FileNotFoundException.class)
@@ -249,27 +236,53 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testMoveContentLibraryNotFound() throws IOException {
+    public void testMoveContentLibraryNotFound() throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
         var tmpRoot1 = Paths.get(TMPDIR, "1");
         var tmpRoot2 = Paths.get(TMPDIR, "2");
 
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
         var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
 
-        try (var isfs = Files.newInputStream(Paths.get(testFile))) {
-            FileUtils.forceMkdir(tmpRoot1.toFile());
-            FileUtils.forceMkdir(tmpRoot2.toFile());
+        var isfs = Files.newInputStream(Paths.get(testFile));
+        FileUtils.forceMkdir(tmpRoot1.toFile());
+        FileUtils.forceMkdir(tmpRoot2.toFile());
 
-            device.addLibraryRoot(tmpRoot1.toString());
-            device.addLibraryRoot(tmpRoot2.toString());
+        device.addLibraryRoot(tmpRoot1.toString());
+        device.addLibraryRoot(tmpRoot2.toString());
 
-            var libIds = new ArrayList<>(device.getLibraryRoots().keySet());
+        var libIds = new ArrayList<>(device.getLibraryRoots().keySet());
 
-            var content = device.addContent(isfs, testSubLibPath, libIds.get(0));
-            device.moveContent(content.getId(), UUID.randomUUID());
-        } catch (IOException | ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException e) {
-            e.printStackTrace();
-            fail();
-        }
+        var content = device.addContent(isfs, testSubLibPath, libIds.get(0));
+        device.moveContent(content.getId(), UUID.randomUUID());
+
+    }
+
+    @Test
+    public void testGetContentStream() throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
+        var tmpRoot1 = Paths.get(TMPDIR, "1");
+        var tmpRoot2 = Paths.get(TMPDIR, "2");
+
+        var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
+        var testSubLibPath = testFile.substring(StringUtils.lastOrdinalIndexOf(testFile, "/", 2));
+
+        var isfs = Files.newInputStream(Paths.get(testFile));
+        FileUtils.forceMkdir(tmpRoot1.toFile());
+        FileUtils.forceMkdir(tmpRoot2.toFile());
+
+        var device2 = new FileSystemAudioContentDevice();
+        device.addLibraryRoot(tmpRoot1.toString());
+        device2.addLibraryRoot(tmpRoot2.toString());
+
+        var content = device.addContent(isfs, testSubLibPath, device.getLibraryRoots().keySet().iterator().next());
+        var content2 = device2.addContent(device.getContentStream(content.getId()), testSubLibPath,
+                device2.getLibraryRoots().keySet().iterator().next());
+        assertEquals(content, content2);
+        assertTrue(Files.exists(Paths.get(tmpRoot2.toString(), testSubLibPath)));
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testGetContentStreamNotFound() throws IOException {
+        device.addLibraryRoot(TMPDIR);
+        device.getContentStream("not there");
     }
 }

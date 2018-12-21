@@ -14,10 +14,7 @@ import org.jaudiotagger.tag.TagException;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -200,6 +197,9 @@ public class FileSystemAudioContentDevice
         if (content == null) {
             throw new FileNotFoundException("Could not find content with ID " + id);
         }
+        if (content.getLibraryId() == destinationId){
+            return;
+        }
 
         var sourceLibrary = libraryRoots.get(content.getLibraryId());
         var file = Paths.get(sourceLibrary, content.getLibraryPath());
@@ -208,6 +208,17 @@ public class FileSystemAudioContentDevice
         FileUtils.moveFile(file.toFile(), destination.toFile());
         unregisterContent(content);
         registerContent(content, destinationId);
+    }
+
+    public InputStream getContentStream(String id) throws IOException {
+        var content = this.content.get(id);
+        if (content == null) {
+            throw new FileNotFoundException("Could not find content with ID " + id);
+        }
+
+        var libraryPath = libraryRoots.get(content.getLibraryId());
+        var path = Paths.get(libraryPath, content.getLibraryPath());
+        return Files.newInputStream(path);
     }
 
     protected StorageDevice getStorageDevice(Path path) {
