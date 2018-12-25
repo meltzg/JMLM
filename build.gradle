@@ -6,9 +6,11 @@
  * user guide available at https://docs.gradle.org/4.1/userguide/java_library_plugin.html
  */
 
-// Apply the java-library plugin to add support for Java Library
-apply plugin: 'java-library'
-apply plugin: 'jacoco'
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.5'
+    id 'jacoco'
+}
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -40,6 +42,23 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.+'
+}
+
+application {
+    mainClassName = 'org.meltzg.jmlm.client.LibrarySyncManager'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.meltzg.jmlm.client.Launcher'
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+javafx {
+    modules = ['javafx.controls', 'javafx.fxml']
 }
 
 test {
