@@ -45,7 +45,7 @@ dependencies {
 }
 
 application {
-    mainClassName = 'org.meltzg.jmlm.client.LibrarySyncManager'
+    mainClassName = 'JMLM.main/org.meltzg.jmlm.client.LibrarySyncManager'
 }
 
 jar {

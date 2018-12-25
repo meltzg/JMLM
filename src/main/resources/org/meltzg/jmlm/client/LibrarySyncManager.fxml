@@ -10,5 +10,5 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.meltzg.jmlm.client.LibrarySyncManager"
             prefHeight="400.0" prefWidth="600.0">
-
+    <Label text="Hello World!"/>
 </AnchorPane>
