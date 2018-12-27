@@ -221,6 +221,10 @@ public class FileSystemAudioContentDevice
         return Files.newInputStream(path);
     }
 
+    public boolean containsContent(String id) {
+        return content.containsKey(id);
+    }
+
     protected StorageDevice getStorageDevice(Path path) {
         String deviceId = null;
         var idFile = new File(path.toString());

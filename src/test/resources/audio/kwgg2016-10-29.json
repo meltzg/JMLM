@@ -1,0 +1,112 @@
+{
+  "libraryRoots": {
+    "c4dcc8d0-55f0-41c9-9746-64c695675b37": "/home/meltzg/workspace/JMLM/./src/test/resources/audio/kwgg2016-10-29"
+  },
+  "content": [
+    {
+      "id": "18600287dc1e50f0be35c00b833d841e",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/kwgg2016-10-29_t05.flac",
+      "size": 57451626,
+      "genre": "",
+      "artist": "Keller Williams\u0027 Grateful Grass",
+      "album": "2016-10-29 Keller Williams\u0027 Grateful Grass, Fillmore Auditorium, Denver, CO",
+      "title": "Bertha",
+      "discNum": 1,
+      "trackNum": 5
+    },
+    {
+      "id": "d22c0cd708a74539d4620a024b1bbf0c",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/kwgg2016-10-29_t07.flac",
+      "size": 67173400,
+      "genre": "",
+      "artist": "Keller Williams\u0027 Grateful Grass",
+      "album": "2016-10-29 Keller Williams\u0027 Grateful Grass, Fillmore Auditorium, Denver, CO",
+      "title": "Scarlet Begonias",
+      "discNum": 1,
+      "trackNum": 7
+    },
+    {
+      "id": "2acbe94575f5ccfb85559b7162e614f2",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/kwgg2016-10-29_t03.flac",
+      "size": 50772797,
+      "genre": "",
+      "artist": "Keller Williams\u0027 Grateful Grass",
+      "album": "2016-10-29 Keller Williams\u0027 Grateful Grass, Fillmore Auditorium, Denver, CO",
+      "title": "They Cumberlove Each Other Blues",
+      "discNum": 1,
+      "trackNum": 3
+    },
+    {
+      "id": "cafed3884f4c6e4a9be55828fe7b8f94",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/kwgg2016-10-29_t04.flac",
+      "size": 33799815,
+      "genre": "",
+      "artist": "Keller Williams\u0027 Grateful Grass",
+      "album": "2016-10-29 Keller Williams\u0027 Grateful Grass, Fillmore Auditorium, Denver, CO",
+      "title": "He\u0027s Gone",
+      "discNum": 1,
+      "trackNum": 4
+    },
+    {
+      "id": "e257b0716aaa867c6bb60ac62b262cd0",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/kwgg2016-10-29_t01.flac",
+      "size": 69576712,
+      "genre": "",
+      "artist": "Keller Williams\u0027 Grateful Grass",
+      "album": "2016-10-29 Keller Williams\u0027 Grateful Grass, Fillmore Auditorium, Denver, CO",
+      "title": "Shakedown Street",
+      "discNum": 1,
+      "trackNum": 1
+    },
+    {
+      "id": "814877c91a5e6ed0457400733e982680",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/kwgg2016-10-29_t02.flac",
+      "size": 34557911,
+      "genre": "",
+      "artist": "Keller Williams\u0027 Grateful Grass",
+      "album": "2016-10-29 Keller Williams\u0027 Grateful Grass, Fillmore Auditorium, Denver, CO",
+      "title": "Mr Charlie",
+      "discNum": 1,
+      "trackNum": 2
+    },
+    {
+      "id": "3fc78bd0372a7f71eccc8f012311efd3",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/kwgg2016-10-29_t06.flac",
+      "size": 54852563,
+      "genre": "",
+      "artist": "Keller Williams\u0027 Grateful Grass",
+      "album": "2016-10-29 Keller Williams\u0027 Grateful Grass, Fillmore Auditorium, Denver, CO",
+      "title": "Cold Rain and Snow",
+      "discNum": 1,
+      "trackNum": 6
+    }
+  ],
+  "libraryContent": {
+    "c4dcc8d0-55f0-41c9-9746-64c695675b37": [
+      "18600287dc1e50f0be35c00b833d841e",
+      "d22c0cd708a74539d4620a024b1bbf0c",
+      "2acbe94575f5ccfb85559b7162e614f2",
+      "cafed3884f4c6e4a9be55828fe7b8f94",
+      "e257b0716aaa867c6bb60ac62b262cd0",
+      "814877c91a5e6ed0457400733e982680",
+      "3fc78bd0372a7f71eccc8f012311efd3"
+    ]
+  },
+  "storageDevices": [
+    {
+      "id": "66306",
+      "capacity": 468837355520,
+      "partitions": 1
+    }
+  ],
+  "libraryRootToStorage": {
+    "c4dcc8d0-55f0-41c9-9746-64c695675b37": "66306"
+  }
+}

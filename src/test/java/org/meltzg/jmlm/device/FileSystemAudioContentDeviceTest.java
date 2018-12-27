@@ -24,12 +24,9 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
+import static org.meltzg.jmlm.CommonUtil.*;
 
 public class FileSystemAudioContentDeviceTest {
-
-
-    protected static final String RESOURCEDIR = "./src/test/resources";
-    protected static final String TMPDIR = RESOURCEDIR + "/temp";
 
     private FileSystemAudioContentDevice device;
 
