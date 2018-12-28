@@ -51,8 +51,10 @@ public class DeviceSyncManager {
         return status;
     }
 
-    public SyncPlan createGreedySyncPlan(Set<String> desiredDeviceContent, NotInLibraryStrategy strategy) throws FileNotFoundException, InsufficientSpaceException, SyncStrategyException {
-        var plan = new SyncPlan();
+    public SyncPlan createSyncPlan(Set<String> desiredDeviceContent, NotInLibraryStrategy strategy,
+                                   SyncStrategy toLibraryStrategy, SyncStrategy toDeviceStrategy) throws FileNotFoundException, SyncStrategyException, InsufficientSpaceException {
+        SyncPlan plan = null;
+
         var libCapacities = new ArrayList<>(attachedDevice.getLibraryRootCapacities().entrySet());
 
         if (libCapacities.isEmpty()) {
@@ -67,26 +69,13 @@ public class DeviceSyncManager {
             }
         }
 
-        libCapacities.sort((lib1, lib2) -> Long.signum(lib2.getValue() - lib1.getValue()));
-        contentInfo.sort((info1, info2) -> Long.signum(info2.getSize() - info1.getSize()));
-
-        var contentDestinations = new HashMap<String, UUID>();
-        for (var lib : libCapacities) {
-            var libId = lib.getKey();
-            var remainingCapacity = lib.getValue();
-            var contentItr = contentInfo.iterator();
-            while (contentItr.hasNext()) {
-                var info = contentItr.next();
-                if (info.getSize() <= remainingCapacity) {
-                    contentDestinations.put(info.getId(), libId);
-                    remainingCapacity -= info.getSize();
-                    contentItr.remove();
-                }
-            }
-        }
-
-        if (!libCapacities.isEmpty()) {
-            throw new InsufficientSpaceException("Could not fit selected content in device");
+        switch (toDeviceStrategy) {
+            case GREEDY:
+                plan = createGreedySyncPlan(contentInfo, libCapacities);
+                break;
+            case LAZY:
+                plan = createLazySyncPlan(contentInfo, libCapacities);
+                break;
         }
 
         var transferToLibrary = new LinkedList<String>();
@@ -109,6 +98,45 @@ public class DeviceSyncManager {
             }
         }
 
+        // TODO handle transfer to library
+        if (!transferToLibrary.isEmpty()) {
+            switch (toLibraryStrategy) {
+                case GREEDY:
+                    break;
+                case LAZY:
+                    break;
+            }
+        }
+
+        return plan;
+    }
+
+    private SyncPlan createGreedySyncPlan(LinkedList<AudioContent> desiredContentInfo,
+                                          List<Map.Entry<UUID, Long>> libCapacities) throws InsufficientSpaceException {
+        var plan = new SyncPlan();
+
+        libCapacities.sort((lib1, lib2) -> Long.signum(lib2.getValue() - lib1.getValue()));
+        desiredContentInfo.sort((info1, info2) -> Long.signum(info2.getSize() - info1.getSize()));
+
+        var contentDestinations = new HashMap<String, UUID>();
+        for (var lib : libCapacities) {
+            var libId = lib.getKey();
+            var remainingCapacity = lib.getValue();
+            var contentItr = desiredContentInfo.iterator();
+            while (contentItr.hasNext()) {
+                var info = contentItr.next();
+                if (info.getSize() <= remainingCapacity) {
+                    contentDestinations.put(info.getId(), libId);
+                    remainingCapacity -= info.getSize();
+                    contentItr.remove();
+                }
+            }
+        }
+
+        if (!libCapacities.isEmpty()) {
+            throw new InsufficientSpaceException("Could not fit selected content in device");
+        }
+
         for (var contentDestination : contentDestinations.entrySet()) {
             var contentId = contentDestination.getKey();
             var destination = contentDestination.getValue();
@@ -124,8 +152,12 @@ public class DeviceSyncManager {
             }
         }
 
-        // TODO handle transfer to library
-
         return plan;
+    }
+
+    private SyncPlan createLazySyncPlan(LinkedList<AudioContent> desiredContentInfo,
+                                        ArrayList<Map.Entry<UUID, Long>> libCapacities) {
+        // TODO implement lazy strategy
+        return new SyncPlan();
     }
 }
