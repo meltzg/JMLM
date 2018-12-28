@@ -51,11 +51,7 @@ public class DeviceSyncManager {
         return status;
     }
 
-    public SyncPlan createSyncPlan(Set<String> desiredDeviceContent) throws FileNotFoundException, InsufficientSpaceException, SyncStrategyException {
-        return createSyncPlan(desiredDeviceContent, NotInLibraryStrategy.CANCEL_SYNC);
-    }
-
-    public SyncPlan createSyncPlan(Set<String> desiredDeviceContent, NotInLibraryStrategy strategy) throws FileNotFoundException, InsufficientSpaceException, SyncStrategyException {
+    public SyncPlan createGreedySyncPlan(Set<String> desiredDeviceContent, NotInLibraryStrategy strategy) throws FileNotFoundException, InsufficientSpaceException, SyncStrategyException {
         var plan = new SyncPlan();
         var libCapacities = new ArrayList<>(attachedDevice.getLibraryRootCapacities().entrySet());
 
