@@ -58,11 +58,11 @@ public class FileSystemAudioContentDevice
     }
 
     public Gson getGson() {
-        return this.gson;
+        return gson;
     }
 
     public void addLibraryRoot(String libraryPath) {
-        this.addLibraryRoot(libraryPath, true);
+        addLibraryRoot(libraryPath, true);
     }
 
     public void addLibraryRoot(String libraryPath, boolean scanContent) {
@@ -73,8 +73,8 @@ public class FileSystemAudioContentDevice
         }
         libPath = libPath.toAbsolutePath();
 
-        if (!this.libraryRoots.values().contains(libPath.toString())) {
-            for (var existingLib : this.libraryRoots.values()) {
+        if (!libraryRoots.values().contains(libPath.toString())) {
+            for (var existingLib : libraryRoots.values()) {
                 var existingPath = Paths.get(existingLib).toAbsolutePath();
                 if (existingPath.startsWith(libPath) || libPath.startsWith(existingPath)) {
                     throw new IllegalArgumentException("Library root cannot be a child of another library root");
@@ -82,40 +82,49 @@ public class FileSystemAudioContentDevice
             }
 
             var libId = UUID.randomUUID();
-            this.libraryRoots.put(libId, libPath.toString());
-            var libStorage = this.getStorageDevice(libPath);
-            this.libraryRootToStorage.put(libId, libStorage.getId());
+            libraryRoots.put(libId, libPath.toString());
+            var libStorage = getStorageDevice(libPath);
+            libraryRootToStorage.put(libId, libStorage.getId());
 
-            if (!this.libraryContent.containsKey(libId)) {
-                this.libraryContent.put(libId, new HashSet<>());
+            if (!libraryContent.containsKey(libId)) {
+                libraryContent.put(libId, new HashSet<>());
             }
 
-            if (!this.storageDevices.containsKey(libStorage.getId())) {
-                this.storageDevices.put(libStorage.getId(), libStorage);
+            if (!storageDevices.containsKey(libStorage.getId())) {
+                storageDevices.put(libStorage.getId(), libStorage);
             } else {
-                libStorage = this.storageDevices.get(libStorage.getId());
+                libStorage = storageDevices.get(libStorage.getId());
             }
 
             libStorage.setPartitions(libStorage.getPartitions() + 1);
         }
 
         if (scanContent) {
-            this.scanDeviceContent();
+            scanDeviceContent();
         }
     }
 
     public Map<UUID, Long> getLibraryRootCapacities() {
         var libCapacities = new HashMap<UUID, Long>();
-        for (var entry : this.libraryRootToStorage.entrySet()) {
-            var storage = this.storageDevices.get(entry.getValue());
+        for (var entry : libraryRootToStorage.entrySet()) {
+            var storage = storageDevices.get(entry.getValue());
             libCapacities.put(entry.getKey(), storage.getCapacity() / storage.getPartitions());
         }
 
         return libCapacities;
     }
 
+    public Map<UUID, Long> getLibraryRootFreeSpace() {
+        var freeSpaces = new HashMap<UUID, Long>();
+        for (var entry : libraryRootToStorage.entrySet()) {
+            var storage = storageDevices.get(entry.getValue());
+            freeSpaces.put(entry.getKey(), storage.getFreespace() / storage.getPartitions());
+        }
+        return freeSpaces;
+    }
+
     public void scanDeviceContent() {
-        for (var libRoot : this.libraryRoots.entrySet()) {
+        for (var libRoot : libraryRoots.entrySet()) {
             UUID libId = libRoot.getKey();
             Path libPath = Paths.get(libRoot.getValue());
             var stack = new Stack<Path>();
@@ -157,11 +166,13 @@ public class FileSystemAudioContentDevice
             Files.copy(stream, destination);
 
             var contentData = makeAudioContent(destination.toString(), libraryId);
-            if (this.content.containsKey(contentData.getId())) {
+            if (content.containsKey(contentData.getId())) {
                 throw new FileAlreadyExistsException("Content already exists on device");
             }
 
             registerContent(contentData, libraryId);
+            var storage = storageDevices.get(libraryRootToStorage.get(contentData.getLibraryId()));
+            storage.setFreespace(storage.getFreespace() - contentData.getSize());
             return contentData;
 
         } catch (TagException | ReadOnlyFileException | CannotReadException | InvalidAudioFrameException | IOException e) {
@@ -171,17 +182,19 @@ public class FileSystemAudioContentDevice
     }
 
     public void deleteContent(String id) throws IOException {
-        var contentData = this.content.get(id);
+        var contentData = content.get(id);
         if (contentData == null) {
             throw new FileNotFoundException("Could not find content with ID " + id);
         }
         var libraryId = contentData.getLibraryId();
-        var libraryPath = this.libraryRoots.get(libraryId);
+        var libraryPath = libraryRoots.get(libraryId);
 
         var path = Paths.get(libraryPath, contentData.getLibraryPath());
         try {
             Files.delete(path);
-            this.unregisterContent(contentData);
+            unregisterContent(contentData);
+            var storage = storageDevices.get(libraryRootToStorage.get(contentData.getLibraryId()));
+            storage.setFreespace(storage.getFreespace() + contentData.getSize());
         } catch (IOException e) {
             throw e;
         }
@@ -189,35 +202,35 @@ public class FileSystemAudioContentDevice
 
     public void moveContent(String id, UUID destinationId) throws IOException {
         var destinationLibrary = libraryRoots.get(destinationId);
-        var content = this.content.get(id);
+        var contentInfo = content.get(id);
 
         if (destinationLibrary == null) {
             throw new IllegalArgumentException("Invalid destination library");
         }
-        if (content == null) {
+        if (contentInfo == null) {
             throw new FileNotFoundException("Could not find content with ID " + id);
         }
-        if (content.getLibraryId() == destinationId){
+        if (contentInfo.getLibraryId() == destinationId){
             return;
         }
 
-        var sourceLibrary = libraryRoots.get(content.getLibraryId());
-        var file = Paths.get(sourceLibrary, content.getLibraryPath());
-        var destination = Paths.get(destinationLibrary, content.getLibraryPath());
+        var sourceLibrary = libraryRoots.get(contentInfo.getLibraryId());
+        var file = Paths.get(sourceLibrary, contentInfo.getLibraryPath());
+        var destination = Paths.get(destinationLibrary, contentInfo.getLibraryPath());
 
         FileUtils.moveFile(file.toFile(), destination.toFile());
-        unregisterContent(content);
-        registerContent(content, destinationId);
+        unregisterContent(contentInfo);
+        registerContent(contentInfo, destinationId);
     }
 
     public InputStream getContentStream(String id) throws IOException {
-        var content = this.content.get(id);
-        if (content == null) {
+        var contentInfo = content.get(id);
+        if (contentInfo == null) {
             throw new FileNotFoundException("Could not find content with ID " + id);
         }
 
-        var libraryPath = libraryRoots.get(content.getLibraryId());
-        var path = Paths.get(libraryPath, content.getLibraryPath());
+        var libraryPath = libraryRoots.get(contentInfo.getLibraryId());
+        var path = Paths.get(libraryPath, contentInfo.getLibraryPath());
         return Files.newInputStream(path);
     }
 
@@ -228,9 +241,10 @@ public class FileSystemAudioContentDevice
     protected StorageDevice getStorageDevice(Path path) {
         String deviceId = null;
         var idFile = new File(path.toString());
-        var capacity = idFile.getFreeSpace();
+        var freespace = idFile.getFreeSpace();
+        var capacity = freespace;
 
-        for (var file : this.content.values()) {
+        for (var file : content.values()) {
             capacity += file.getSize();
         }
 
@@ -244,7 +258,7 @@ public class FileSystemAudioContentDevice
             }
         }
 
-        return new StorageDevice(deviceId, capacity, 0);
+        return new StorageDevice(deviceId, capacity, freespace, 0);
     }
 
     protected AudioContent makeAudioContent(String path, UUID libId) throws TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException, IOException {
@@ -275,14 +289,14 @@ public class FileSystemAudioContentDevice
     }
 
     private void registerContent(AudioContent contentData, UUID libId) {
-        this.content.put(contentData.getId(), contentData);
-        this.libraryContent.get(libId).add(contentData.getId());
+        content.put(contentData.getId(), contentData);
+        libraryContent.get(libId).add(contentData.getId());
         contentData.setLibraryId(libId);
     }
 
     private void unregisterContent(AudioContent contentData) {
-        this.content.remove(contentData.getId());
-        this.libraryContent.get(contentData.getLibraryId()).remove(contentData.getId());
+        content.remove(contentData.getId());
+        libraryContent.get(contentData.getLibraryId()).remove(contentData.getId());
     }
 
     @Override

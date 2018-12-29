@@ -6,10 +6,12 @@ public class StorageDevice {
     private String id;
     private long capacity;
     private int partitions;
+    private long freespace;
 
-    public StorageDevice(String id, long capacity, int partitions) {
+    public StorageDevice(String id, long capacity, long freespace, int partitions) {
         this.id = id;
         this.capacity = capacity;
+        this.freespace = freespace;
         this.partitions = partitions;
     }
 
@@ -39,18 +41,25 @@ public class StorageDevice {
         this.partitions = partitions;
     }
 
+    public Long getFreespace() { return freespace; }
+
+    public void setFreespace(long freespace) {
+        this.freespace = freespace;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         StorageDevice that = (StorageDevice) o;
-        return getCapacity() == that.getCapacity() &&
-                getPartitions() == that.getPartitions() &&
-                getId().equals(that.getId());
+        return capacity == that.capacity &&
+                partitions == that.partitions &&
+                freespace == that.freespace &&
+                id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getCapacity(), getPartitions());
+        return Objects.hash(id);
     }
 }

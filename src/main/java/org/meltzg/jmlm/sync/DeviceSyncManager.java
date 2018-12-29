@@ -4,22 +4,28 @@ import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
 import org.meltzg.jmlm.exceptions.SyncStrategyException;
+import org.meltzg.jmlm.sync.strategies.ISyncStrategy;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DeviceSyncManager {
     private FileSystemAudioContentDevice mainLibrary;
     private FileSystemAudioContentDevice attachedDevice;
     private Map<String, ContentSyncStatus> syncStatuses;
     private Set<String> allContent;
+    private List<Class<? extends ISyncStrategy>> rankedStrategies;
 
 
-    public DeviceSyncManager(FileSystemAudioContentDevice mainLibrary, FileSystemAudioContentDevice attachedDevice) {
+    public DeviceSyncManager(FileSystemAudioContentDevice mainLibrary, FileSystemAudioContentDevice attachedDevice,
+                             List<Class<? extends ISyncStrategy>> rankedStrategies) {
         this.mainLibrary = mainLibrary;
         this.attachedDevice = attachedDevice;
         this.syncStatuses = null;
         this.allContent = null;
+        this.rankedStrategies = rankedStrategies;
 
         refreshSyncStatus();
     }
@@ -32,8 +38,9 @@ public class DeviceSyncManager {
         allContent.addAll(attachedDevice.getContent().keySet());
 
         for (var id : allContent) {
-            var syncStatus = new ContentSyncStatus(id, mainLibrary.containsContent(id),
-                    attachedDevice.containsContent(id));
+            var mainLibraryId = mainLibrary.containsContent(id) ? mainLibrary.getContent(id).getLibraryId() : null;
+            var deviceLibraryId = attachedDevice.containsContent(id) ? attachedDevice.getContent(id).getLibraryId() : null;
+            var syncStatus = new ContentSyncStatus(id, mainLibraryId, deviceLibraryId);
             syncStatuses.put(id, syncStatus);
         }
     }
@@ -46,118 +53,79 @@ public class DeviceSyncManager {
     public ContentSyncStatus getSyncStatus(String id) {
         var status = this.syncStatuses.get(id);
         if (status == null) {
-            status = new ContentSyncStatus(id, false, false);
+            status = new ContentSyncStatus(id, null, null);
         }
         return status;
     }
 
-    public SyncPlan createSyncPlan(Set<String> desiredDeviceContent, NotInLibraryStrategy strategy,
-                                   SyncStrategy toLibraryStrategy, SyncStrategy toDeviceStrategy) throws FileNotFoundException, SyncStrategyException, InsufficientSpaceException {
+    public void setRankedStrategies(List<Class<? extends ISyncStrategy>> rankedStrategies) {
+        this.rankedStrategies = rankedStrategies;
+    }
+
+    public SyncPlan createSyncPlan(Set<String> desiredContent, NotInLibraryStrategy notInLibraryStrategy) throws FileNotFoundException, SyncStrategyException, InsufficientSpaceException {
         SyncPlan plan = null;
 
-        var libCapacities = new ArrayList<>(attachedDevice.getLibraryRootCapacities().entrySet());
-
-        if (libCapacities.isEmpty()) {
+        if (mainLibrary.getLibraryRoots().isEmpty()) {
+            throw new IllegalStateException("Main library device has no libraries configured");
+        }
+        if (attachedDevice.getLibraryRoots().isEmpty()) {
             throw new IllegalStateException("Attached device has no libraries configured");
         }
 
-        var contentInfo = new LinkedList<AudioContent>();
-        for (var contentId : desiredDeviceContent) {
-            if (!allContent.contains(contentId)) {
-                throw new FileNotFoundException("Content with ID " + contentId +
-                        " is not in the library or the attached device");
+        var desiredContentInfo = desiredContent.stream().map(this::getContentInfo).collect(Collectors.toList());
+        if (desiredContentInfo.stream().anyMatch(Objects::isNull)) {
+            throw new FileNotFoundException("Content is not in the library or the attached device");
+
+        }
+
+        for (var clazz : rankedStrategies) {
+            try {
+                var strategy = clazz.getDeclaredConstructor().newInstance();
+                try {
+                    plan = strategy.createStrategy(desiredContentInfo, syncStatuses,
+                            attachedDevice.getLibraryRootCapacities(), attachedDevice.getLibraryRootFreeSpace());
+                    break;
+                } catch (InsufficientSpaceException e) {
+                    e.printStackTrace();
+                    plan = null;
+                }
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
             }
         }
 
-        switch (toDeviceStrategy) {
-            case GREEDY:
-                plan = createGreedySyncPlan(contentInfo, libCapacities);
-                break;
-            case LAZY:
-                plan = createLazySyncPlan(contentInfo, libCapacities);
-                break;
+        if (plan == null) {
+            throw new InsufficientSpaceException("Could not fit selected content in device using any strategy");
         }
 
         var transferToLibrary = new LinkedList<String>();
-        for (var onDevice : attachedDevice.getContent().keySet()) {
-            if (!desiredDeviceContent.contains(onDevice)) {
-                if (!mainLibrary.containsContent(onDevice)) {
-                    switch (strategy) {
-                        case TRANSFER_TO_LIBRARY:
-                            transferToLibrary.add(onDevice);
-                            break;
-                        case DELETE_FROM_DEVICE:
-                            plan.deleteFromDevice.add(onDevice);
-                            break;
-                        case CANCEL_SYNC:
-                            throw new SyncStrategyException("Content to be removed from device is not in the library");
-                    }
-                } else {
-                    plan.deleteFromDevice.add(onDevice);
+        for (var toDelete : plan.deleteFromDevice) {
+            if (!syncStatuses.get(toDelete).isInLibrary()) {
+                switch (notInLibraryStrategy) {
+                    case TRANSFER_TO_LIBRARY:
+                        transferToLibrary.add(toDelete);
+                        break;
+                    case DELETE_FROM_DEVICE:
+                        break;
+                    case CANCEL_SYNC:
+                        throw new SyncStrategyException("Content to be removed from device is not in the library");
                 }
             }
         }
 
-        // TODO handle transfer to library
-        if (!transferToLibrary.isEmpty()) {
-            switch (toLibraryStrategy) {
-                case GREEDY:
-                    break;
-                case LAZY:
-                    break;
-            }
-        }
+        // TODO handle transferToLibrary
 
         return plan;
     }
 
-    private SyncPlan createGreedySyncPlan(LinkedList<AudioContent> desiredContentInfo,
-                                          List<Map.Entry<UUID, Long>> libCapacities) throws InsufficientSpaceException {
-        var plan = new SyncPlan();
-
-        libCapacities.sort((lib1, lib2) -> Long.signum(lib2.getValue() - lib1.getValue()));
-        desiredContentInfo.sort((info1, info2) -> Long.signum(info2.getSize() - info1.getSize()));
-
-        var contentDestinations = new HashMap<String, UUID>();
-        for (var lib : libCapacities) {
-            var libId = lib.getKey();
-            var remainingCapacity = lib.getValue();
-            var contentItr = desiredContentInfo.iterator();
-            while (contentItr.hasNext()) {
-                var info = contentItr.next();
-                if (info.getSize() <= remainingCapacity) {
-                    contentDestinations.put(info.getId(), libId);
-                    remainingCapacity -= info.getSize();
-                    contentItr.remove();
-                }
-            }
+    private AudioContent getContentInfo(String contentId) {
+        var syncStatus = syncStatuses.get(contentId);
+        if (syncStatus.isInLibrary()) {
+            return mainLibrary.getContent(contentId);
         }
-
-        if (!libCapacities.isEmpty()) {
-            throw new InsufficientSpaceException("Could not fit selected content in device");
+        if (syncStatus.isOnDevice()) {
+            return attachedDevice.getContent(contentId);
         }
-
-        for (var contentDestination : contentDestinations.entrySet()) {
-            var contentId = contentDestination.getKey();
-            var destination = contentDestination.getValue();
-
-            var syncStatus = syncStatuses.get(contentId);
-            if (syncStatus.isOnDevice()) {
-                var info = attachedDevice.getContent(contentId);
-                if (!info.getLibraryId().equals(destination)) {
-                    plan.transferOnDevice.put(contentId, destination);
-                }
-            } else {
-                plan.transferToDevice.put(contentId, destination);
-            }
-        }
-
-        return plan;
-    }
-
-    private SyncPlan createLazySyncPlan(LinkedList<AudioContent> desiredContentInfo,
-                                        ArrayList<Map.Entry<UUID, Long>> libCapacities) {
-        // TODO implement lazy strategy
-        return new SyncPlan();
+        return null;
     }
 }

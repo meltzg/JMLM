@@ -26,7 +26,7 @@ public class DeviceSyncManagerTest {
         var device2 = gson.fromJson(new FileReader(RESOURCEDIR + "/audio/kwgg2016-10-29.json"),
                 FileSystemAudioContentDevice.class);
 
-        var syncManager = new DeviceSyncManager(device1, device2);
+        var syncManager = new DeviceSyncManager(device1, device2, null);
 
         syncManager.refreshSyncStatus();
 
@@ -53,7 +53,7 @@ public class DeviceSyncManagerTest {
         var device2 = gson.fromJson(new FileReader(RESOURCEDIR + "/audio/kwgg2016-10-29.json"),
                 FileSystemAudioContentDevice.class);
 
-        var syncManager = new DeviceSyncManager(device1, device2);
+        var syncManager = new DeviceSyncManager(device1, device2, null);
 
         var status = syncManager.getSyncStatus("not there");
         assertFalse(status.isInLibrary());

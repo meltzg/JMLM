@@ -1,25 +1,31 @@
 package org.meltzg.jmlm.sync;
 
+import java.util.UUID;
+
 public class ContentSyncStatus {
     private String contentId;
-    private boolean inLibrary;
-    private boolean onDevice;
+    private UUID mainLibrary;
+    private UUID deviceLibrary;
 
-    public ContentSyncStatus(String contentId, boolean inLibrary, boolean onDevice) {
+    public ContentSyncStatus(String contentId, UUID mainLibrary, UUID deviceLibrary) {
         this.contentId = contentId;
-        this.inLibrary = inLibrary;
-        this.onDevice = onDevice;
+        this.mainLibrary = mainLibrary;
+        this.deviceLibrary = deviceLibrary;
     }
 
     public String getContentId() {
         return contentId;
     }
 
+    public UUID getMainLibrary() { return mainLibrary; }
+
+    public UUID getDeviceLibrary() { return deviceLibrary; }
+
     public boolean isInLibrary() {
-        return inLibrary;
+        return mainLibrary != null;
     }
 
     public boolean isOnDevice() {
-        return onDevice;
+        return deviceLibrary != null;
     }
 }
