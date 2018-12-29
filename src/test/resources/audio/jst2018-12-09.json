@@ -153,12 +153,12 @@
   },
   "storageDevices": [
     {
-      "id": "66306",
+      "id": "/dev/nvme0n1p2",
       "capacity": 473798025216,
       "partitions": 1
     }
   ],
   "libraryRootToStorage": {
-    "15eedca3-364d-4ee8-9003-a9f55d063818": "66306"
+    "15eedca3-364d-4ee8-9003-a9f55d063818": "/dev/nvme0n1p2"
   }
 }

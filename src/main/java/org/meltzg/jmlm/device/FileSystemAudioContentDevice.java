@@ -16,10 +16,9 @@ import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.*;
 import java.util.*;
 
 public class FileSystemAudioContentDevice
@@ -61,11 +60,11 @@ public class FileSystemAudioContentDevice
         return gson;
     }
 
-    public void addLibraryRoot(String libraryPath) {
+    public void addLibraryRoot(String libraryPath) throws IOException, URISyntaxException {
         addLibraryRoot(libraryPath, true);
     }
 
-    public void addLibraryRoot(String libraryPath, boolean scanContent) {
+    public void addLibraryRoot(String libraryPath, boolean scanContent) throws IOException, URISyntaxException {
         var libPath = Paths.get(libraryPath);
         if (!Files.isDirectory(libPath)) {
             throw new IllegalArgumentException("Library root must be a valid directory (" +
@@ -238,8 +237,9 @@ public class FileSystemAudioContentDevice
         return content.containsKey(id);
     }
 
-    protected StorageDevice getStorageDevice(Path path) {
+    protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
         String deviceId = null;
+        path = Paths.get(path.toString().replaceFirst("^~", System.getProperty("user.home")));
         var idFile = new File(path.toString());
         var freespace = idFile.getFreeSpace();
         var capacity = freespace;
@@ -248,15 +248,11 @@ public class FileSystemAudioContentDevice
             capacity += file.getSize();
         }
 
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            deviceId = path.getRoot().toString();
-        } else {
-            try {
-                deviceId = Files.getAttribute(path, "unix:dev").toString();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        URI rootURI = new URI("file:///");
+        Path rootPath = Paths.get(rootURI);
+        Path dirPath = rootPath.resolve(path);
+        FileStore dirFileStore = Files.getFileStore(dirPath);
+        deviceId = dirFileStore.name();
 
         return new StorageDevice(deviceId, capacity, freespace, 0);
     }
