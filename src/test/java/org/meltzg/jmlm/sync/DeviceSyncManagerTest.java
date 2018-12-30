@@ -15,7 +15,7 @@ public class DeviceSyncManagerTest {
     private Gson gson;
 
     @Before
-    public void before() {
+    public void setUp() {
         this.gson = new FileSystemAudioContentDevice().getGson();
     }
 

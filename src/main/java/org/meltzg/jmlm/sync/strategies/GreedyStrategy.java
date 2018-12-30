@@ -5,10 +5,7 @@ import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
 import org.meltzg.jmlm.sync.ContentSyncStatus;
 import org.meltzg.jmlm.sync.SyncPlan;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GreedyStrategy implements ISyncStrategy {
@@ -21,13 +18,16 @@ public class GreedyStrategy implements ISyncStrategy {
                 .stream()
                 .sorted((lib1, lib2) -> Long.signum(lib2.getValue() - lib1.getValue()))
                 .collect(Collectors.toList());
-        desiredContentInfo.sort((info1, info2) -> Long.signum(info2.getSize() - info1.getSize()));
+
+        var sortedDesiredContent = new ArrayList<>(desiredContentInfo);
+        sortedDesiredContent.sort(
+                (info1, info2) -> Long.signum(info2.getSize() - info1.getSize()));
 
         var contentDestinations = new HashMap<String, UUID>();
         for (var lib : libCapacities) {
             var libId = lib.getKey();
-            var remainingCapacity = lib.getValue();
-            var contentItr = desiredContentInfo.iterator();
+            long remainingCapacity = lib.getValue();
+            var contentItr = sortedDesiredContent.iterator();
             while (contentItr.hasNext()) {
                 var info = contentItr.next();
                 if (info.getSize() <= remainingCapacity) {
@@ -38,7 +38,7 @@ public class GreedyStrategy implements ISyncStrategy {
             }
         }
 
-        if (!libCapacities.isEmpty()) {
+        if (!sortedDesiredContent.isEmpty()) {
             throw new InsufficientSpaceException(
                     getClass().getCanonicalName() + ": Could not fit selected content in device");
         }

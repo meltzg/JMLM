@@ -36,13 +36,13 @@ public class FileSystemAudioContentDeviceTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Before
-    public void before() throws IOException {
+    public void setUp() throws IOException {
         this.device = new FileSystemAudioContentDevice();
         FileUtils.forceMkdir(Paths.get(TMPDIR).toFile());
     }
 
     @After
-    public void after() throws IOException {
+    public void tearDown() throws IOException {
         FileUtils.deleteDirectory(Paths.get(TMPDIR).toFile());
     }
 
