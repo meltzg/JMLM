@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
-public class GreedyStrategyTest {
+public class GreedySyncStrategyTest {
 
     private UUID libId1;
     private UUID libId2;
@@ -52,7 +52,7 @@ public class GreedyStrategyTest {
             ));
         }
 
-        var plan = new GreedyStrategy().createStrategy(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
+        var plan = new GreedySyncStrategy().createStrategy(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
         assertEquals(desiredContentInfo.size(), plan.transferToDevice.size());
         assertTrue(plan.transferToDevice.keySet().containsAll(desiredContentInfo.stream()
                 .map(AudioContent::getId)
@@ -75,7 +75,7 @@ public class GreedyStrategyTest {
             ));
         }
 
-        new GreedyStrategy().createStrategy(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
+        new GreedySyncStrategy().createStrategy(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
     }
 
     @Test
@@ -109,7 +109,7 @@ public class GreedyStrategyTest {
                 null
         ));
 
-        var plan = new GreedyStrategy().createStrategy(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
+        var plan = new GreedySyncStrategy().createStrategy(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
         assertEquals(1, plan.transferOnDevice.size());
         assertEquals(1, plan.transferToDevice.size());
         assertTrue(Arrays.asList(contents.get(0).getId(), contents.get(1).getId()).contains(
@@ -145,7 +145,7 @@ public class GreedyStrategyTest {
         ));
 
 
-        var plan = new GreedyStrategy().createStrategy(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
+        var plan = new GreedySyncStrategy().createStrategy(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
 
         assertEquals(desiredContentInfo.size(), plan.transferToDevice.size());
         assertTrue(plan.transferToDevice.keySet().containsAll(desiredContentInfo.stream()

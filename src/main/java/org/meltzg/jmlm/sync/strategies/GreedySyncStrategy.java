@@ -8,7 +8,7 @@ import org.meltzg.jmlm.sync.SyncPlan;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GreedyStrategy implements ISyncStrategy {
+public class GreedySyncStrategy implements ISyncStrategy {
     @Override
     public SyncPlan createStrategy(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses,
                                    Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
