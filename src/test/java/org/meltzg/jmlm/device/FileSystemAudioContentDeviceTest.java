@@ -25,15 +25,14 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
-import static org.meltzg.jmlm.CommonUtil.*;
+import static org.meltzg.jmlm.CommonUtil.RESOURCEDIR;
+import static org.meltzg.jmlm.CommonUtil.TMPDIR;
 
 public class FileSystemAudioContentDeviceTest {
 
-    private FileSystemAudioContentDevice device;
-
-
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+    private FileSystemAudioContentDevice device;
 
     @Before
     public void setUp() throws IOException {

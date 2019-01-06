@@ -9,7 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 
 import static org.junit.Assert.*;
-import static org.meltzg.jmlm.CommonUtil.*;
+import static org.meltzg.jmlm.CommonUtil.RESOURCEDIR;
 
 public class DeviceSyncManagerTest {
     private Gson gson;

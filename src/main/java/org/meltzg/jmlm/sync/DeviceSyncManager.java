@@ -4,10 +4,9 @@ import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
 import org.meltzg.jmlm.exceptions.SyncStrategyException;
-import org.meltzg.jmlm.sync.strategies.ISyncStrategy;
+import org.meltzg.jmlm.sync.strategies.RankedSyncStrategy;
 
 import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,32 +14,33 @@ public class DeviceSyncManager {
     private FileSystemAudioContentDevice mainLibrary;
     private FileSystemAudioContentDevice attachedDevice;
     private Map<String, ContentSyncStatus> syncStatuses;
-    private Set<String> allContent;
-    private List<Class<? extends ISyncStrategy>> rankedStrategies;
+    private Map<String, AudioContent> allContent;
+    private List<String> rankedStrategyClassNames;
 
 
     public DeviceSyncManager(FileSystemAudioContentDevice mainLibrary, FileSystemAudioContentDevice attachedDevice,
-                             List<Class<? extends ISyncStrategy>> rankedStrategies) {
+                             List<String> rankedStrategyClassNames) {
         this.mainLibrary = mainLibrary;
         this.attachedDevice = attachedDevice;
         this.syncStatuses = null;
         this.allContent = null;
-        this.rankedStrategies = rankedStrategies;
+        this.rankedStrategyClassNames = rankedStrategyClassNames;
 
         refreshSyncStatus();
     }
 
     public void refreshSyncStatus() {
         syncStatuses = new HashMap<>();
-        allContent = new HashSet<>();
+        allContent = new HashMap<>();
 
-        allContent.addAll(mainLibrary.getContent().keySet());
-        allContent.addAll(attachedDevice.getContent().keySet());
+        allContent.putAll(mainLibrary.getContent());
+        allContent.putAll(attachedDevice.getContent());
 
-        for (var id : allContent) {
+        for (var contentInfo : allContent.values()) {
+            var id = contentInfo.getId();
             var mainLibraryId = mainLibrary.containsContent(id) ? mainLibrary.getContent(id).getLibraryId() : null;
             var deviceLibraryId = attachedDevice.containsContent(id) ? attachedDevice.getContent(id).getLibraryId() : null;
-            var syncStatus = new ContentSyncStatus(id, mainLibraryId, deviceLibraryId);
+            var syncStatus = new ContentSyncStatus(contentInfo, mainLibraryId, deviceLibraryId);
             syncStatuses.put(id, syncStatus);
         }
     }
@@ -53,18 +53,18 @@ public class DeviceSyncManager {
     public ContentSyncStatus getSyncStatus(String id) {
         var status = this.syncStatuses.get(id);
         if (status == null) {
-            status = new ContentSyncStatus(id, null, null);
+            AudioContent contentInfo = new AudioContent();
+            contentInfo.setId(id);
+            status = new ContentSyncStatus(contentInfo, null, null);
         }
         return status;
     }
 
-    public void setRankedStrategies(List<Class<? extends ISyncStrategy>> rankedStrategies) {
-        this.rankedStrategies = rankedStrategies;
+    public void setRankedStrategies(List<String> rankedStrategyClassNames) {
+        this.rankedStrategyClassNames = rankedStrategyClassNames;
     }
 
-    public SyncPlan createSyncPlan(Set<String> desiredContent, NotInLibraryStrategy notInLibraryStrategy) throws FileNotFoundException, SyncStrategyException, InsufficientSpaceException {
-        SyncPlan plan = null;
-
+    public SyncPlan createSyncPlan(Set<String> desiredContent, NotInLibraryStrategy notInLibraryStrategy) throws FileNotFoundException, SyncStrategyException, InsufficientSpaceException, ClassNotFoundException {
         if (mainLibrary.getLibraryRoots().isEmpty()) {
             throw new IllegalStateException("Main library device has no libraries configured");
         }
@@ -78,25 +78,10 @@ public class DeviceSyncManager {
 
         }
 
-        for (var clazz : rankedStrategies) {
-            try {
-                var strategy = clazz.getDeclaredConstructor().newInstance();
-                try {
-                    plan = strategy.createStrategy(desiredContentInfo, syncStatuses,
-                            attachedDevice.getLibraryRootCapacities(), attachedDevice.getLibraryRootFreeSpace());
-                    break;
-                } catch (InsufficientSpaceException e) {
-                    e.printStackTrace();
-                    plan = null;
-                }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                e.printStackTrace();
-            }
-        }
+        var strategy = new RankedSyncStrategy(rankedStrategyClassNames.toArray(new String[0]));
 
-        if (plan == null) {
-            throw new InsufficientSpaceException("Could not fit selected content in device using any strategy");
-        }
+        var plan = strategy.createPlan(desiredContentInfo, syncStatuses,
+                attachedDevice.getLibraryRootCapacities(), attachedDevice.getLibraryRootFreeSpace());
 
         var transferToLibrary = new LinkedList<String>();
         for (var toDelete : plan.deleteFromDevice) {

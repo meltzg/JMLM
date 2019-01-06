@@ -14,7 +14,10 @@ import org.jaudiotagger.tag.TagException;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -209,7 +212,7 @@ public class FileSystemAudioContentDevice
         if (contentInfo == null) {
             throw new FileNotFoundException("Could not find content with ID " + id);
         }
-        if (contentInfo.getLibraryId() == destinationId){
+        if (contentInfo.getLibraryId() == destinationId) {
             return;
         }
 

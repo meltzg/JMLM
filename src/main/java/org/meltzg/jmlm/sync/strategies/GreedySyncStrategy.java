@@ -3,17 +3,14 @@ package org.meltzg.jmlm.sync.strategies;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
 import org.meltzg.jmlm.sync.ContentSyncStatus;
-import org.meltzg.jmlm.sync.SyncPlan;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GreedySyncStrategy implements ISyncStrategy {
+public class GreedySyncStrategy extends AbstractSyncStrategy {
     @Override
-    public SyncPlan createStrategy(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses,
-                                   Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
-        var plan = new SyncPlan();
-
+    protected void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses,
+                                       Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
         var libCapacities = destinationLibCapacities.entrySet()
                 .stream()
                 .sorted((lib1, lib2) -> Long.signum(lib2.getValue() - lib1.getValue()))
@@ -56,18 +53,5 @@ public class GreedySyncStrategy implements ISyncStrategy {
                 plan.transferToDevice.put(contentId, destination);
             }
         }
-
-        var desiredContentIds = desiredContentInfo.stream()
-                .map(AudioContent::getId)
-                .collect(Collectors.toSet());
-        var contentToRemove = syncStatuses.values().stream()
-                .filter((syncStatus) -> syncStatus.isOnDevice() &&
-                        !desiredContentIds.contains(syncStatus.getContentId()))
-                .map(ContentSyncStatus::getContentId)
-                .collect(Collectors.toList());
-
-        plan.deleteFromDevice.addAll(contentToRemove);
-
-        return plan;
     }
 }

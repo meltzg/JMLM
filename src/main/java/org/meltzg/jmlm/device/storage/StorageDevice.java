@@ -15,7 +15,8 @@ public class StorageDevice {
         this.partitions = partitions;
     }
 
-    private StorageDevice() {}
+    private StorageDevice() {
+    }
 
     public String getId() {
         return id;
@@ -41,7 +42,9 @@ public class StorageDevice {
         this.partitions = partitions;
     }
 
-    public Long getFreespace() { return freespace; }
+    public Long getFreespace() {
+        return freespace;
+    }
 
     public void setFreespace(long freespace) {
         this.freespace = freespace;

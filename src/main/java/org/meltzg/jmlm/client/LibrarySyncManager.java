@@ -10,16 +10,16 @@ import java.io.IOException;
 
 public class LibrarySyncManager extends Application {
 
+    public static void main(String[] args) {
+        launch();
+    }
+
     @Override
     public void start(Stage stage) throws IOException {
         var root = (Parent) FXMLLoader.load(getClass().getResource("LibrarySyncManager.fxml"));
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
-    }
-
-    public static void main(String[] args) {
-        launch();
     }
 
 }
