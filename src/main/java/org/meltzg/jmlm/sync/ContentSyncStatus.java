@@ -40,4 +40,8 @@ public class ContentSyncStatus {
     public boolean isOnDevice() {
         return deviceLibrary != null;
     }
+
+    public static ContentSyncStatus reverse(ContentSyncStatus status) {
+        return new ContentSyncStatus(status.contentInfo, status.deviceLibrary, status.mainLibrary);
+    }
 }

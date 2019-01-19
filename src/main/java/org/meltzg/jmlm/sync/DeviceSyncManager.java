@@ -8,6 +8,8 @@ import org.meltzg.jmlm.sync.strategies.RankedSyncStrategy;
 
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class DeviceSyncManager {
@@ -98,7 +100,20 @@ public class DeviceSyncManager {
             }
         }
 
-        // TODO handle transferToLibrary
+        // handle transferToLibrary as a sync
+        var desiredLibContent = transferToLibrary.stream()
+                .map(contentId -> allContent.get(contentId))
+                .collect(Collectors.toList());
+        desiredLibContent.addAll(mainLibrary.getContent().values());
+        var reverseSyncStatuses = syncStatuses.values().stream()
+                .map(ContentSyncStatus::reverse)
+                .collect(Collectors.toMap(ContentSyncStatus::getContentId, Function.identity()));
+        var libPlan = strategy.createPlan(desiredLibContent, reverseSyncStatuses,
+                mainLibrary.getLibraryRootCapacities(), mainLibrary.getLibraryRootFreeSpace());
+
+        plan.transferToLibrary = libPlan.transferToDevice;
+        plan.transferOnLibrary = libPlan.transferOnDevice;
+        plan.deleteFromLibrary = libPlan.deleteFromDevice;
 
         return plan;
     }
