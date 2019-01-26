@@ -1,0 +1,155 @@
+{
+  "libraryRoots": {
+    "15eedca3-364d-4ee8-9003-a9f55d063818": "/library1",
+    "c4dcc8d0-55f0-41c9-9746-64c695675b37": "/library2"
+  },
+  "content": [
+    {
+      "id": "23d746b9a0e120d35e5371844ddb3df8",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
+      "libraryPath": "/jst2018-12-09t05.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track5",
+      "discNum": 1,
+      "trackNum": 5
+    },
+    {
+      "id": "75e17b088c64abf7e41f93531fe9fcc6",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
+      "libraryPath": "/jst2018-12-09t04.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track4",
+      "discNum": 1,
+      "trackNum": 4
+    },
+    {
+      "id": "e5c71bbffc806fdbe33be57d3e8d3acf",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
+      "libraryPath": "/jst2018-12-09t11.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track11",
+      "discNum": 1,
+      "trackNum": 11
+    },
+    {
+      "id": "3f99ccbdc2a94efe9131b8bc4963ccc6",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
+      "libraryPath": "/jst2018-12-09t10.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track10",
+      "discNum": 1,
+      "trackNum": 10
+    },
+    {
+      "id": "94e7427b971974027866985c5d702e38",
+      "libraryId": "15eedca3-364d-4ee8-9003-a9f55d063818",
+      "libraryPath": "/jst2018-12-09t07.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track7",
+      "discNum": 1,
+      "trackNum": 7
+    },
+    {
+      "id": "2b5ede24a4a368d897b37846697cc5f9",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/jst2018-12-09t01.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track1",
+      "discNum": 1,
+      "trackNum": 1
+    },
+    {
+      "id": "089a17921f27c7bc10295766bd360a34",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/jst2018-12-09t06.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track6",
+      "discNum": 1,
+      "trackNum": 6
+    },
+    {
+      "id": "dc630779578133814253e25e7609ddd8",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/jst2018-12-09t02.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track2",
+      "discNum": 1,
+      "trackNum": 2
+    },
+    {
+      "id": "b1f1e3a7f7dffc70c442dce91eb31b9b",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/jst2018-12-09t09.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track9",
+      "discNum": 1,
+      "trackNum": 9
+    },
+    {
+      "id": "f48ecdaa47b67d3d21a1d8b22ca5fe46",
+      "libraryId": "c4dcc8d0-55f0-41c9-9746-64c695675b37",
+      "libraryPath": "/jst2018-12-09t03.flac",
+      "size": 10,
+      "genre": "Bluegrass",
+      "artist": "Jon Stickley Trio",
+      "album": "Live at The Abbey Bar @ Appalachian Brewing Company on 2018-12-09",
+      "title": "track3",
+      "discNum": 1,
+      "trackNum": 3
+    }
+  ],
+  "libraryContent": {
+    "15eedca3-364d-4ee8-9003-a9f55d063818": [
+      "23d746b9a0e120d35e5371844ddb3df8",
+      "75e17b088c64abf7e41f93531fe9fcc6",
+      "e5c71bbffc806fdbe33be57d3e8d3acf",
+      "3f99ccbdc2a94efe9131b8bc4963ccc6",
+      "94e7427b971974027866985c5d702e38"
+    ],
+    "c4dcc8d0-55f0-41c9-9746-64c695675b37": [
+      "2b5ede24a4a368d897b37846697cc5f9",
+      "089a17921f27c7bc10295766bd360a34",
+      "dc630779578133814253e25e7609ddd8",
+      "b1f1e3a7f7dffc70c442dce91eb31b9b",
+      "f48ecdaa47b67d3d21a1d8b22ca5fe46"
+    ]
+  },
+  "storageDevices": [
+    {
+      "id": "/dev/nvme0n1p2",
+      "capacity": 100,
+      "partitions": 2
+    }
+  ],
+  "libraryRootToStorage": {
+    "15eedca3-364d-4ee8-9003-a9f55d063818": "/dev/nvme0n1p2",
+    "c4dcc8d0-55f0-41c9-9746-64c695675b37": "/dev/nvme0n1p2"
+  }
+}

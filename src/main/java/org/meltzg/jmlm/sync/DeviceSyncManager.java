@@ -101,30 +101,34 @@ public class DeviceSyncManager {
         }
 
         // handle transferToLibrary as a sync
-        var desiredLibContent = transferToLibrary.stream()
-                .map(contentId -> allContent.get(contentId))
-                .collect(Collectors.toList());
-        desiredLibContent.addAll(mainLibrary.getContent().values());
-        var reverseSyncStatuses = syncStatuses.values().stream()
-                .map(ContentSyncStatus::reverse)
-                .collect(Collectors.toMap(ContentSyncStatus::getContentId, Function.identity()));
-        var libPlan = strategy.createPlan(desiredLibContent, reverseSyncStatuses,
-                mainLibrary.getLibraryRootCapacities(), mainLibrary.getLibraryRootFreeSpace());
+        if (!transferToLibrary.isEmpty()) {
+            var desiredLibContent = transferToLibrary.stream()
+                    .map(contentId -> allContent.get(contentId))
+                    .collect(Collectors.toList());
+            desiredLibContent.addAll(mainLibrary.getContent().values());
+            var reverseSyncStatuses = syncStatuses.values().stream()
+                    .map(ContentSyncStatus::reverse)
+                    .collect(Collectors.toMap(ContentSyncStatus::getContentId, Function.identity()));
+            var libPlan = strategy.createPlan(desiredLibContent, reverseSyncStatuses,
+                    mainLibrary.getLibraryRootCapacities(), mainLibrary.getLibraryRootFreeSpace());
 
-        plan.transferToLibrary = libPlan.transferToDevice;
-        plan.transferOnLibrary = libPlan.transferOnDevice;
-        plan.deleteFromLibrary = libPlan.deleteFromDevice;
+            plan.transferToLibrary = libPlan.transferToDevice;
+            plan.transferOnLibrary = libPlan.transferOnDevice;
+            plan.deleteFromLibrary = libPlan.deleteFromDevice;
+        }
 
         return plan;
     }
 
     private AudioContent getContentInfo(String contentId) {
         var syncStatus = syncStatuses.get(contentId);
-        if (syncStatus.isInLibrary()) {
-            return mainLibrary.getContent(contentId);
-        }
-        if (syncStatus.isOnDevice()) {
-            return attachedDevice.getContent(contentId);
+        if (syncStatus != null) {
+            if (syncStatus.isInLibrary()) {
+                return mainLibrary.getContent(contentId);
+            }
+            if (syncStatus.isOnDevice()) {
+                return attachedDevice.getContent(contentId);
+            }
         }
         return null;
     }
