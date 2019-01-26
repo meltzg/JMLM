@@ -1,5 +1,9 @@
 package org.meltzg.jmlm.sync;
 
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.TagException;
 import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
@@ -7,6 +11,7 @@ import org.meltzg.jmlm.exceptions.SyncStrategyException;
 import org.meltzg.jmlm.sync.strategies.RankedSyncStrategy;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -119,6 +124,39 @@ public class DeviceSyncManager {
 
         return plan;
     }
+
+    public void syncDevice(Set<String> desiredContent, NotInLibraryStrategy notInLibraryStrategy) throws ClassNotFoundException, IOException, InsufficientSpaceException, SyncStrategyException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
+        var plan = createSyncPlan(desiredContent, notInLibraryStrategy);
+        syncDevice(plan);
+    }
+
+    public void syncDevice(SyncPlan plan) throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
+        for (var toDelete : plan.deleteFromLibrary) {
+            mainLibrary.deleteContent(toDelete);
+        }
+        for (var transferOn : plan.transferOnLibrary.entrySet()) {
+            mainLibrary.moveContent(transferOn.getKey(), transferOn.getValue());
+        }
+        for (var transferTo : plan.transferToLibrary.entrySet()) {
+            mainLibrary.addContent(attachedDevice.getContentStream(transferTo.getKey()),
+                    getContentInfo(transferTo.getKey()).getLibraryPath(),
+                    transferTo.getValue());
+        }
+
+
+        for (var toDelete : plan.deleteFromDevice) {
+            attachedDevice.deleteContent(toDelete);
+        }
+        for (var transferOn : plan.transferOnDevice.entrySet()) {
+            attachedDevice.moveContent(transferOn.getKey(), transferOn.getValue());
+        }
+        for (var transferTo : plan.transferToDevice.entrySet()) {
+            attachedDevice.addContent(mainLibrary.getContentStream(transferTo.getKey()),
+                    getContentInfo(transferTo.getKey()).getLibraryPath(),
+                    transferTo.getValue());
+        }
+    }
+
 
     private AudioContent getContentInfo(String contentId) {
         var syncStatus = syncStatuses.get(contentId);
