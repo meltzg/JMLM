@@ -288,4 +288,31 @@ public class FileSystemAudioContentDeviceTest {
         device.addLibraryRoot(TMPDIR);
         device.getContentStream("not there");
     }
+
+    @Test
+    public void testGetParentDir() {
+        var parent = device.getParentDir(Paths.get(RESOURCEDIR, "audio"));
+        assertEquals(Paths.get(RESOURCEDIR), parent);
+    }
+
+    @Test
+    public void testGetParentDirAboveRoot() {
+        device.rootPath = Paths.get(RESOURCEDIR);
+        var parent = device.getParentDir(Paths.get(RESOURCEDIR).getParent());
+        assertEquals(Paths.get(RESOURCEDIR), parent);
+    }
+
+    @Test
+    public void testGetChildrenDirs() throws IllegalAccessException, IOException {
+        var children = device.getChildrenDirs(Paths.get(RESOURCEDIR, "audio"));
+        assertEquals(2, children.size());
+        assertTrue(children.containsAll(Arrays.asList(Paths.get(RESOURCEDIR, "/audio/jst2018-12-09"),
+                Paths.get(RESOURCEDIR, "/audio/kwgg2016-10-29"))));
+    }
+
+    @Test(expected = IllegalAccessException.class)
+    public void testGetChildrenDirsIllegalAccess() throws IllegalAccessException, IOException {
+        device.rootPath = Paths.get(RESOURCEDIR);
+        device.getChildrenDirs(Paths.get(RESOURCEDIR).getParent());
+    }
 }

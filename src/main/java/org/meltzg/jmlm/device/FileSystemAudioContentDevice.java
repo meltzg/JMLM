@@ -14,15 +14,13 @@ import org.jaudiotagger.tag.TagException;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FileSystemAudioContentDevice
         implements JsonSerializer<FileSystemAudioContentDevice>, JsonDeserializer<FileSystemAudioContentDevice> {
@@ -33,6 +31,8 @@ public class FileSystemAudioContentDevice
     private Map<UUID, Set<String>> libraryContent;
 
     private Gson gson;
+
+    protected Path rootPath;
 
     public FileSystemAudioContentDevice() {
         this.libraryRoots = new HashMap<>();
@@ -45,6 +45,8 @@ public class FileSystemAudioContentDevice
                 .registerTypeAdapter(this.getClass(),
                         this)
                 .create();
+
+        this.rootPath = Paths.get("/").toAbsolutePath();
     }
 
     public Map<UUID, String> getLibraryRoots() {
@@ -258,6 +260,23 @@ public class FileSystemAudioContentDevice
         deviceId = dirFileStore.name();
 
         return new StorageDevice(deviceId, capacity, freespace, 0);
+    }
+
+    public Path getParentDir(Path path) {
+        if (!path.toAbsolutePath().startsWith(rootPath)) {
+            return rootPath;
+        }
+        return path.getParent();
+    }
+
+    public List<Path> getChildrenDirs(Path path) throws IllegalAccessException, IOException {
+        if (!path.toAbsolutePath().startsWith(rootPath)) {
+            throw new IllegalAccessException("Cannot access " + path);
+        }
+
+        return Files.list(path)
+                .filter(p -> p.toFile().isDirectory())
+                .collect(Collectors.toList());
     }
 
     protected AudioContent makeAudioContent(String path, UUID libId) throws TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException, IOException {
