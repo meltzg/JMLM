@@ -1,5 +1,10 @@
 package org.meltzg.jmlm.device.content;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -9,12 +14,12 @@ public class AudioContent {
     protected String libraryPath;
     protected long size;
 
-    protected String genre;
-    protected String artist;
-    protected String album;
-    protected String title;
-    protected int discNum;
-    protected int trackNum;
+    protected final StringProperty genre;
+    protected final StringProperty artist;
+    protected final StringProperty album;
+    protected final StringProperty title;
+    protected final IntegerProperty discNum;
+    protected final IntegerProperty trackNum;
 
     public AudioContent(String id, UUID libraryId, String libraryPath, long size, String genre,
                         String artist, String album, String title, int discNum, int trackNum) {
@@ -22,15 +27,21 @@ public class AudioContent {
         this.libraryId = libraryId;
         this.libraryPath = libraryPath;
         this.size = size;
-        this.genre = genre;
-        this.artist = artist;
-        this.album = album;
-        this.title = title;
-        this.discNum = discNum;
-        this.trackNum = trackNum;
+        this.genre = new SimpleStringProperty(genre);
+        this.artist = new SimpleStringProperty(artist);
+        this.album = new SimpleStringProperty(album);
+        this.title = new SimpleStringProperty(title);
+        this.discNum = new SimpleIntegerProperty(discNum);
+        this.trackNum = new SimpleIntegerProperty(trackNum);
     }
 
     public AudioContent() {
+        this.genre = new SimpleStringProperty();
+        this.artist = new SimpleStringProperty();
+        this.album = new SimpleStringProperty();
+        this.title = new SimpleStringProperty();
+        this.discNum = new SimpleIntegerProperty();
+        this.trackNum = new SimpleIntegerProperty();
     }
 
     public String getId() {
@@ -66,51 +77,50 @@ public class AudioContent {
     }
 
     public String getGenre() {
-        return genre;
-    }
+        return genre.get(); }
 
     public void setGenre(String genre) {
-        this.genre = genre;
+        this.genre.set(genre);
     }
 
     public String getArtist() {
-        return artist;
+        return artist.get();
     }
 
     public void setArtist(String artist) {
-        this.artist = artist;
+        this.artist.set(artist);
     }
 
     public String getAlbum() {
-        return album;
+        return album.get();
     }
 
     public void setAlbum(String album) {
-        this.album = album;
+        this.album.set(album);
     }
 
     public String getTitle() {
-        return title;
+        return title.get();
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        this.title.set(title);
     }
 
     public int getDiscNum() {
-        return discNum;
+        return discNum.get();
     }
 
     public void setDiscNum(int discNum) {
-        this.discNum = discNum;
+        this.discNum.set(discNum);
     }
 
     public int getTrackNum() {
-        return trackNum;
+        return trackNum.get();
     }
 
     public void setTrackNum(int trackNum) {
-        this.trackNum = trackNum;
+        this.trackNum.set(trackNum);
     }
 
     @Override

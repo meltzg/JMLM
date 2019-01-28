@@ -45,12 +45,12 @@ dependencies {
 }
 
 application {
-    mainClassName = 'JMLM.main/org.meltzg.jmlm.client.LibrarySyncManager'
+    mainClassName = 'JMLM.main/org.meltzg.jmlm.client.Main'
 }
 
 jar {
     manifest {
-        attributes 'Main-Class': 'org.meltzg.jmlm.client.Launcher'
+        attributes 'Main-Class': 'org.meltzg.jmlm.client.Main'
     }
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }

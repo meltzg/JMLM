@@ -6,6 +6,11 @@ module JMLM.main {
     requires jaudiotagger;
     requires javafx.graphics;
     requires javafx.fxml;
+    requires javafx.controls;
+    requires java.sql;
 
     exports org.meltzg.jmlm.client;
+    exports org.meltzg.jmlm.sync;
+
+    opens org.meltzg.jmlm.client;
 }
