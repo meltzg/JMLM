@@ -2,19 +2,32 @@ package org.meltzg.jmlm.client;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
+import javafx.fxml.Initializable;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class MainSceneController {
+public class MainSceneController implements Initializable {
 
     @FXML
-    private TextField txtDateTime;
+    private StackPane mainArea;
 
-    public void showDateTime(ActionEvent actionEvent) {
-        var now = new Date();
-        var dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS");
-        txtDateTime.setText(dateFormat.format(now));
+    @FXML
+    private Pane libraryView;
+
+    @FXML
+    private Pane deviceManagerView;
+
+    private static final String defaultView = "LibraryManagerView.fxml";
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+
+    }
+
+    public void openDeviceManager(ActionEvent actionEvent) {
+        deviceManagerView.toFront();
     }
 }
