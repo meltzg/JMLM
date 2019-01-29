@@ -1,10 +1,5 @@
 package org.meltzg.jmlm.device.content;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,34 +9,27 @@ public class AudioContent {
     protected String libraryPath;
     protected long size;
 
-    protected final StringProperty genre;
-    protected final StringProperty artist;
-    protected final StringProperty album;
-    protected final StringProperty title;
-    protected final IntegerProperty discNum;
-    protected final IntegerProperty trackNum;
+    protected String genre;
+    protected String artist;
+    protected String album;
+    protected String title;
+    protected int discNum;
+    protected int trackNum;
 
-    public AudioContent(String id, UUID libraryId, String libraryPath, long size, String genre,
-                        String artist, String album, String title, int discNum, int trackNum) {
+    public AudioContent(String id, UUID libraryId, String libraryPath, long size, String genre, String artist, String album, String title, int discNum, int trackNum) {
         this.id = id;
         this.libraryId = libraryId;
         this.libraryPath = libraryPath;
         this.size = size;
-        this.genre = new SimpleStringProperty(genre);
-        this.artist = new SimpleStringProperty(artist);
-        this.album = new SimpleStringProperty(album);
-        this.title = new SimpleStringProperty(title);
-        this.discNum = new SimpleIntegerProperty(discNum);
-        this.trackNum = new SimpleIntegerProperty(trackNum);
+        this.genre = genre;
+        this.artist = artist;
+        this.album = album;
+        this.title = title;
+        this.discNum = discNum;
+        this.trackNum = trackNum;
     }
 
     public AudioContent() {
-        this.genre = new SimpleStringProperty();
-        this.artist = new SimpleStringProperty();
-        this.album = new SimpleStringProperty();
-        this.title = new SimpleStringProperty();
-        this.discNum = new SimpleIntegerProperty();
-        this.trackNum = new SimpleIntegerProperty();
     }
 
     public String getId() {
@@ -77,50 +65,51 @@ public class AudioContent {
     }
 
     public String getGenre() {
-        return genre.get(); }
+        return genre;
+    }
 
     public void setGenre(String genre) {
-        this.genre.set(genre);
+        this.genre = genre;
     }
 
     public String getArtist() {
-        return artist.get();
+        return artist;
     }
 
     public void setArtist(String artist) {
-        this.artist.set(artist);
+        this.artist = artist;
     }
 
     public String getAlbum() {
-        return album.get();
+        return album;
     }
 
     public void setAlbum(String album) {
-        this.album.set(album);
+        this.album = album;
     }
 
     public String getTitle() {
-        return title.get();
+        return title;
     }
 
     public void setTitle(String title) {
-        this.title.set(title);
+        this.title = title;
     }
 
     public int getDiscNum() {
-        return discNum.get();
+        return discNum;
     }
 
     public void setDiscNum(int discNum) {
-        this.discNum.set(discNum);
+        this.discNum = discNum;
     }
 
     public int getTrackNum() {
-        return trackNum.get();
+        return trackNum;
     }
 
     public void setTrackNum(int trackNum) {
-        this.trackNum.set(trackNum);
+        this.trackNum = trackNum;
     }
 
     @Override
@@ -128,19 +117,19 @@ public class AudioContent {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AudioContent that = (AudioContent) o;
-        return size == that.size &&
-                discNum == that.discNum &&
-                trackNum == that.trackNum &&
-                id.equals(that.id) &&
-                libraryPath.equals(that.libraryPath) &&
-                genre.equals(that.genre) &&
-                artist.equals(that.artist) &&
-                album.equals(that.album) &&
-                title.equals(that.title);
+        return getSize() == that.getSize() &&
+                getDiscNum() == that.getDiscNum() &&
+                getTrackNum() == that.getTrackNum() &&
+                getId().equals(that.getId()) &&
+                getGenre().equals(that.getGenre()) &&
+                getArtist().equals(that.getArtist()) &&
+                getAlbum().equals(that.getAlbum()) &&
+                getTitle().equals(that.getTitle());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, libraryPath, size, genre, artist, album, title, discNum, trackNum);
+        return Objects.hash(getId(), getSize(), getGenre(),
+                getArtist(), getAlbum(), getTitle(), getDiscNum(), getTrackNum());
     }
 }
