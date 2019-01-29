@@ -8,7 +8,6 @@ module JMLM.main {
     requires javafx.fxml;
     requires javafx.controls;
     requires java.sql;
-    requires h2;
 
     exports org.meltzg.jmlm.client;
     exports org.meltzg.jmlm.sync;

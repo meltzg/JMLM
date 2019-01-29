@@ -40,7 +40,7 @@ public class LazySyncStrategy extends AbstractSyncStrategy {
             for (var freeSpaceEntry : freeSpaceEntries) {
                 var freeSpace = freeSpaceEntry.getValue();
                 if (desiredContent.getSize() <= freeSpace) {
-                    plan.transferToDevice.put(desiredContent.getCrossDeviceId(), freeSpaceEntry.getKey());
+                    plan.transferToDevice.put(desiredContent.getId(), freeSpaceEntry.getKey());
                     spaceFound = true;
                     desiredContentItr.remove();
                     freeSpaceEntry.setValue(freeSpaceEntry.getValue() - desiredContent.getSize());
@@ -49,7 +49,7 @@ public class LazySyncStrategy extends AbstractSyncStrategy {
             }
             if (!spaceFound) {
                 throw new InsufficientSpaceException(
-                        getClass().getCanonicalName() + ": Could not fit content " + desiredContent.getCrossDeviceId() + " in device");
+                        getClass().getCanonicalName() + ": Could not fit content " + desiredContent.getId() + " in device");
             }
         }
     }

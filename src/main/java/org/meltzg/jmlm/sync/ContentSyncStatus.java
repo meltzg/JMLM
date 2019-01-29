@@ -12,7 +12,7 @@ public class ContentSyncStatus {
 
     public ContentSyncStatus(AudioContent contentInfo, UUID mainLibrary, UUID deviceLibrary) {
         this.contentInfo = contentInfo;
-        this.contentId = contentInfo.getCrossDeviceId();
+        this.contentId = contentInfo.getId();
         this.mainLibrary = mainLibrary;
         this.deviceLibrary = deviceLibrary;
     }

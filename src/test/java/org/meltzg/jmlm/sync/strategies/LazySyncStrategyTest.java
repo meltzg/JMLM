@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
 
 public class LazySyncStrategyTest extends AbstractSyncStrategyTest {
-/*
+
     @Override
     protected AbstractSyncStrategy createStrategy() {
         return new LazySyncStrategy();
@@ -14,5 +14,5 @@ public class LazySyncStrategyTest extends AbstractSyncStrategyTest {
     @Test(expected = InsufficientSpaceException.class)
     public void createPlanNeedsShuffle() throws InsufficientSpaceException {
         super.createPlanNeedsShuffle();
-    }*/
+    }
 }
