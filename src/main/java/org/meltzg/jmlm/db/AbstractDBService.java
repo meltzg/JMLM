@@ -172,4 +172,125 @@ public abstract class AbstractDBService {
             }
         }
     }
+
+    /**
+     * Enum represents the SQL data types supported by the DBServiceBase
+     */
+    protected enum DBType {
+        ARRAY("array"),
+        BIGINT("bigint"),
+        BOOLEAN("boolean"),
+        DOUBLE("double"),
+        INT("integer"),
+        UUID("uuid"),
+        TEXT("varchar");
+
+        private final String name;
+
+        DBType(String n) {
+            name = n;
+        }
+
+        public boolean equalsName(String otherName) {
+            return name.equals(otherName);
+        }
+
+        public String toString() {
+            return this.name;
+        }
+    }
+
+    protected enum UniqueType {
+        NOT, PRIMARY_KEY, UNIQUE;
+    }
+
+    protected static class ColumnDefinition {
+        private String name;
+        private DBType type;
+        private UniqueType uniqueType;
+
+        public ColumnDefinition(String name, DBType type) {
+            this(name, type, UniqueType.NOT);
+        }
+
+        public ColumnDefinition(String name, DBType type, UniqueType uniqueType) {
+            this.name = name;
+            this.type = type;
+            this.uniqueType = uniqueType;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public DBType getType() {
+            return type;
+        }
+
+        public UniqueType getUniqueType() {
+            return uniqueType;
+        }
+
+        public String toSQLColumnDefinition() {
+            var def = String.join(" ", name, type.toString());
+            switch (uniqueType) {
+
+                case NOT:
+                    break;
+                case PRIMARY_KEY:
+                    def = String.join(" ", def, "PRIMARY KEY");
+                    break;
+                case UNIQUE:
+                    def = String.join(" ", def, "UNIQUE");
+                    break;
+            }
+            return def;
+        }
+    }
+
+    /**
+     * Represents a value to use in a PreparedStatement
+     */
+    protected class StatementParameter {
+        private Object value;
+        private DBType type;
+        /**
+         * The type of elements if this's type is DBType.ARRAY
+         */
+        private DBType itemsType;
+
+        public StatementParameter(Object value, DBType type) {
+            this(value, type, null);
+        }
+
+        public StatementParameter(Object value, DBType type, DBType itemsType) {
+            this.value = value;
+            this.type = type;
+            this.itemsType = itemsType;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
+
+        public DBType getType() {
+            return type;
+        }
+
+        public void setType(DBType type) {
+            this.type = type;
+        }
+
+        public DBType getItemsType() {
+            return itemsType;
+        }
+
+        public void setItemsType(DBType itemsType) {
+            this.itemsType = itemsType;
+        }
+    }
 }

@@ -1,6 +1,6 @@
 package org.meltzg.jmlm.device.content;
 
-import org.meltzg.jmlm.db.*;
+import org.meltzg.jmlm.db.AbstractDBService;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
