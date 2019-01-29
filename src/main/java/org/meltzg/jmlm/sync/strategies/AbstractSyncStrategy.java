@@ -28,7 +28,7 @@ public abstract class AbstractSyncStrategy {
 
     private void planContentToRemove(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses) {
         var desiredContentIds = desiredContentInfo.stream()
-                .map(AudioContent::getId)
+                .map(AudioContent::getCrossDeviceId)
                 .collect(Collectors.toSet());
         var contentToRemove = syncStatuses.values().stream()
                 .filter((syncStatus) -> syncStatus.isOnDevice() &&

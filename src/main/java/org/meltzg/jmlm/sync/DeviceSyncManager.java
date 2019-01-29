@@ -14,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class DeviceSyncManager {
@@ -24,7 +23,7 @@ public class DeviceSyncManager {
     private Map<String, AudioContent> allContent;
     private List<String> rankedStrategyClassNames;
 
-
+/*
     public DeviceSyncManager(FileSystemAudioContentDevice mainLibrary, FileSystemAudioContentDevice attachedDevice,
                              List<String> rankedStrategyClassNames) {
         this.mainLibrary = mainLibrary;
@@ -44,7 +43,7 @@ public class DeviceSyncManager {
         allContent.putAll(attachedDevice.getContent());
 
         for (var contentInfo : allContent.values()) {
-            var id = contentInfo.getId();
+            var id = contentInfo.getCrossDeviceId();
             var mainLibraryId = mainLibrary.containsContent(id) ? mainLibrary.getContent(id).getLibraryId() : null;
             var deviceLibraryId = attachedDevice.containsContent(id) ? attachedDevice.getContent(id).getLibraryId() : null;
             var syncStatus = new ContentSyncStatus(contentInfo, mainLibraryId, deviceLibraryId);
@@ -61,7 +60,7 @@ public class DeviceSyncManager {
         var status = this.syncStatuses.get(id);
         if (status == null) {
             AudioContent contentInfo = new AudioContent();
-            contentInfo.setId(id);
+            contentInfo.setCrossDeviceId(id);
             status = new ContentSyncStatus(contentInfo, null, null);
         }
         return status;
@@ -169,5 +168,5 @@ public class DeviceSyncManager {
             }
         }
         return null;
-    }
+    }*/
 }

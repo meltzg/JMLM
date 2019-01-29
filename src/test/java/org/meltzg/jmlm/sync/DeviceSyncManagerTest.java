@@ -18,7 +18,7 @@ import static org.meltzg.jmlm.CommonUtil.RESOURCEDIR;
 
 public class DeviceSyncManagerTest {
     private Gson gson;
-
+/*
     @Before
     public void setUp() {
         this.gson = new FileSystemAudioContentDevice().getGson();
@@ -171,5 +171,5 @@ public class DeviceSyncManagerTest {
         var syncManager = new DeviceSyncManager(device1, device2, getRankedStrategies());
         syncManager.createSyncPlan(new HashSet<>(Collections.singletonList("notOnDevice")),
                 NotInLibraryStrategy.CANCEL_SYNC);
-    }
+    }*/
 }

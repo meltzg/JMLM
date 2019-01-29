@@ -28,7 +28,7 @@ public class GreedySyncStrategy extends AbstractSyncStrategy {
             while (contentItr.hasNext()) {
                 var info = contentItr.next();
                 if (info.getSize() <= remainingCapacity) {
-                    contentDestinations.put(info.getId(), libId);
+                    contentDestinations.put(info.getCrossDeviceId(), libId);
                     remainingCapacity -= info.getSize();
                     contentItr.remove();
                 }

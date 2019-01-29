@@ -33,7 +33,7 @@ public class FileSystemAudioContentDevice
     private Gson gson;
 
     protected Path rootPath;
-
+/*
     public FileSystemAudioContentDevice() {
         this.libraryRoots = new HashMap<>();
         this.storageDevices = HashBiMap.create();
@@ -170,7 +170,7 @@ public class FileSystemAudioContentDevice
             Files.copy(stream, destination);
 
             var contentData = makeAudioContent(destination.toString(), libraryId);
-            if (content.containsKey(contentData.getId())) {
+            if (content.containsKey(contentData.getCrossDeviceId())) {
                 throw new FileAlreadyExistsException("Content already exists on device");
             }
 
@@ -307,16 +307,16 @@ public class FileSystemAudioContentDevice
     }
 
     private void registerContent(AudioContent contentData, UUID libId) {
-        content.put(contentData.getId(), contentData);
-        libraryContent.get(libId).add(contentData.getId());
+        content.put(contentData.getCrossDeviceId(), contentData);
+        libraryContent.get(libId).add(contentData.getCrossDeviceId());
         contentData.setLibraryId(libId);
     }
 
     private void unregisterContent(AudioContent contentData) {
-        content.remove(contentData.getId());
-        libraryContent.get(contentData.getLibraryId()).remove(contentData.getId());
+        content.remove(contentData.getCrossDeviceId());
+        libraryContent.get(contentData.getLibraryId()).remove(contentData.getCrossDeviceId());
     }
-
+*/
     @Override
     public FileSystemAudioContentDevice deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         var jsonObject = json.getAsJsonObject();
@@ -334,7 +334,7 @@ public class FileSystemAudioContentDevice
 
         for (var contentJson : jsonObject.getAsJsonArray("content")) {
             AudioContent content = context.deserialize(contentJson, AudioContent.class);
-            device.content.put(content.getId(), content);
+            device.content.put(content.getCrossDeviceId(), content);
         }
 
         for (var entry : jsonObject.getAsJsonObject("libraryContent").entrySet()) {
