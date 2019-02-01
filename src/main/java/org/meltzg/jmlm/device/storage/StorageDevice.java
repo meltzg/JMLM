@@ -1,34 +1,22 @@
 package org.meltzg.jmlm.device.storage;
 
-import java.math.BigInteger;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class StorageDevice {
-    private String id;
-    private BigInteger capacity;
-
-    public StorageDevice(String id, BigInteger capacity) {
-        this.id = id;
-        this.capacity = capacity;
-    }
-
-    public StorageDevice() {
-        id = null;
-        capacity = BigInteger.valueOf(-1);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public BigInteger getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(BigInteger capacity) {
-        this.capacity = capacity;
-    }
+    @Id
+    String id;
+    long capacity;
+    long freeSpace;
+    int partitions;
 }
