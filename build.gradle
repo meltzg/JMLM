@@ -43,4 +43,9 @@ dependencies {
 	compile 'org.apache.commons:commons-lang3:3.+'
 }
 
-defaultTasks 'clean', 'build', 'jacocoTestReport'
+jacocoTestReport {
+	reports {
+		xml.enabled true
+		html.enabled false
+	}
+}
