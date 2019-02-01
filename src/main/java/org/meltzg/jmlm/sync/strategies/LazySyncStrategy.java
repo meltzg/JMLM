@@ -36,6 +36,10 @@ public class LazySyncStrategy extends AbstractSyncStrategy {
         var desiredContentItr = sortedDesiredContent.iterator();
         while (desiredContentItr.hasNext()) {
             var desiredContent = desiredContentItr.next();
+            if (syncStatuses.get(desiredContent.getId()).isOnDevice()) {
+                desiredContentItr.remove();
+                continue;
+            }
             var spaceFound = false;
             for (var freeSpaceEntry : freeSpaceEntries) {
                 var freeSpace = freeSpaceEntry.getValue();

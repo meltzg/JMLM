@@ -8,13 +8,15 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.meltzg.jmlm.repositories.AudioContentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
@@ -28,20 +30,23 @@ import static org.junit.Assert.*;
 import static org.meltzg.jmlm.CommonUtil.RESOURCEDIR;
 import static org.meltzg.jmlm.CommonUtil.TMPDIR;
 
+@RunWith(SpringRunner.class)
+@DataJpaTest
 public class FileSystemAudioContentDeviceTest {
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-    private FileSystemAudioContentDevice device;
+    @Autowired
+    AudioContentRepository contentRepo;
+
+    FileSystemAudioContentDevice device;
 
     @Before
-    public void setUp() throws IOException {
-        this.device = new FileSystemAudioContentDevice();
+    public void setUp() throws Exception {
+        device = new FileSystemAudioContentDevice(contentRepo);
         FileUtils.forceMkdir(Paths.get(TMPDIR).toFile());
     }
 
     @After
-    public void tearDown() throws IOException {
+    public void tearDown() throws Exception {
         FileUtils.deleteDirectory(Paths.get(TMPDIR).toFile());
     }
 
@@ -49,18 +54,14 @@ public class FileSystemAudioContentDeviceTest {
     public void testAddLibraryRoot() throws IOException, URISyntaxException {
         var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
         device.addLibraryRoot(libraryRootPath);
-        var expectedDevice = device.getGson().fromJson(new FileReader(RESOURCEDIR + "/audio/jst2018-12-09.json"), FileSystemAudioContentDevice.class);
 
-        assertTrue(expectedDevice.getLibraryRoots().values().containsAll(device.getLibraryRoots().values()));
         assertEquals(1, device.getStorageDevices().size());
 
-        var storageDevice = new ArrayList<>(device.getStorageDevices()).get(0);
-        var expectedStorageDevice = new ArrayList<>(expectedDevice.getStorageDevices()).get(0);
+        var storageDevice = new ArrayList<>(device.getStorageDevices().values()).get(0);
         var libraryRootFile = new File(libraryRootPath);
         assertTrue(storageDevice.getCapacity() >= libraryRootFile.getFreeSpace());
         assertTrue(storageDevice.getCapacity() < libraryRootFile.getTotalSpace());
-        assertEquals(expectedDevice.getContent(), device.getContent());
-        assertEquals(expectedStorageDevice.getId(), storageDevice.getId());
+        assertEquals(11, device.getContent().size());
     }
 
     @Test
@@ -82,7 +83,7 @@ public class FileSystemAudioContentDeviceTest {
         assertEquals(1, device.getStorageDevices().size());
         assertEquals(2, device.getLibraryRootCapacities().size());
 
-        var storageDevice = new ArrayList<>(device.getStorageDevices()).get(0);
+        var storageDevice = new ArrayList<>(device.getStorageDevices().values()).get(0);
         assertTrue(Math.abs(storageDevice.getCapacity() - device.getLibraryRootCapacities().values()
                 .stream().mapToLong(Long::longValue).sum()) <= 1);
     }
@@ -114,15 +115,6 @@ public class FileSystemAudioContentDeviceTest {
     }
 
     @Test
-    public void testSerialize() throws IOException, URISyntaxException {
-        var libraryRootPath = RESOURCEDIR + "/audio/jst2018-12-09";
-        device.addLibraryRoot(libraryRootPath);
-        var deserialized = device.getGson().fromJson(device.getGson().toJson(device), FileSystemAudioContentDevice.class);
-
-        assertEquals(device, deserialized);
-    }
-
-    @Test
     public void testAddContent() throws ReadOnlyFileException, IOException, TagException, InvalidAudioFrameException, CannotReadException, URISyntaxException {
         device.addLibraryRoot(TMPDIR);
         var testFile = RESOURCEDIR + "/audio/jst2018-12-09/jst2018-12-09t01.flac";
@@ -144,7 +136,7 @@ public class FileSystemAudioContentDeviceTest {
         var content = device.addContent(isfs, testSubLibPath,
                 device.getLibraryRoots().keySet().iterator().next());
         assertNull(content);
-        assertTrue(!Paths.get(TMPDIR, testSubLibPath).toFile().exists());
+        assertFalse(Paths.get(TMPDIR, testSubLibPath).toFile().exists());
     }
 
     @Test
@@ -161,7 +153,7 @@ public class FileSystemAudioContentDeviceTest {
             assertTrue(e.getMessage().contains("Is a directory"));
         }
 
-        assertTrue(!Paths.get(TMPDIR, testSubLibPath).toFile().exists());
+        assertFalse(Paths.get(TMPDIR, testSubLibPath).toFile().exists());
     }
 
     @Test(expected = FileAlreadyExistsException.class)
@@ -196,8 +188,8 @@ public class FileSystemAudioContentDeviceTest {
         var content = device.addContent(isfs, testSubLibPath,
                 device.getLibraryRoots().keySet().iterator().next());
         device.deleteContent(content.getId());
-        assertTrue(!device.getContent().containsKey(content.getId()));
-        assertTrue(!Files.exists(Paths.get(TMPDIR, testSubLibPath)));
+        assertFalse(device.getContent().containsKey(content.getId()));
+        assertFalse(Files.exists(Paths.get(TMPDIR, testSubLibPath)));
     }
 
     @Test(expected = FileNotFoundException.class)
@@ -227,9 +219,11 @@ public class FileSystemAudioContentDeviceTest {
         device.moveContent(content.getId(), libIds.get(1));
 
         content = device.getContent(content.getId());
+        var contentLocation = device.getContentLocations().get(content.getId());
 
-        assertEquals(content.getLibraryId(), libIds.get(1));
-        assertTrue(Files.isRegularFile(Paths.get(device.getLibraryRoots().get(libIds.get(1)), content.getLibraryPath())));
+        assertEquals(contentLocation.getLibraryId(), libIds.get(1));
+        assertTrue(Files.isRegularFile(Paths.get(device.getLibraryRoots().get(libIds.get(1)),
+                contentLocation.getLibrarySubPath())));
     }
 
     @Test(expected = FileNotFoundException.class)
@@ -272,7 +266,7 @@ public class FileSystemAudioContentDeviceTest {
         FileUtils.forceMkdir(tmpRoot1.toFile());
         FileUtils.forceMkdir(tmpRoot2.toFile());
 
-        var device2 = new FileSystemAudioContentDevice();
+        var device2 = new FileSystemAudioContentDevice(contentRepo);
         device.addLibraryRoot(tmpRoot1.toString());
         device2.addLibraryRoot(tmpRoot2.toString());
 
@@ -297,7 +291,7 @@ public class FileSystemAudioContentDeviceTest {
 
     @Test
     public void testGetParentDirAboveRoot() {
-        device.rootPath = Paths.get(RESOURCEDIR);
+        device.setRootPath(RESOURCEDIR);
         var parent = device.getParentDir(Paths.get(RESOURCEDIR).getParent());
         assertEquals(Paths.get(RESOURCEDIR), parent);
     }
@@ -312,7 +306,7 @@ public class FileSystemAudioContentDeviceTest {
 
     @Test(expected = IllegalAccessException.class)
     public void testGetChildrenDirsIllegalAccess() throws IllegalAccessException, IOException {
-        device.rootPath = Paths.get(RESOURCEDIR);
+        device.setRootPath(RESOURCEDIR);
         device.getChildrenDirs(Paths.get(RESOURCEDIR).getParent());
     }
 }

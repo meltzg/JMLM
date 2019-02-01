@@ -14,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class DeviceSyncManager {
@@ -45,8 +44,10 @@ public class DeviceSyncManager {
 
         for (var contentInfo : allContent.values()) {
             var id = contentInfo.getId();
-            var mainLibraryId = mainLibrary.containsContent(id) ? mainLibrary.getContent(id).getLibraryId() : null;
-            var deviceLibraryId = attachedDevice.containsContent(id) ? attachedDevice.getContent(id).getLibraryId() : null;
+            var mainContentLocation = mainLibrary.getContentLocations().get(id);
+            var attachedContentLocation = attachedDevice.getContentLocations().get(id);
+            var mainLibraryId = mainLibrary.containsContent(id) ? mainContentLocation.getLibraryId() : null;
+            var deviceLibraryId = attachedDevice.containsContent(id) ? attachedContentLocation.getLibraryId() : null;
             var syncStatus = new ContentSyncStatus(contentInfo, mainLibraryId, deviceLibraryId);
             syncStatuses.put(id, syncStatus);
         }
@@ -138,8 +139,9 @@ public class DeviceSyncManager {
             mainLibrary.moveContent(transferOn.getKey(), transferOn.getValue());
         }
         for (var transferTo : plan.transferToLibrary.entrySet()) {
+            var contentLocation = attachedDevice.getContentLocations().get(transferTo.getKey());
             mainLibrary.addContent(attachedDevice.getContentStream(transferTo.getKey()),
-                    getContentInfo(transferTo.getKey()).getLibraryPath(),
+                    contentLocation.getLibrarySubPath(),
                     transferTo.getValue());
         }
 
@@ -151,8 +153,9 @@ public class DeviceSyncManager {
             attachedDevice.moveContent(transferOn.getKey(), transferOn.getValue());
         }
         for (var transferTo : plan.transferToDevice.entrySet()) {
+            var contentLocation = mainLibrary.getContentLocations().get(transferTo.getKey());
             attachedDevice.addContent(mainLibrary.getContentStream(transferTo.getKey()),
-                    getContentInfo(transferTo.getKey()).getLibraryPath(),
+                    contentLocation.getLibrarySubPath(),
                     transferTo.getValue());
         }
     }

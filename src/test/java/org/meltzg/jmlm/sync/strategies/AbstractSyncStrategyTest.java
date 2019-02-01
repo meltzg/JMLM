@@ -46,13 +46,12 @@ public abstract class AbstractSyncStrategyTest {
         for (var i = 0; i < 4; i++) {
             var content = new AudioContent();
             content.setId(UUID.randomUUID().toString());
-            content.setLibraryId(UUID.randomUUID());
             content.setSize(25);
             desiredContentInfo.add(content);
 
             syncStatuses.put(content.getId(), new ContentSyncStatus(
                     content,
-                    content.getLibraryId(),
+                    UUID.randomUUID(),
                     null
             ));
         }
@@ -69,13 +68,12 @@ public abstract class AbstractSyncStrategyTest {
         for (var i = 0; i < 5; i++) {
             var content = new AudioContent();
             content.setId(UUID.randomUUID().toString());
-            content.setLibraryId(UUID.randomUUID());
             content.setSize(25);
             desiredContentInfo.add(content);
 
             syncStatuses.put(content.getId(), new ContentSyncStatus(
                     content,
-                    content.getLibraryId(),
+                    UUID.randomUUID(),
                     null
             ));
         }
@@ -89,7 +87,6 @@ public abstract class AbstractSyncStrategyTest {
         for (var i = 0; i < 3; i++) {
             var content = new AudioContent();
             content.setId(UUID.randomUUID().toString());
-            content.setLibraryId(UUID.randomUUID());
             content.setSize(25);
             contents.add(content);
             desiredContentInfo.add(content);
@@ -98,19 +95,19 @@ public abstract class AbstractSyncStrategyTest {
         libFreespace.put(libId1, libFreespace.get(libId1) - contents.get(0).getSize());
         syncStatuses.put(contents.get(0).getId(), new ContentSyncStatus(
                 contents.get(0),
-                contents.get(0).getLibraryId(),
+                UUID.randomUUID(),
                 libId1
         ));
         libFreespace.put(libId2, libFreespace.get(libId2) - contents.get(1).getSize());
         syncStatuses.put(contents.get(1).getId(), new ContentSyncStatus(
                 contents.get(1),
-                contents.get(1).getLibraryId(),
+                UUID.randomUUID(),
                 libId2
         ));
         contents.get(2).setSize(50);
         syncStatuses.put(contents.get(2).getId(), new ContentSyncStatus(
                 contents.get(2),
-                contents.get(2).getLibraryId(),
+                UUID.randomUUID(),
                 null
         ));
 
@@ -127,26 +124,24 @@ public abstract class AbstractSyncStrategyTest {
         for (var i = 0; i < 4; i++) {
             var content = new AudioContent();
             content.setId(UUID.randomUUID().toString());
-            content.setLibraryId(UUID.randomUUID());
             content.setSize(25);
             desiredContentInfo.add(content);
 
             syncStatuses.put(content.getId(), new ContentSyncStatus(
                     content,
-                    content.getLibraryId(),
+                    UUID.randomUUID(),
                     null
             ));
         }
 
         var existingContent = new AudioContent();
         existingContent.setId(UUID.randomUUID().toString());
-        existingContent.setLibraryId(libId1);
         existingContent.setSize(25);
         libFreespace.put(libId1, libFreespace.get(libId1) - existingContent.getSize());
         syncStatuses.put(existingContent.getId(), new ContentSyncStatus(
                 existingContent,
                 UUID.randomUUID(),
-                existingContent.getLibraryId()
+                UUID.randomUUID()
         ));
 
 
