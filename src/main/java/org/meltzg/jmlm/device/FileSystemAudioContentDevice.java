@@ -178,14 +178,11 @@ public class FileSystemAudioContentDevice {
         var libraryPath = libraryRoots.get(libraryId);
 
         var path = Paths.get(libraryPath, contentLocation.getLibrarySubPath());
-        try {
-            Files.delete(path);
-            unregisterContent(contentData);
-            var storage = storageDevices.get(libraryRootToStorage.get(libraryId));
-            storage.setFreeSpace(storage.getFreeSpace() + contentData.getSize());
-        } catch (IOException e) {
-            throw e;
-        }
+
+        Files.delete(path);
+        unregisterContent(contentData);
+        var storage = storageDevices.get(libraryRootToStorage.get(libraryId));
+        storage.setFreeSpace(storage.getFreeSpace() + contentData.getSize());
     }
 
     public void moveContent(String id, UUID destinationId) throws IOException {
