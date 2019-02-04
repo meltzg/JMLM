@@ -57,8 +57,8 @@ public abstract class AbstractSyncStrategyTest {
         }
 
         var plan = strategy.createPlan(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
-        assertEquals(desiredContentInfo.size(), plan.transferToDevice.size());
-        assertTrue(plan.transferToDevice.keySet().containsAll(desiredContentInfo.stream()
+        assertEquals(desiredContentInfo.size(), plan.getTransferToDevice().size());
+        assertTrue(plan.getTransferToDevice().keySet().containsAll(desiredContentInfo.stream()
                 .map(AudioContent::getId)
                 .collect(Collectors.toList())));
     }
@@ -112,11 +112,11 @@ public abstract class AbstractSyncStrategyTest {
         ));
 
         var plan = strategy.createPlan(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
-        assertEquals(1, plan.transferOnDevice.size());
-        assertEquals(1, plan.transferToDevice.size());
+        assertEquals(1, plan.getTransferOnDevice().size());
+        assertEquals(1, plan.getTransferToDevice().size());
         assertTrue(Arrays.asList(contents.get(0).getId(), contents.get(1).getId()).contains(
-                plan.transferOnDevice.keySet().iterator().next()));
-        assertTrue(plan.transferToDevice.keySet().contains(contents.get(2).getId()));
+                plan.getTransferOnDevice().keySet().iterator().next()));
+        assertTrue(plan.getTransferToDevice().keySet().contains(contents.get(2).getId()));
     }
 
     @Test
@@ -147,11 +147,11 @@ public abstract class AbstractSyncStrategyTest {
 
         var plan = strategy.createPlan(desiredContentInfo, syncStatuses, libCapacities, libFreespace);
 
-        assertEquals(desiredContentInfo.size(), plan.transferToDevice.size());
-        assertTrue(plan.transferToDevice.keySet().containsAll(desiredContentInfo.stream()
+        assertEquals(desiredContentInfo.size(), plan.getTransferToDevice().size());
+        assertTrue(plan.getTransferToDevice().keySet().containsAll(desiredContentInfo.stream()
                 .map(AudioContent::getId)
                 .collect(Collectors.toList())));
-        assertTrue(plan.deleteFromDevice.contains(existingContent.getId()));
+        assertTrue(plan.getDeleteFromDevice().contains(existingContent.getId()));
     }
 
     protected abstract AbstractSyncStrategy createStrategy() throws ClassNotFoundException;
