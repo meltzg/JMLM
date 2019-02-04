@@ -14,13 +14,13 @@ import javax.persistence.Id;
 @NoArgsConstructor
 public class AudioContent {
     @Id
-    String id;
-    long size;
+    private String id;
+    private long size;
 
-    String genre;
-    String artist;
-    String album;
-    String title;
-    int discNum;
-    int trackNum;
+    private String genre;
+    private String artist;
+    private String album;
+    private String title;
+    private int discNum;
+    private int trackNum;
 }

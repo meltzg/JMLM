@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public abstract class AbstractSyncStrategy {
-    protected SyncPlan plan;
+    SyncPlan plan;
 
     public SyncPlan createPlan(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses,
                                Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
@@ -35,6 +35,6 @@ public abstract class AbstractSyncStrategy {
                         !desiredContentIds.contains(syncStatus.getContentId()))
                 .map(ContentSyncStatus::getContentId)
                 .collect(Collectors.toList());
-        plan.deleteFromDevice.addAll(contentToRemove);
+        plan.getDeleteFromDevice().addAll(contentToRemove);
     }
 }

@@ -13,7 +13,7 @@ public class LazySyncStrategy extends AbstractSyncStrategy {
     protected void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses, Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
         var libFreeSpaces = new HashMap<UUID, Long>();
 
-        for (var toDeleteId : plan.deleteFromDevice) {
+        for (var toDeleteId : plan.getDeleteFromDevice()) {
             var contentInfo = syncStatuses.get(toDeleteId).getContentInfo();
             var contentLib = syncStatuses.get(toDeleteId).getDeviceLibrary();
             libFreeSpaces.put(contentLib,
@@ -44,7 +44,7 @@ public class LazySyncStrategy extends AbstractSyncStrategy {
             for (var freeSpaceEntry : freeSpaceEntries) {
                 var freeSpace = freeSpaceEntry.getValue();
                 if (desiredContent.getSize() <= freeSpace) {
-                    plan.transferToDevice.put(desiredContent.getId(), freeSpaceEntry.getKey());
+                    plan.getTransferToDevice().put(desiredContent.getId(), freeSpaceEntry.getKey());
                     spaceFound = true;
                     desiredContentItr.remove();
                     freeSpaceEntry.setValue(freeSpaceEntry.getValue() - desiredContent.getSize());

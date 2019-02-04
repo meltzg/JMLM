@@ -92,7 +92,7 @@ public class DeviceSyncManager {
                 attachedDevice.getLibraryRootCapacities(), attachedDevice.getLibraryRootFreeSpace());
 
         var transferToLibrary = new LinkedList<String>();
-        for (var toDelete : plan.deleteFromDevice) {
+        for (var toDelete : plan.getDeleteFromDevice()) {
             if (!syncStatuses.get(toDelete).isInLibrary()) {
                 switch (notInLibraryStrategy) {
                     case TRANSFER_TO_LIBRARY:
@@ -118,9 +118,9 @@ public class DeviceSyncManager {
             var libPlan = strategy.createPlan(desiredLibContent, reverseSyncStatuses,
                     mainLibrary.getLibraryRootCapacities(), mainLibrary.getLibraryRootFreeSpace());
 
-            plan.transferToLibrary = libPlan.transferToDevice;
-            plan.transferOnLibrary = libPlan.transferOnDevice;
-            plan.deleteFromLibrary = libPlan.deleteFromDevice;
+            plan.setTransferToLibrary(libPlan.getTransferToDevice());
+            plan.setTransferOnLibrary(libPlan.getTransferOnDevice());
+            plan.setDeleteFromLibrary(libPlan.getDeleteFromDevice());
         }
 
         return plan;
@@ -132,13 +132,13 @@ public class DeviceSyncManager {
     }
 
     public void syncDevice(SyncPlan plan) throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
-        for (var toDelete : plan.deleteFromLibrary) {
+        for (var toDelete : plan.getDeleteFromLibrary()) {
             mainLibrary.deleteContent(toDelete);
         }
-        for (var transferOn : plan.transferOnLibrary.entrySet()) {
+        for (var transferOn : plan.getTransferOnLibrary().entrySet()) {
             mainLibrary.moveContent(transferOn.getKey(), transferOn.getValue());
         }
-        for (var transferTo : plan.transferToLibrary.entrySet()) {
+        for (var transferTo : plan.getTransferToLibrary().entrySet()) {
             var contentLocation = attachedDevice.getContentLocations().get(transferTo.getKey());
             mainLibrary.addContent(attachedDevice.getContentStream(transferTo.getKey()),
                     contentLocation.getLibrarySubPath(),
@@ -146,13 +146,13 @@ public class DeviceSyncManager {
         }
 
 
-        for (var toDelete : plan.deleteFromDevice) {
+        for (var toDelete : plan.getDeleteFromDevice()) {
             attachedDevice.deleteContent(toDelete);
         }
-        for (var transferOn : plan.transferOnDevice.entrySet()) {
+        for (var transferOn : plan.getTransferOnDevice().entrySet()) {
             attachedDevice.moveContent(transferOn.getKey(), transferOn.getValue());
         }
-        for (var transferTo : plan.transferToDevice.entrySet()) {
+        for (var transferTo : plan.getTransferToDevice().entrySet()) {
             var contentLocation = mainLibrary.getContentLocations().get(transferTo.getKey());
             attachedDevice.addContent(mainLibrary.getContentStream(transferTo.getKey()),
                     contentLocation.getLibrarySubPath(),
