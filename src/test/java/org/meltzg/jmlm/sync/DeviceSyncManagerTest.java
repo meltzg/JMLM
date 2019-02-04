@@ -34,8 +34,8 @@ public class DeviceSyncManagerTest {
 
     @Before
     public void setUp() throws IOException, URISyntaxException {
-        device1 = new FileSystemAudioContentDevice(contentRepo);
-        device2 = new FileSystemAudioContentDevice(contentRepo);
+        device1 = new FileSystemAudioContentDevice("Device 1", contentRepo);
+        device2 = new FileSystemAudioContentDevice("Device 2", contentRepo);
 
         device1.addLibraryRoot(RESOURCEDIR + "/audio/jst2018-12-09");
         device2.addLibraryRoot(RESOURCEDIR + "/audio/kwgg2016-10-29");
@@ -114,7 +114,7 @@ public class DeviceSyncManagerTest {
 
     @Test(expected = IllegalStateException.class)
     public void testCreateSyncPlanNoLibraryLibraries() throws FileNotFoundException, InsufficientSpaceException, SyncStrategyException, ClassNotFoundException {
-        var device1 = new FileSystemAudioContentDevice(contentRepo);
+        var device1 = new FileSystemAudioContentDevice("Device 1", contentRepo);
 
         var syncManager = new DeviceSyncManager(device1, device2, getRankedStrategies());
         syncManager.createSyncPlan(device1.getContent().keySet(),
@@ -123,7 +123,7 @@ public class DeviceSyncManagerTest {
 
     @Test(expected = IllegalStateException.class)
     public void testCreateSyncPlanClearDeviceNoDeviceLibraries() throws FileNotFoundException, InsufficientSpaceException, SyncStrategyException, ClassNotFoundException {
-        var device2 = new FileSystemAudioContentDevice(contentRepo);
+        var device2 = new FileSystemAudioContentDevice("Device 2", contentRepo);
 
         var syncManager = new DeviceSyncManager(device1, device2, getRankedStrategies());
         syncManager.createSyncPlan(device1.getContent().keySet(),

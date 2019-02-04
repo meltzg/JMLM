@@ -13,6 +13,8 @@ buildscript {
 plugins {
 	id 'io.franzbecker.gradle-lombok' version '2.0'
 	id 'jacoco'
+	id 'org.openjfx.javafxplugin' version '0.0.7'
+	id 'application'
 }
 
 apply plugin: 'java'
@@ -48,4 +50,12 @@ jacocoTestReport {
 		xml.enabled true
 		html.enabled true
 	}
+}
+
+javafx {
+	modules = ['javafx.controls', 'javafx.fxml']
+}
+
+application {
+	mainClassName = 'org.meltzg.jmlm.JmlmApplication'
 }

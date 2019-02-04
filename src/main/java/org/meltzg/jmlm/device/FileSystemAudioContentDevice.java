@@ -36,6 +36,9 @@ public class FileSystemAudioContentDevice {
     @Getter
     private Long id;
 
+    @Getter
+    private String name;
+
     @Setter
     private String rootPath = "/";
 
@@ -63,7 +66,8 @@ public class FileSystemAudioContentDevice {
     @Setter
     private AudioContentRepository contentRepo;
 
-    public FileSystemAudioContentDevice(AudioContentRepository contentRepo) {
+    public FileSystemAudioContentDevice(String name, AudioContentRepository contentRepo) {
+        this.name = name;
         this.contentRepo = contentRepo;
     }
 

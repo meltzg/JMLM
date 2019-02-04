@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.meltzg.jmlm.ui.components.DeviceWizardController?>
+<StackPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="400.0" prefWidth="600.0"
+           xmlns="http://javafx.com/javafx/8.0.172-ea" fx:controller="org.meltzg.jmlm.ui.DeviceManagerController">
+    <children>
+        <BorderPane fx:id="deviceList">
+            <center>
+                <TableView prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                    <columns>
+                        <TableColumn prefWidth="75.0" text="C1"/>
+                        <TableColumn prefWidth="75.0" text="C2"/>
+                    </columns>
+                </TableView>
+            </center>
+            <right>
+                <VBox alignment="CENTER_LEFT">
+                    <Button onAction="#openWizard" text="Add Device"/>
+                    <Button text="Delete Device"/>
+                </VBox>
+            </right>
+        </BorderPane>
+        <DeviceWizardController/>
+    </children>
+</StackPane>
