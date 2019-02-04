@@ -43,7 +43,7 @@ public class FileSystemAudioContentDevice {
     @Getter
     private Map<String, AudioContent> content = new HashMap<>();
 
-    @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
+    @ElementCollection(fetch = FetchType.EAGER)
     @Getter
     private Map<String, StorageDevice> storageDevices = new HashMap<>();
 
@@ -132,8 +132,8 @@ public class FileSystemAudioContentDevice {
                         e.printStackTrace();
                     }
                 } else {
-                    AudioContent contentData = null;
                     try {
+                        AudioContent contentData;
                         contentData = makeAudioContent(path.toString());
                         registerContent(contentData, libId, path);
                     } catch (TagException | ReadOnlyFileException | CannotReadException | InvalidAudioFrameException | IOException e) {

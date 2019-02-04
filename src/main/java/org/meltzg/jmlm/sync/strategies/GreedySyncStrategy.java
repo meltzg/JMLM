@@ -47,10 +47,10 @@ public class GreedySyncStrategy extends AbstractSyncStrategy {
             var syncStatus = syncStatuses.get(contentId);
             if (syncStatus.isOnDevice()) {
                 if (syncStatus.getDeviceLibrary().equals(destination)) {
-                    plan.transferOnDevice.put(contentId, destination);
+                    plan.getTransferOnDevice().put(contentId, destination);
                 }
             } else {
-                plan.transferToDevice.put(contentId, destination);
+                plan.getTransferToDevice().put(contentId, destination);
             }
         }
     }

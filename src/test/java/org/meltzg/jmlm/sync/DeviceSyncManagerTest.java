@@ -85,12 +85,12 @@ public class DeviceSyncManagerTest {
         var plan = syncManager.createSyncPlan(device1.getContent().keySet(),
                 NotInLibraryStrategy.TRANSFER_TO_LIBRARY);
 
-        assertEquals(plan.transferToDevice.size(), device1.getContent().size());
-        assertEquals(plan.transferOnDevice.size(), 0);
-        assertTrue(plan.deleteFromDevice.containsAll(device2.getContent().keySet()));
-        assertEquals(plan.transferToLibrary.keySet(), device2.getContent().keySet());
-        assertEquals(plan.transferOnLibrary.size(), 0);
-        assertEquals(plan.deleteFromLibrary.size(), 0);
+        assertEquals(plan.getTransferToDevice().size(), device1.getContent().size());
+        assertEquals(plan.getTransferOnDevice().size(), 0);
+        assertTrue(plan.getDeleteFromDevice().containsAll(device2.getContent().keySet()));
+        assertEquals(plan.getTransferToLibrary().keySet(), device2.getContent().keySet());
+        assertEquals(plan.getTransferOnLibrary().size(), 0);
+        assertEquals(plan.getDeleteFromLibrary().size(), 0);
     }
 
     @Test
@@ -99,12 +99,12 @@ public class DeviceSyncManagerTest {
         var plan = syncManager.createSyncPlan(device1.getContent().keySet(),
                 NotInLibraryStrategy.DELETE_FROM_DEVICE);
 
-        assertEquals(plan.transferToDevice.size(), device1.getContent().size());
-        assertEquals(plan.transferOnDevice.size(), 0);
-        assertTrue(plan.deleteFromDevice.containsAll(device2.getContent().keySet()));
-        assertEquals(plan.transferToLibrary.size(), 0);
-        assertEquals(plan.transferOnLibrary.size(), 0);
-        assertEquals(plan.deleteFromLibrary.size(), 0);
+        assertEquals(plan.getTransferToDevice().size(), device1.getContent().size());
+        assertEquals(plan.getTransferOnDevice().size(), 0);
+        assertTrue(plan.getDeleteFromDevice().containsAll(device2.getContent().keySet()));
+        assertEquals(plan.getTransferToLibrary().size(), 0);
+        assertEquals(plan.getTransferOnLibrary().size(), 0);
+        assertEquals(plan.getDeleteFromLibrary().size(), 0);
     }
 
     private List<String> getRankedStrategies() {

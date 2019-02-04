@@ -1,24 +1,18 @@
 package org.meltzg.jmlm.sync;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.*;
 
+@NoArgsConstructor
+@Data
 public class SyncPlan {
-    public Map<String, UUID> transferToDevice;
-    public Map<String, UUID> transferOnDevice;
-    public List<String> deleteFromDevice;
+    private Map<String, UUID> transferToDevice = new HashMap<>();
+    private Map<String, UUID> transferOnDevice = new HashMap<>();
+    private List<String> deleteFromDevice = new ArrayList<>();
 
-    public Map<String, UUID> transferToLibrary;
-    public Map<String, UUID> transferOnLibrary;
-    public List<String> deleteFromLibrary;
-
-
-    public SyncPlan() {
-        this.transferToDevice = new HashMap<>();
-        this.transferOnDevice = new HashMap<>();
-        this.deleteFromDevice = new ArrayList<>();
-
-        this.transferToLibrary = new HashMap<>();
-        this.transferOnLibrary = new HashMap<>();
-        this.deleteFromLibrary = new ArrayList<>();
-    }
+    private Map<String, UUID> transferToLibrary = new HashMap<>();
+    private Map<String, UUID> transferOnLibrary = new HashMap<>();
+    private List<String> deleteFromLibrary = new ArrayList<>();
 }

@@ -13,6 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ContentLocation {
-    UUID libraryId;
-    String librarySubPath;
+    private UUID libraryId;
+    private String librarySubPath;
 }
