@@ -15,7 +15,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 @Component
-public class DeviceWizardController extends BorderPane implements Initializable {
+public class DeviceWizardController extends BorderPane {
     private static final EventType<WizardCompleteEvent> WIZARD_COMPLETE = new EventType<>(Event.ANY, "WIZARD_COMPLETE");
     @Autowired
     private FileSystemAudioContentDeviceRepository deviceRepository;
@@ -28,11 +28,11 @@ public class DeviceWizardController extends BorderPane implements Initializable 
         fireEvent(new WizardCompleteEvent());
     }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        var fxmlLoader = new FXMLLoader(getClass().getResource("/org/meltzg/jmlm/ui/MainApplicationView.fxml"));
-        fxmlLoader.setControllerFactory(JmlmApplication.CONTEXT::getBean);
-    }
+//    @Override
+//    public void initialize(URL location, ResourceBundle resources) {
+//        var fxmlLoader = new FXMLLoader(getClass().getResource("/org/meltzg/jmlm/ui/MainApplicationView.fxml"));
+//        fxmlLoader.setControllerFactory(JmlmApplication.CONTEXT::getBean);
+//    }
 
     public static class WizardCompleteEvent extends Event {
         public WizardCompleteEvent() {
