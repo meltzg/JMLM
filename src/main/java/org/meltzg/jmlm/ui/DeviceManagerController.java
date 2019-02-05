@@ -1,8 +1,6 @@
 package org.meltzg.jmlm.ui;
 
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.scene.layout.Pane;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
 import org.meltzg.jmlm.ui.components.DialogController;
 import org.meltzg.jmlm.ui.components.FXMLDialog;
@@ -29,6 +27,7 @@ public class DeviceManagerController implements DialogController {
     }
 
     public void openWizard(ActionEvent actionEvent) {
+        screens.deviceWizard().show();
     }
 
     public void close(ActionEvent actionEvent) {
