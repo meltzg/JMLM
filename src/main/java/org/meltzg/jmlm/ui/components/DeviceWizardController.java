@@ -1,10 +1,15 @@
 package org.meltzg.jmlm.ui.components;
 
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.layout.StackPane;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeviceWizardController implements DialogController {
+    @FXML
+    StackPane deviceBuilder;
+
     private FXMLDialog dialog;
 
     @Autowired
