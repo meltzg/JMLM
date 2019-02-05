@@ -8,10 +8,10 @@
 
 <BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.meltzg.jmlm.ui.DeviceManagerController">
     <center>
-        <TableView prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <TableView fx:id="tblDevices" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
             <columns>
-                <TableColumn prefWidth="75.0" text="C1" />
-                <TableColumn prefWidth="75.0" text="C2" />
+                <TableColumn fx:id="colDeviceName" text="Name" />
+                <TableColumn fx:id="colDeviceType" text="Type" />
             </columns>
         </TableView>
     </center>
@@ -19,6 +19,7 @@
         <VBox alignment="CENTER_LEFT">
             <Button onAction="#openWizard" text="Add Device" />
             <Button text="Delete Device" />
+            <Button onAction="#refreshDevices" text="Refresh List" />
         </VBox>
     </right>
     <bottom>

@@ -50,7 +50,8 @@ public class ScreensConfiguration {
         return new FXMLDialog(deviceWizardController(), getClass().getResource("/org/meltzg/jmlm/ui/components/DeviceWizardView.fxml"), primaryStage);
     }
 
-    private DeviceWizardController deviceWizardController() {
+    @Bean
+    DeviceWizardController deviceWizardController() {
         return new DeviceWizardController();
     }
 }
