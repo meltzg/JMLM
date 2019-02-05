@@ -6,6 +6,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import lombok.Setter;
 import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
 import org.meltzg.jmlm.ui.components.DialogController;
@@ -22,6 +23,7 @@ import java.util.ResourceBundle;
 public class DeviceManagerController implements DialogController, Initializable {
     private ScreensConfiguration screens;
 
+    @Setter
     private FXMLDialog dialog;
 
     @Autowired
@@ -33,11 +35,6 @@ public class DeviceManagerController implements DialogController, Initializable 
     TableColumn<FileSystemAudioContentDevice, String> colDeviceType;
     @FXML
     TableColumn<FileSystemAudioContentDevice, String> colDeviceName;
-
-    @Override
-    public void setDialog(FXMLDialog dialog) {
-        this.dialog = dialog;
-    }
 
     public DeviceManagerController(ScreensConfiguration screens) {
         this.screens = screens;
