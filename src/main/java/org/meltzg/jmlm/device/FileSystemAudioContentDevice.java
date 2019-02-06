@@ -36,6 +36,7 @@ public class FileSystemAudioContentDevice {
     private String id;
 
     @Getter
+    @Setter
     private String name;
 
     @Setter

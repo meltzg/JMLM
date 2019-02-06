@@ -55,7 +55,7 @@ public class DeviceManagerController implements DialogController, Initializable 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         colDeviceName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colDeviceType.setCellValueFactory(new PropertyValueFactory<>("type"));
+//        colDeviceType.setCellValueFactory(new PropertyValueFactory<>("type"));
 
         refreshDevices();
     }
