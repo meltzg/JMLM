@@ -32,9 +32,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FileSystemAudioContentDevice {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Getter
-    private Long id;
+    private String id;
 
     @Getter
     private String name;
@@ -69,6 +68,7 @@ public class FileSystemAudioContentDevice {
     public FileSystemAudioContentDevice(String name, AudioContentRepository contentRepo) {
         this.name = name;
         this.contentRepo = contentRepo;
+        this.id = UUID.randomUUID().toString();
     }
 
     public AudioContent getContent(String id) {

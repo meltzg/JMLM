@@ -13,13 +13,11 @@ import org.meltzg.jmlm.ui.components.DialogController;
 import org.meltzg.jmlm.ui.components.FXMLDialog;
 import org.meltzg.jmlm.ui.configuration.ScreensConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
-@Component
 public class DeviceManagerController implements DialogController, Initializable {
     private ScreensConfiguration screens;
 
