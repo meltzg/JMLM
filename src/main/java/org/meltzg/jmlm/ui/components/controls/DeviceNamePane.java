@@ -6,12 +6,12 @@ import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 
 import java.io.IOException;
 
-public class DeviceNameControl extends DeviceWizardPane {
+public class DeviceNamePane extends DeviceWizardPane {
 
     public TextField deviceName;
 
-    public DeviceNameControl() {
-        var loader = new FXMLLoader(getClass().getResource("DeviceNameControlView.fxml"));
+    public DeviceNamePane() {
+        var loader = new FXMLLoader(getClass().getResource("DeviceNamePaneView.fxml"));
         loader.setRoot(this);
         loader.setController(this);
         try {

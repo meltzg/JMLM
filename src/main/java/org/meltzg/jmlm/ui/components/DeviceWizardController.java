@@ -1,5 +1,7 @@
 package org.meltzg.jmlm.ui.components;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -11,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
-import org.meltzg.jmlm.ui.components.controls.DeviceNameControl;
+import org.meltzg.jmlm.ui.components.controls.DeviceNamePane;
 import org.meltzg.jmlm.ui.components.controls.DeviceWizardPane;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,19 +47,37 @@ public class DeviceWizardController implements DialogController, Initializable {
     private AudioContentRepository contentRepository;
 
     private List<DeviceWizardPane> wizardPanes;
-    private int wizardIndex;
+
+    private IntegerProperty wizardIndex = new SimpleIntegerProperty();
+
     private FileSystemAudioContentDevice device;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        wizardPanes = Arrays.asList(new DeviceNameControl());
-        wizardIndex = -1;
+        device = new FileSystemAudioContentDevice(contentRepository);
+        wizardPanes = Arrays.asList(new DeviceNamePane(), new DeviceNamePane());
+
+        wizardIndex.addListener((observable, oldValue, newValue) -> {
+            if (newValue.intValue() <= 0) {
+                btnBack.disableProperty().set(true);
+            } else {
+                btnBack.disableProperty().set(false);
+            }
+            if (newValue.intValue() >= wizardPanes.size() - 1) {
+                btnNext.disableProperty().set(true);
+            } else {
+                btnNext.disableProperty().set(false);
+            }
+        });
+
+        wizardIndex.set(-1);
         goNextControl(null);
     }
 
     public void goBackControl(ActionEvent actionEvent) {
-        if (wizardIndex > 0) {
-            var nextPane = wizardPanes.get(--wizardIndex);
+        if (wizardIndex.get() > 0) {
+            wizardIndex.set(wizardIndex.get() - 1);
+            var nextPane = wizardPanes.get(wizardIndex.get());
             nextPane.setDevice(device);
             deviceBuilder.setCenter(nextPane);
         }
@@ -65,21 +85,22 @@ public class DeviceWizardController implements DialogController, Initializable {
 
     public void goNextControl(ActionEvent actionEvent) {
         try {
-            if (wizardIndex >= 0) {
-                wizardPanes.get(wizardIndex).validate();
+            if (wizardIndex.get() >= 0) {
+                wizardPanes.get(wizardIndex.get()).validate();
             }
         } catch (Exception e) {
             handleStateException(e);
         }
-        if (wizardIndex < wizardPanes.size() - 1) {
-            var nextPane = wizardPanes.get(++wizardIndex);
+        if (wizardIndex.get() < wizardPanes.size() - 1) {
+            wizardIndex.set(wizardIndex.get() + 1);
+            var nextPane = wizardPanes.get(wizardIndex.get());
             nextPane.setDevice(device);
             deviceBuilder.setCenter(nextPane);
         }
     }
 
     public void createDevice(ActionEvent actionEvent) {
-        var newDevice = new FileSystemAudioContentDevice("Device", contentRepository);
+        var newDevice = new FileSystemAudioContentDevice(contentRepository);
         try {
             for (var wizardPane : wizardPanes) {
                 wizardPane.configure(newDevice);

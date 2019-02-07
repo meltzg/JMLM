@@ -66,6 +66,10 @@ public class FileSystemAudioContentDevice {
     @Setter
     private AudioContentRepository contentRepo;
 
+    public FileSystemAudioContentDevice(AudioContentRepository contentRepo) {
+        this("Device", contentRepo);
+    }
+
     public FileSystemAudioContentDevice(String name, AudioContentRepository contentRepo) {
         this.name = name;
         this.contentRepo = contentRepo;
