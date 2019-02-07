@@ -3,9 +3,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
-
-<?import org.meltzg.jmlm.ui.components.controls.DeviceNameControl?>
 <BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.meltzg.jmlm.ui.components.DeviceWizardController">
     <bottom>
         <HBox alignment="BOTTOM_RIGHT">
@@ -16,6 +13,6 @@
         </HBox>
     </bottom>
    <center>
-       <StackPane fx:id="deviceBuilder" />
+       <BorderPane fx:id="deviceBuilder"/>
    </center>
 </BorderPane>

@@ -2,18 +2,13 @@ package org.meltzg.jmlm.ui.components.controls;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
-import lombok.Setter;
 import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 
 import java.io.IOException;
 
-public class DeviceNameControl extends VBox implements ValidatableControl {
+public class DeviceNameControl extends DeviceWizardPane {
 
     public TextField deviceName;
-
-    @Setter
-    FileSystemAudioContentDevice device;
 
     public DeviceNameControl() {
         var loader = new FXMLLoader(getClass().getResource("DeviceNameControlView.fxml"));
@@ -27,16 +22,15 @@ public class DeviceNameControl extends VBox implements ValidatableControl {
     }
 
     @Override
-    public boolean validate() {
-        return !deviceName.getText().isEmpty();
+    public void validate() {
+        if (deviceName.getText().isEmpty()) {
+            throw new IllegalStateException("Invalid device name");
+        }
     }
 
     @Override
-    public boolean configure() {
-        if (!validate()) {
-            return false;
-        }
+    public void configure(FileSystemAudioContentDevice device) {
+        validate();
         device.setName(deviceName.getText());
-        return true;
     }
 }
