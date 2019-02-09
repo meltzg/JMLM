@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<fx:root xmlns:fx="http://javafx.com/fxml/1" type="Pane" xmlns="http://javafx.com/javafx/8.0.172-ea">
+    <HBox>
+        <VBox>
+            <Label text="Device Content"/>
+            <Button fx:id="loadParent" text="Go Up"/>
+            <TreeView prefHeight="200.0" prefWidth="200.0"/>
+        </VBox>
+        <VBox>
+            <Label text="Directories to Add"/>
+            <ListView prefHeight="200.0" prefWidth="200.0"/>
+        </VBox>
+    </HBox>
+</fx:root>

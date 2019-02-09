@@ -1,7 +1,7 @@
 package org.meltzg.jmlm.ui.components.controls;
 
-import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
+import org.controlsfx.validation.ValidationSupport;
 
-public interface ValidatableControl<T extends FileSystemAudioContentDevice> {
-    void validate() throws IllegalStateException;
+public abstract class ValidatableControl extends FXMLControl {
+    public abstract void registerValidators(ValidationSupport vs);
 }

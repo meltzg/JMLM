@@ -7,6 +7,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
 import org.meltzg.jmlm.ui.components.DialogController;
@@ -18,6 +19,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
+@Slf4j
 public class DeviceManagerController implements DialogController, Initializable {
     private ScreensConfiguration screens;
 
@@ -39,7 +41,9 @@ public class DeviceManagerController implements DialogController, Initializable 
     }
 
     public void openWizard(ActionEvent actionEvent) {
-        screens.deviceWizard().show();
+        var wizard = screens.deviceWizard();
+        wizard.show();
+        refreshDevices();
     }
 
     public void close(ActionEvent actionEvent) {

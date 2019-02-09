@@ -5,8 +5,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import lombok.Setter;
 import org.meltzg.jmlm.ui.DeviceManagerController;
+import org.meltzg.jmlm.ui.DeviceWizard;
 import org.meltzg.jmlm.ui.MainApplicationController;
-import org.meltzg.jmlm.ui.components.DeviceWizardController;
 import org.meltzg.jmlm.ui.components.FXMLDialog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,12 +46,7 @@ public class ScreensConfiguration {
 
     @Bean
     @Scope("prototype")
-    public FXMLDialog deviceWizard() {
-        return new FXMLDialog(deviceWizardController(), getClass().getResource("/org/meltzg/jmlm/ui/components/DeviceWizardView.fxml"), primaryStage);
-    }
-
-    @Bean
-    DeviceWizardController deviceWizardController() {
-        return new DeviceWizardController();
+    public DeviceWizard deviceWizard() {
+        return new DeviceWizard();
     }
 }
