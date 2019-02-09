@@ -39,6 +39,7 @@ public class FileSystemAudioContentDevice {
     @Setter
     private String name;
 
+    @Getter
     @Setter
     private String rootPath = "/";
 

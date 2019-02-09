@@ -9,6 +9,7 @@ import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
 import org.meltzg.jmlm.ui.components.controls.DeviceNamePane;
+import org.meltzg.jmlm.ui.components.controls.LibraryRootSelectionPane;
 import org.meltzg.jmlm.ui.components.controls.ValidatableControl;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -23,14 +24,19 @@ public class DeviceWizard {
 
     private Wizard wizard;
 
+    private FileSystemAudioContentDevice device;
+
     public DeviceWizard() {
         wizard = new Wizard();
     }
 
     public void show() {
+        device = new FileSystemAudioContentDevice(contentRepository);
         var page1 = makeWizardPane(new DeviceNamePane());
-        var page2 = new WizardPane();
-        wizard.setFlow(new Wizard.LinearFlow(page1, page2));
+        var page2 = makeWizardPane(new LibraryRootSelectionPane(device));
+        var page3 = new WizardPane();
+
+        wizard.setFlow(new Wizard.LinearFlow(page1, page2, page3));
         wizard.showAndWait().ifPresent(result -> {
             if (result == ButtonType.FINISH) {
                 log.info("Wizard finished, settings: " + wizard.getSettings());
@@ -58,7 +64,7 @@ public class DeviceWizard {
     }
 
     private void buildAndSaveDevice() {
-        var device = new FileSystemAudioContentDevice((String) wizard.getSettings().get("deviceName"), contentRepository);
+        device.setName((String) wizard.getSettings().get("deviceName"));
         deviceRepository.save(device);
     }
 }
