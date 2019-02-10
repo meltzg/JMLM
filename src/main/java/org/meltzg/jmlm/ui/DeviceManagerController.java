@@ -46,6 +46,14 @@ public class DeviceManagerController implements DialogController, Initializable 
         refreshDevices();
     }
 
+    public void deleteDevice(ActionEvent actionEvent) {
+        var selection = tblDevices.getSelectionModel().getSelectedItem();
+        if (selection != null) {
+            deviceRepository.delete(selection);
+            refreshDevices();
+        }
+    }
+
     public void close(ActionEvent actionEvent) {
         dialog.close();
     }
@@ -59,8 +67,9 @@ public class DeviceManagerController implements DialogController, Initializable 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         colDeviceName.setCellValueFactory(new PropertyValueFactory<>("name"));
-//        colDeviceType.setCellValueFactory(new PropertyValueFactory<>("type"));
 
         refreshDevices();
     }
+
+
 }

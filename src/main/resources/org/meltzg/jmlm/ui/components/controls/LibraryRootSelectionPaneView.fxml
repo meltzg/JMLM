@@ -12,6 +12,7 @@
         <VBox>
             <Label text="Directories to Add"/>
             <ListView fx:id="lstLibraryRoots" prefHeight="200.0" prefWidth="200.0"/>
+            <Button text="Remove Device" onAction="#removeSelectedItem"/>
         </VBox>
     </HBox>
 </fx:root>

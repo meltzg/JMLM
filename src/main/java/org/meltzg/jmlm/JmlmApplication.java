@@ -16,7 +16,7 @@ public class JmlmApplication extends Application {
         var context = SpringApplication.run(JmlmApplication.class);
         var screens = context.getBean(ScreensConfiguration.class);
         screens.setPrimaryStage(primaryStage);
-        screens.deviceManager().show();
+        screens.mainView().show();
     }
 
     public static void main(String[] args) {

@@ -70,6 +70,15 @@ public class LibraryRootSelectionPane extends ValidatableControl {
         }
     }
 
+    @FXML
+    public void removeSelectedItem(ActionEvent actionEvent) {
+        var selection = lstLibraryRoots.getSelectionModel().getSelectedItem();
+        if (selection != null) {
+            libraryRoots.remove(selection);
+            lstLibraryRoots.getItems().setAll(libraryRoots);
+        }
+    }
+
     private TreeItem<PathWrapper> createNode(final PathWrapper location) {
         return new TreeItem<>(location) {
             private boolean isLeaf;
