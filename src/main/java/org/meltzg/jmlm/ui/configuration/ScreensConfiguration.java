@@ -8,6 +8,7 @@ import org.meltzg.jmlm.ui.DeviceManagerController;
 import org.meltzg.jmlm.ui.DeviceWizard;
 import org.meltzg.jmlm.ui.MainApplicationController;
 import org.meltzg.jmlm.ui.components.FXMLDialog;
+import org.meltzg.jmlm.ui.components.controls.sync.DeviceSyncManagerController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -48,5 +49,10 @@ public class ScreensConfiguration {
     @Scope("prototype")
     public DeviceWizard deviceWizard() {
         return new DeviceWizard();
+    }
+
+    @Bean
+    public DeviceSyncManagerController deviceSyncManagerController() {
+        return new DeviceSyncManagerController();
     }
 }
