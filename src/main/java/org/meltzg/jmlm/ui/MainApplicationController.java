@@ -7,6 +7,7 @@ import javafx.scene.layout.BorderPane;
 import lombok.Setter;
 import org.meltzg.jmlm.ui.components.DialogController;
 import org.meltzg.jmlm.ui.components.FXMLDialog;
+import org.meltzg.jmlm.ui.components.controls.sync.DeviceSyncManagerController;
 import org.meltzg.jmlm.ui.configuration.ScreensConfiguration;
 
 import java.net.URL;
@@ -19,13 +20,16 @@ public class MainApplicationController implements DialogController, Initializabl
     @FXML
     private BorderPane mainView;
 
+    private DeviceSyncManagerController syncManager;
+
     public MainApplicationController(ScreensConfiguration screens) {
         this.screens = screens;
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        mainView.setCenter(screens.deviceSyncManagerController());
+        syncManager = screens.deviceSyncManagerController();
+        mainView.setCenter(syncManager);
     }
 
     public void exit(ActionEvent actionEvent) {
