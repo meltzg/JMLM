@@ -2,7 +2,10 @@ package org.meltzg.jmlm.ui.components.controls;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import lombok.AllArgsConstructor;
@@ -13,22 +16,58 @@ import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class LibraryRootSelectionPane extends ValidatableControl {
     private final FileSystemAudioContentDevice device;
+
     @FXML
-    private TreeView deviceTree;
+    private TreeView<PathWrapper> deviceTree;
+
+    @FXML
+    private ListView<Path> lstLibraryRoots;
+
+    private Set<Path> libraryRoots;
 
     public LibraryRootSelectionPane(FileSystemAudioContentDevice device) {
         super();
         this.device = device;
+        libraryRoots = new HashSet<>();
         deviceTree.setRoot(createNode(new PathWrapper(Paths.get(device.getRootPath()))));
     }
 
     @Override
     public void registerValidators(ValidationSupport vs) {
+    }
 
+    @Override
+    public Map<String, Object> getAdditionalSettings() {
+        var settings = new HashMap<String, Object>();
+        settings.put("libraryRoots", libraryRoots);
+        return settings;
+    }
+
+    @FXML
+    public void addSelectedItem(ActionEvent actionEvent) {
+        var selection = deviceTree.getSelectionModel().getSelectedItem();
+        if (selection != null) {
+            var newRoot = selection.getValue().path;
+            for (var existingPath : libraryRoots) {
+                if (existingPath.startsWith(newRoot) || newRoot.startsWith(existingPath)) {
+                    var alert = new Alert(
+                            Alert.AlertType.ERROR,
+                            "Cannot add parent or child of an existing selection");
+                    alert.showAndWait();
+                    return;
+                }
+            }
+            libraryRoots.add(newRoot);
+            lstLibraryRoots.getItems().setAll(libraryRoots);
+        }
     }
 
     private TreeItem<PathWrapper> createNode(final PathWrapper location) {
@@ -50,11 +89,11 @@ public class LibraryRootSelectionPane extends ValidatableControl {
             public boolean isLeaf() {
                 if (isFirstTimeLeaf) {
                     isFirstTimeLeaf = false;
-                    var location = getValue();
+                    var location1 = getValue();
                     try {
-                        isLeaf = device.getChildrenDirs(location.path).size() == 0;
+                        isLeaf = device.getChildrenDirs(location1.path).size() == 0;
                     } catch (IllegalAccessException | IOException e) {
-                        log.error("Could not determine if location is a leaf: " + location, e);
+                        log.error("Could not determine if location is a leaf: " + location1, e);
                         isLeaf = true;
                     }
                 }
@@ -62,7 +101,7 @@ public class LibraryRootSelectionPane extends ValidatableControl {
             }
 
             private ObservableList<TreeItem<PathWrapper>> buildChildren(TreeItem<PathWrapper> treeItem) {
-                var location = getValue();
+                var location = treeItem.getValue();
                 try {
                     var children = device.getChildrenDirs(location.path);
                     if (children.size() > 0) {

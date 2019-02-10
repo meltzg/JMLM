@@ -47,7 +47,7 @@ public class FileSystemAudioContentDevice {
     @Getter
     private Map<String, AudioContent> content = new HashMap<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Getter
     private Map<String, StorageDevice> storageDevices = new HashMap<>();
 
@@ -55,7 +55,8 @@ public class FileSystemAudioContentDevice {
     @Getter
     private Map<UUID, String> libraryRoots = new HashMap<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @MapKey(name = "contentId")
     @Getter
     private Map<String, ContentLocation> contentLocations = new HashMap<>();
 
@@ -326,7 +327,7 @@ public class FileSystemAudioContentDevice {
         var libSubPath = path.toAbsolutePath().toString().substring(
                 libPath.toAbsolutePath().toString().length());
 
-        contentLocations.put(contentData.getId(), new ContentLocation(libId, libSubPath));
+        contentLocations.put(contentData.getId(), new ContentLocation(contentData.getId(), libId, libSubPath));
 
         contentRepo.save(contentData);
     }

@@ -59,4 +59,5 @@ javafx {
 
 application {
 	mainClassName = 'org.meltzg.jmlm.JmlmApplication'
+	applicationDefaultJvmArgs = ['--add-opens', 'javafx.graphics/javafx.scene=ALL-UNNAMED']
 }

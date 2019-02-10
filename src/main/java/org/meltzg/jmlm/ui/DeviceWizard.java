@@ -13,6 +13,11 @@ import org.meltzg.jmlm.ui.components.controls.LibraryRootSelectionPane;
 import org.meltzg.jmlm.ui.components.controls.ValidatableControl;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.Collection;
+
 @Slf4j
 public class DeviceWizard {
 
@@ -60,11 +65,25 @@ public class DeviceWizard {
                 wizard.invalidProperty().unbind();
                 wizard.invalidProperty().bind(vs.invalidProperty());
             }
+
+            @Override
+            public void onExitingPage(Wizard wizard) {
+                wizard.getSettings().putAll(control.getAdditionalSettings());
+            }
         };
     }
 
     private void buildAndSaveDevice() {
-        device.setName((String) wizard.getSettings().get("deviceName"));
+        var settings = wizard.getSettings();
+        device.setName((String) settings.get("deviceName"));
+        var libraryRoots = (Collection<Path>) settings.get("libraryRoots");
+        for (var root : libraryRoots) {
+            try {
+                device.addLibraryRoot(root.toString());
+            } catch (IOException | URISyntaxException e) {
+                log.error(String.format("Could not add %s to device", root), e);
+            }
+        }
         deviceRepository.save(device);
     }
 }
