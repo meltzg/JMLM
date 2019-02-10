@@ -1,4 +1,4 @@
-package org.meltzg.jmlm.ui.components.controls;
+package org.meltzg.jmlm.ui.components.controls.wizard;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

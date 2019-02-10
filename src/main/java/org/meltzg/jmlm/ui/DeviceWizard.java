@@ -8,9 +8,9 @@ import org.controlsfx.validation.ValidationSupport;
 import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
-import org.meltzg.jmlm.ui.components.controls.DeviceNamePane;
-import org.meltzg.jmlm.ui.components.controls.LibraryRootSelectionPane;
-import org.meltzg.jmlm.ui.components.controls.ValidatableControl;
+import org.meltzg.jmlm.ui.components.controls.wizard.DeviceNamePane;
+import org.meltzg.jmlm.ui.components.controls.wizard.LibraryRootSelectionPane;
+import org.meltzg.jmlm.ui.components.controls.wizard.ValidatableControl;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;

@@ -5,8 +5,8 @@ import javafx.scene.layout.Pane;
 
 import java.io.IOException;
 
-abstract class FXMLControl extends Pane {
-    FXMLControl() {
+public abstract class FXMLControl extends Pane {
+    public FXMLControl() {
         var loader = new FXMLLoader(getClass().getResource(getClass().getSimpleName() + "View.fxml"));
         loader.setRoot(this);
         loader.setController(this);

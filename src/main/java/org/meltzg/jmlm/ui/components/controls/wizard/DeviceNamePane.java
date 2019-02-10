@@ -1,4 +1,4 @@
-package org.meltzg.jmlm.ui.components.controls;
+package org.meltzg.jmlm.ui.components.controls.wizard;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
