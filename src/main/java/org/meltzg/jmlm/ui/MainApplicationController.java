@@ -37,6 +37,7 @@ public class MainApplicationController implements DialogController, Initializabl
     }
 
     public void openDeviceManager(ActionEvent actionEvent) {
-        screens.deviceManager().show();
+        screens.deviceManager().showAndWait();
+        syncManager.refreshDevices();
     }
 }
