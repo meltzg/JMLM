@@ -8,10 +8,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.controlsfx.validation.ValidationSupport;
 import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
+import org.meltzg.jmlm.ui.types.PathWrapper;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -55,7 +55,7 @@ public class LibraryRootSelectionPane extends ValidatableControl {
     public void addSelectedItem(ActionEvent actionEvent) {
         var selection = deviceTree.getSelectionModel().getSelectedItem();
         if (selection != null) {
-            var newRoot = selection.getValue().path;
+            var newRoot = selection.getValue().getPath();
             for (var existingPath : libraryRoots) {
                 if (existingPath.startsWith(newRoot) || newRoot.startsWith(existingPath)) {
                     var alert = new Alert(
@@ -100,7 +100,7 @@ public class LibraryRootSelectionPane extends ValidatableControl {
                     isFirstTimeLeaf = false;
                     var location1 = getValue();
                     try {
-                        isLeaf = device.getChildrenDirs(location1.path).size() == 0;
+                        isLeaf = device.getChildrenDirs(location1.getPath()).size() == 0;
                     } catch (IllegalAccessException | IOException e) {
                         log.error("Could not determine if location is a leaf: " + location1, e);
                         isLeaf = true;
@@ -112,7 +112,7 @@ public class LibraryRootSelectionPane extends ValidatableControl {
             private ObservableList<TreeItem<PathWrapper>> buildChildren(TreeItem<PathWrapper> treeItem) {
                 var location = treeItem.getValue();
                 try {
-                    var children = device.getChildrenDirs(location.path);
+                    var children = device.getChildrenDirs(location.getPath());
                     if (children.size() > 0) {
                         ObservableList<TreeItem<PathWrapper>> observableChildren = FXCollections.observableArrayList();
                         for (var child : children) {
@@ -126,18 +126,5 @@ public class LibraryRootSelectionPane extends ValidatableControl {
                 return FXCollections.emptyObservableList();
             }
         };
-    }
-
-    @AllArgsConstructor
-    class PathWrapper {
-        private Path path;
-
-        @Override
-        public String toString() {
-            if (path.getFileName() == null) {
-                return path.toString();
-            }
-            return path.getFileName().toString();
-        }
     }
 }

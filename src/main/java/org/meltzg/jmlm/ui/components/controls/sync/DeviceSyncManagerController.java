@@ -3,22 +3,27 @@ package org.meltzg.jmlm.ui.components.controls.sync;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
-import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
+import lombok.Setter;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
-import org.meltzg.jmlm.ui.components.controls.FXMLControl;
+import org.meltzg.jmlm.ui.components.DialogController;
+import org.meltzg.jmlm.ui.components.FXMLDialog;
+import org.meltzg.jmlm.ui.types.DeviceWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
-public class DeviceSyncManagerController extends FXMLControl implements Initializable {
+public class DeviceSyncManagerController implements DialogController, Initializable {
+    @Setter
+    private FXMLDialog dialog;
+
     @Autowired
     FileSystemAudioContentDeviceRepository deviceRepository;
     @FXML
-    private ChoiceBox<FileSystemAudioContentDevice> chcLibrary;
+    private ChoiceBox<DeviceWrapper> chcLibrary;
     @FXML
-    private ChoiceBox<FileSystemAudioContentDevice> chcAttached;
+    private ChoiceBox<DeviceWrapper> chcAttached;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -26,8 +31,10 @@ public class DeviceSyncManagerController extends FXMLControl implements Initiali
     }
 
     public void refreshDevices() {
-        var devices = new ArrayList<FileSystemAudioContentDevice>();
-        deviceRepository.findAll().forEach(devices::add);
+        var devices = new ArrayList<DeviceWrapper>();
+        for (var device : deviceRepository.findAll()) {
+            devices.add(new DeviceWrapper(device));
+        }
         chcLibrary.getItems().setAll(devices);
         chcAttached.getItems().setAll(devices);
     }

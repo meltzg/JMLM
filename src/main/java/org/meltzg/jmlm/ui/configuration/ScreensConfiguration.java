@@ -2,7 +2,9 @@ package org.meltzg.jmlm.ui.configuration;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import lombok.Setter;
 import org.meltzg.jmlm.ui.DeviceManagerController;
 import org.meltzg.jmlm.ui.DeviceWizard;
@@ -49,6 +51,18 @@ public class ScreensConfiguration {
     @Scope("prototype")
     public DeviceWizard deviceWizard() {
         return new DeviceWizard();
+    }
+
+    @Bean
+    public FXMLDialog deviceSyncManager() {
+        return new FXMLDialog(deviceSyncManagerController(), getClass().getResource("/org/meltzg/jmlm/ui/components/controls/sync/DeviceSyncManagerControllerView.fxml"),
+                primaryStage, StageStyle.DECORATED, Modality.APPLICATION_MODAL);
+    }
+
+    @Bean
+    public FXMLDialog deviceSyncManager(DeviceSyncManagerController controller) {
+        return new FXMLDialog(controller, getClass().getResource("/org/meltzg/jmlm/ui/components/controls/sync/DeviceSyncManagerControllerView.fxml"),
+                primaryStage, StageStyle.DECORATED, Modality.APPLICATION_MODAL);
     }
 
     @Bean

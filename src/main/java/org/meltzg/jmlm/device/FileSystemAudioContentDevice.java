@@ -48,6 +48,7 @@ public class FileSystemAudioContentDevice {
     private Map<String, AudioContent> content = new HashMap<>();
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @MapKey(name = "storageId")
     @Getter
     private Map<String, StorageDevice> storageDevices = new HashMap<>();
 
@@ -109,12 +110,12 @@ public class FileSystemAudioContentDevice {
             var libId = UUID.randomUUID();
             libraryRoots.put(libId, libPath.toString());
             var libStorage = getStorageDevice(libPath);
-            libraryRootToStorage.put(libId, libStorage.getId());
+            libraryRootToStorage.put(libId, libStorage.getStorageId());
 
-            if (!storageDevices.containsKey(libStorage.getId())) {
-                storageDevices.put(libStorage.getId(), libStorage);
+            if (!storageDevices.containsKey(libStorage.getStorageId())) {
+                storageDevices.put(libStorage.getStorageId(), libStorage);
             } else {
-                libStorage = storageDevices.get(libStorage.getId());
+                libStorage = storageDevices.get(libStorage.getStorageId());
             }
 
             libStorage.setPartitions(libStorage.getPartitions() + 1);

@@ -29,7 +29,9 @@ public class MainApplicationController implements DialogController, Initializabl
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         syncManager = screens.deviceSyncManagerController();
-        mainView.setCenter(syncManager);
+        var syncManagerView = screens.deviceSyncManager(syncManager).getScene().getRoot();
+//        mainView.setCenter(syncManager);
+        mainView.setCenter(syncManagerView);
     }
 
     public void exit(ActionEvent actionEvent) {
