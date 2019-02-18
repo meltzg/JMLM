@@ -33,7 +33,7 @@ public class ScreensConfiguration {
     }
 
     @Bean
-    MainApplicationController mainViewController() {
+    public MainApplicationController mainViewController() {
         return new MainApplicationController(this);
     }
 
@@ -43,7 +43,7 @@ public class ScreensConfiguration {
     }
 
     @Bean
-    DeviceManagerController deviceManagerController() {
+    public DeviceManagerController deviceManagerController() {
         return new DeviceManagerController(this);
     }
 
@@ -51,12 +51,6 @@ public class ScreensConfiguration {
     @Scope("prototype")
     public DeviceWizard deviceWizard() {
         return new DeviceWizard();
-    }
-
-    @Bean
-    public FXMLDialog deviceSyncManager() {
-        return new FXMLDialog(deviceSyncManagerController(), getClass().getResource("/org/meltzg/jmlm/ui/components/controls/sync/DeviceSyncManagerControllerView.fxml"),
-                primaryStage, StageStyle.DECORATED, Modality.APPLICATION_MODAL);
     }
 
     @Bean
