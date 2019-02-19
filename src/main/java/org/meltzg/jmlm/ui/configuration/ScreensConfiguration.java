@@ -28,21 +28,25 @@ public class ScreensConfiguration {
     }
 
     @Bean
+    @Scope("prototype")
     public FXMLDialog mainView() {
         return new FXMLDialog(mainViewController(), getClass().getResource("/org/meltzg/jmlm/ui/MainApplicationView.fxml"), primaryStage);
     }
 
     @Bean
+    @Scope("prototype")
     public MainApplicationController mainViewController() {
         return new MainApplicationController(this);
     }
 
     @Bean
+    @Scope("prototype")
     public FXMLDialog deviceManager() {
         return new FXMLDialog(deviceManagerController(), getClass().getResource("/org/meltzg/jmlm/ui/DeviceManagerView.fxml"), primaryStage);
     }
 
     @Bean
+    @Scope("prototype")
     public DeviceManagerController deviceManagerController() {
         return new DeviceManagerController(this);
     }
@@ -54,12 +58,14 @@ public class ScreensConfiguration {
     }
 
     @Bean
+    @Scope("prototype")
     public FXMLDialog deviceSyncManager(DeviceSyncManagerController controller) {
         return new FXMLDialog(controller, getClass().getResource("/org/meltzg/jmlm/ui/components/controls/sync/DeviceSyncManagerControllerView.fxml"),
                 primaryStage, StageStyle.DECORATED, Modality.APPLICATION_MODAL);
     }
 
     @Bean
+    @Scope("prototype")
     public DeviceSyncManagerController deviceSyncManagerController() {
         return new DeviceSyncManagerController();
     }
