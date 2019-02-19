@@ -75,17 +75,18 @@ public class DeviceManagerControllerTest extends ApplicationTest {
 
         clickOn("Next");
 
-        var home = Paths.get(System.getProperty("user.home"), "Music");
+        var pathToAdd = Paths.get(".").toAbsolutePath().toString().replace(".", "");
+        pathToAdd += "/gradle";
         var deviceTree = (TreeView) lookup("#deviceTree").query();
 
         doubleClickOn("/");
-        for (var part : home.toString().split("/")) {
+        for (var part : pathToAdd.split("/")) {
             if (part.length() > 0) {
                 while (!((TreeItem) deviceTree.getSelectionModel().getSelectedItem()).getValue().toString().equals(part)) {
                     var currentSelection = deviceTree.getSelectionModel().getSelectedItem();
                     type(KeyCode.DOWN);
                     if (currentSelection.equals(deviceTree.getSelectionModel().getSelectedItem())) {
-                        fail("Could not select " + home.toString());
+                        fail("Could not select " + pathToAdd);
                     }
                 }
                 doubleClickOn(part);
