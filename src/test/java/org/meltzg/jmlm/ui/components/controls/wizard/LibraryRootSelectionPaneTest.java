@@ -3,7 +3,6 @@ package org.meltzg.jmlm.ui.components.controls.wizard;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 import javafx.stage.Stage;
 import org.junit.Test;
 import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
@@ -27,7 +26,7 @@ public class LibraryRootSelectionPaneTest extends ApplicationTest {
 
     @Test
     public void testAddSelectedItem() {
-        doubleClickOn("resources", MouseButton.PRIMARY);
+        doubleClickOn("resources");
         doubleClickOn("audio");
         clickOn("Add to Device");
 
@@ -37,7 +36,7 @@ public class LibraryRootSelectionPaneTest extends ApplicationTest {
 
     @Test
     public void testRemoveSelectedItem() {
-        doubleClickOn("resources", MouseButton.PRIMARY);
+        doubleClickOn("resources");
         doubleClickOn("audio");
         clickOn("Add to Device");
 
@@ -50,7 +49,7 @@ public class LibraryRootSelectionPaneTest extends ApplicationTest {
 
     @Test
     public void testCannotAddChildren() {
-        doubleClickOn("resources", MouseButton.PRIMARY);
+        doubleClickOn("resources");
         doubleClickOn("audio");
         clickOn("Add to Device");
         clickOn("jst2018-12-09");

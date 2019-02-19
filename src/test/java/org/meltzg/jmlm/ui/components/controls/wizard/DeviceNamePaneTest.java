@@ -2,7 +2,6 @@ package org.meltzg.jmlm.ui.components.controls.wizard;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 import javafx.stage.Stage;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
@@ -25,7 +24,7 @@ public class DeviceNamePaneTest extends ApplicationTest {
     @Test
     public void testValidateDeviceName() {
         assertTrue(sceneRoot.getVs().isInvalid());
-        clickOn("#deviceName", MouseButton.PRIMARY).type(KeyCode.getKeyCode("A"));
+        clickOn("#deviceName").type(KeyCode.getKeyCode("A"));
         assertFalse(sceneRoot.getVs().isInvalid());
     }
 }
