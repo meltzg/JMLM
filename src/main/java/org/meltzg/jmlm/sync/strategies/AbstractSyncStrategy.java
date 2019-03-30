@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractSyncStrategy {
     SyncPlan plan;
 
-    public SyncPlan createPlan(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses,
+    public SyncPlan createPlan(List<AudioContent> desiredContentInfo, Map<Long, ContentSyncStatus> syncStatuses,
                                Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
         plan = new SyncPlan();
 
@@ -23,10 +23,10 @@ public abstract class AbstractSyncStrategy {
         return plan;
     }
 
-    protected abstract void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses,
+    protected abstract void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<Long, ContentSyncStatus> syncStatuses,
                                                 Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException;
 
-    private void planContentToRemove(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses) {
+    private void planContentToRemove(List<AudioContent> desiredContentInfo, Map<Long, ContentSyncStatus> syncStatuses) {
         var desiredContentIds = desiredContentInfo.stream()
                 .map(AudioContent::getId)
                 .collect(Collectors.toSet());

@@ -8,11 +8,11 @@ import java.util.*;
 @NoArgsConstructor
 @Data
 public class SyncPlan {
-    private Map<String, UUID> transferToDevice = new HashMap<>();
-    private Map<String, UUID> transferOnDevice = new HashMap<>();
-    private List<String> deleteFromDevice = new ArrayList<>();
+    private Map<Long, UUID> transferToDevice = new HashMap<>();
+    private Map<Long, UUID> transferOnDevice = new HashMap<>();
+    private List<Long> deleteFromDevice = new ArrayList<>();
 
-    private Map<String, UUID> transferToLibrary = new HashMap<>();
-    private Map<String, UUID> transferOnLibrary = new HashMap<>();
-    private List<String> deleteFromLibrary = new ArrayList<>();
+    private Map<Long, UUID> transferToLibrary = new HashMap<>();
+    private Map<Long, UUID> transferOnLibrary = new HashMap<>();
+    private List<Long> deleteFromLibrary = new ArrayList<>();
 }

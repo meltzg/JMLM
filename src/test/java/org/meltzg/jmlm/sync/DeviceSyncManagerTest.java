@@ -67,7 +67,7 @@ public class DeviceSyncManagerTest {
     public void testGetSyncStatusNotOnDevice() {
         var syncManager = new DeviceSyncManager(device1, device2, null);
 
-        var status = syncManager.getSyncStatus("not there");
+        var status = syncManager.getSyncStatus(9001L);
         assertFalse(status.isInLibrary());
         assertFalse(status.isOnDevice());
     }
@@ -133,7 +133,7 @@ public class DeviceSyncManagerTest {
     @Test(expected = FileNotFoundException.class)
     public void testCreateSyncPlanClearDeviceContentNotFound() throws FileNotFoundException, InsufficientSpaceException, SyncStrategyException, ClassNotFoundException {
         var syncManager = new DeviceSyncManager(device1, device2, getRankedStrategies());
-        syncManager.createSyncPlan(new HashSet<>(Collections.singletonList("notOnDevice")),
+        syncManager.createSyncPlan(new HashSet<>(Collections.singletonList(9001L)),
                 NotInLibraryStrategy.CANCEL_SYNC);
     }
 }

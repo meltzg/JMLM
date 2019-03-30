@@ -2,7 +2,6 @@ package org.meltzg.jmlm.device;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -41,7 +40,7 @@ public class FileSystemAudioContentDevice {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @Getter
-    private Map<String, AudioContent> content = new HashMap<>();
+    private Map<Long, AudioContent> content = new HashMap<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Getter
@@ -53,7 +52,7 @@ public class FileSystemAudioContentDevice {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Getter
-    private Map<String, ContentLocation> contentLocations = new HashMap<>();
+    private Map<Long, ContentLocation> contentLocations = new HashMap<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     private Map<UUID, String> libraryRootToStorage = new HashMap<>();
@@ -67,11 +66,11 @@ public class FileSystemAudioContentDevice {
         this.contentRepo = contentRepo;
     }
 
-    public AudioContent getContent(String id) {
+    public AudioContent getContent(Long id) {
         return content.get(id);
     }
 
-    public boolean containsContent(String id) {
+    public boolean containsContent(Long id) {
         return content.containsKey(id);
     }
 
@@ -157,7 +156,7 @@ public class FileSystemAudioContentDevice {
                 throw new FileAlreadyExistsException("Content already exists on device");
             }
 
-            registerContent(contentData, libraryId, destination);
+            contentData = registerContent(contentData, libraryId, destination);
             var storage = storageDevices.get(libraryRootToStorage.get(contentLocations.get(contentData.getId()).getLibraryId()));
             storage.setFreeSpace(storage.getFreeSpace() - contentData.getSize());
             return contentData;
@@ -168,7 +167,7 @@ public class FileSystemAudioContentDevice {
         }
     }
 
-    public void deleteContent(String id) throws IOException {
+    public void deleteContent(Long id) throws IOException {
         var contentData = content.get(id);
         if (contentData == null) {
             throw new FileNotFoundException("Could not find content with ID " + id);
@@ -185,7 +184,7 @@ public class FileSystemAudioContentDevice {
         storage.setFreeSpace(storage.getFreeSpace() + contentData.getSize());
     }
 
-    public void moveContent(String id, UUID destinationId) throws IOException {
+    public void moveContent(Long id, UUID destinationId) throws IOException {
         var destinationLibrary = libraryRoots.get(destinationId);
         var contentInfo = content.get(id);
 
@@ -209,7 +208,7 @@ public class FileSystemAudioContentDevice {
         registerContent(contentInfo, destinationId, destination);
     }
 
-    public InputStream getContentStream(String id) throws IOException {
+    public InputStream getContentStream(Long id) throws IOException {
         var contentInfo = content.get(id);
         if (contentInfo == null) {
             throw new FileNotFoundException("Could not find content with ID " + id);
@@ -276,49 +275,42 @@ public class FileSystemAudioContentDevice {
         return new StorageDevice(deviceId, capacity, freespace, 0);
     }
 
-    protected AudioContent makeAudioContent(String path) throws TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException, IOException {
+    private AudioContent makeAudioContent(String path) throws TagException, ReadOnlyFileException, CannotReadException, InvalidAudioFrameException, IOException {
         var fsPath = Paths.get(path).toAbsolutePath();
-        var isfs = Files.newInputStream(fsPath);
 
         var af = AudioFileIO.read(fsPath.toFile());
         var tag = af.getTag();
 
-        var contentId = DigestUtils.md2Hex(isfs);
-
-        var existingContent = contentRepo.findById(contentId);
         AudioContent contentInfo;
 
-        if (existingContent.isPresent()) {
-            contentInfo = existingContent.get();
-        } else {
-            var size = Files.size(fsPath);
+        var size = Files.size(fsPath);
 
-            var genre = tag.getFirst(FieldKey.GENRE);
-            var artist = tag.getFirst(FieldKey.ARTIST);
-            var album = tag.getFirst(FieldKey.ALBUM);
-            var title = tag.getFirst(FieldKey.TITLE);
-            var trackNum = Integer.parseInt(tag.getFirst(FieldKey.TRACK));
+        var genre = tag.getFirst(FieldKey.GENRE);
+        var artist = tag.getFirst(FieldKey.ARTIST);
+        var album = tag.getFirst(FieldKey.ALBUM);
+        var title = tag.getFirst(FieldKey.TITLE);
+        var trackNum = Integer.parseInt(tag.getFirst(FieldKey.TRACK));
 
-            String strDiscNum = tag.getFirst(FieldKey.DISC_NO);
-            var discNum = strDiscNum.length() > 0 ? Integer.parseInt(strDiscNum) : 1;
+        String strDiscNum = tag.getFirst(FieldKey.DISC_NO);
+        var discNum = strDiscNum.length() > 0 ? Integer.parseInt(strDiscNum) : 1;
 
-            contentInfo = new AudioContent(contentId, size, genre, artist,
-                    album, title, discNum, trackNum);
-        }
+        contentInfo = new AudioContent(size, genre, artist,
+                album, title, discNum, trackNum);
 
         return contentInfo;
     }
 
-    private void registerContent(AudioContent contentData, UUID libId, Path path) {
-        content.put(contentData.getId(), contentData);
-
+    private AudioContent registerContent(AudioContent contentData, UUID libId, Path path) {
         var libPath = Paths.get(libraryRoots.get(libId));
         var libSubPath = path.toAbsolutePath().toString().substring(
                 libPath.toAbsolutePath().toString().length());
 
+        contentData = contentRepo.save(contentData);
+
+        content.put(contentData.getId(), contentData);
         contentLocations.put(contentData.getId(), new ContentLocation(libId, libSubPath));
 
-        contentRepo.save(contentData);
+        return contentData;
     }
 
     private void unregisterContent(AudioContent contentData) {
