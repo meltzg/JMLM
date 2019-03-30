@@ -1,8 +1,8 @@
 package org.meltzg.jmlm.device.content;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.builder.HashCodeExclude;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @NoArgsConstructor
 public class AudioContent {
     @Id
-    @HashCodeExclude
+    @EqualsAndHashCode.Exclude
     private Long id;
     private long size;
 
