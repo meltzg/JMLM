@@ -195,7 +195,7 @@ public class FileSystemAudioContentDeviceTest {
     @Test(expected = FileNotFoundException.class)
     public void testDeleteContentNotFound() throws IOException, URISyntaxException {
         device.addLibraryRoot(TMPDIR);
-        device.deleteContent("doesn't exist");
+        device.deleteContent(9001L);
     }
 
     @Test
@@ -229,7 +229,7 @@ public class FileSystemAudioContentDeviceTest {
     @Test(expected = FileNotFoundException.class)
     public void testMoveContentNotFound() throws IOException, URISyntaxException {
         device.addLibraryRoot(TMPDIR);
-        device.moveContent("doesn't exist", device.getLibraryRoots().keySet().iterator().next());
+        device.moveContent(9001L, device.getLibraryRoots().keySet().iterator().next());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -280,7 +280,7 @@ public class FileSystemAudioContentDeviceTest {
     @Test(expected = FileNotFoundException.class)
     public void testGetContentStreamNotFound() throws IOException, URISyntaxException {
         device.addLibraryRoot(TMPDIR);
-        device.getContentStream("not there");
+        device.getContentStream(9001L);
     }
 
     @Test

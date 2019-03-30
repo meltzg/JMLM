@@ -7,7 +7,8 @@ import java.util.UUID;
 
 public class ContentSyncStatus {
     @Getter private final AudioContent contentInfo;
-    @Getter private String contentId;
+    @Getter
+    private Long contentId;
     @Getter private UUID mainLibrary;
     @Getter private UUID deviceLibrary;
 

@@ -3,8 +3,7 @@ jdk:
   - openjdk11
 
 script:
-  - ./gradlew check -i
-  - ./gradlew jacocoTestReport
+  - ./gradlew check jacocoTestReport
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
