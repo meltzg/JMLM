@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<fx:root xmlns:fx="http://javafx.com/fxml/1" type="Pane" xmlns="http://javafx.com/javafx/8.0.172-ea">
+    <HBox>
+        <VBox>
+            <Label text="Device Content"/>
+            <TreeView fx:id="deviceTree" prefHeight="200.0" prefWidth="200.0"/>
+            <Button text="Add to Device" onAction="#addSelectedItem"/>
+        </VBox>
+        <VBox>
+            <Label text="Directories to Add"/>
+            <ListView fx:id="lstLibraryRoots" prefHeight="200.0" prefWidth="200.0"/>
+            <Button text="Remove from Device" onAction="#removeSelectedItem"/>
+        </VBox>
+    </HBox>
+</fx:root>

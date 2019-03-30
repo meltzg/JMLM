@@ -41,7 +41,7 @@ public class FileSystemAudioContentDeviceTest {
 
     @Before
     public void setUp() throws Exception {
-        device = new FileSystemAudioContentDevice(contentRepo);
+        device = new FileSystemAudioContentDevice("Device Name", contentRepo);
         FileUtils.forceMkdir(Paths.get(TMPDIR).toFile());
     }
 
@@ -266,7 +266,7 @@ public class FileSystemAudioContentDeviceTest {
         FileUtils.forceMkdir(tmpRoot1.toFile());
         FileUtils.forceMkdir(tmpRoot2.toFile());
 
-        var device2 = new FileSystemAudioContentDevice(contentRepo);
+        var device2 = new FileSystemAudioContentDevice("Device 2 Name", contentRepo);
         device.addLibraryRoot(tmpRoot1.toString());
         device2.addLibraryRoot(tmpRoot2.toString());
 

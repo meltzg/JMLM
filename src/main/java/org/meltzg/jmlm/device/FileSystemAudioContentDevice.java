@@ -31,10 +31,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FileSystemAudioContentDevice {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Getter
-    private Long id;
+    private String id;
 
+    @Getter
+    @Setter
+    private String name;
+
+    @Getter
     @Setter
     private String rootPath = "/";
 
@@ -42,7 +46,8 @@ public class FileSystemAudioContentDevice {
     @Getter
     private Map<Long, AudioContent> content = new HashMap<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @MapKey(name = "storageId")
     @Getter
     private Map<String, StorageDevice> storageDevices = new HashMap<>();
 
@@ -50,7 +55,8 @@ public class FileSystemAudioContentDevice {
     @Getter
     private Map<UUID, String> libraryRoots = new HashMap<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @MapKey(name = "contentId")
     @Getter
     private Map<Long, ContentLocation> contentLocations = new HashMap<>();
 
@@ -63,7 +69,13 @@ public class FileSystemAudioContentDevice {
     private AudioContentRepository contentRepo;
 
     public FileSystemAudioContentDevice(AudioContentRepository contentRepo) {
+        this("Device", contentRepo);
+    }
+
+    public FileSystemAudioContentDevice(String name, AudioContentRepository contentRepo) {
+        this.name = name;
         this.contentRepo = contentRepo;
+        this.id = UUID.randomUUID().toString();
     }
 
     public AudioContent getContent(Long id) {
@@ -97,12 +109,12 @@ public class FileSystemAudioContentDevice {
             var libId = UUID.randomUUID();
             libraryRoots.put(libId, libPath.toString());
             var libStorage = getStorageDevice(libPath);
-            libraryRootToStorage.put(libId, libStorage.getId());
+            libraryRootToStorage.put(libId, libStorage.getStorageId());
 
-            if (!storageDevices.containsKey(libStorage.getId())) {
-                storageDevices.put(libStorage.getId(), libStorage);
+            if (!storageDevices.containsKey(libStorage.getStorageId())) {
+                storageDevices.put(libStorage.getStorageId(), libStorage);
             } else {
-                libStorage = storageDevices.get(libStorage.getId());
+                libStorage = storageDevices.get(libStorage.getStorageId());
             }
 
             libStorage.setPartitions(libStorage.getPartitions() + 1);
@@ -308,7 +320,7 @@ public class FileSystemAudioContentDevice {
         contentData = contentRepo.save(contentData);
 
         content.put(contentData.getId(), contentData);
-        contentLocations.put(contentData.getId(), new ContentLocation(libId, libSubPath));
+        contentLocations.put(contentData.getId(), new ContentLocation(contentData.getId(), libId, libSubPath));
 
         return contentData;
     }

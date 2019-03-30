@@ -13,6 +13,8 @@ buildscript {
 plugins {
 	id 'io.franzbecker.gradle-lombok' version '2.0'
 	id 'jacoco'
+	id 'org.openjfx.javafxplugin' version '0.0.7'
+	id 'application'
 }
 
 apply plugin: 'java'
@@ -40,6 +42,11 @@ dependencies {
 	compile 'net.jthink:jaudiotagger:2+'
 	compile 'commons-io:commons-io:2.+'
 	compile 'org.apache.commons:commons-lang3:3.+'
+	compile 'org.controlsfx:controlsfx:9.0.0'
+
+	testCompile 'org.testfx:testfx-core:4.0.15-alpha'
+	testCompile 'org.testfx:testfx-junit:4.0.15-alpha'
+	testCompile 'org.testfx:openjfx-monocle:jdk-11+26'
 }
 
 jacocoTestReport {
@@ -47,4 +54,13 @@ jacocoTestReport {
 		xml.enabled true
 		html.enabled true
 	}
+}
+
+javafx {
+	modules = ['javafx.controls', 'javafx.fxml']
+}
+
+application {
+	mainClassName = 'org.meltzg.jmlm.JmlmApplication'
+	applicationDefaultJvmArgs = ['--add-opens', 'javafx.graphics/javafx.scene=ALL-UNNAMED']
 }
