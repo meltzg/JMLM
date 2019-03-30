@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class GreedySyncStrategy extends AbstractSyncStrategy {
     @Override
-    protected void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses,
+    protected void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<Long, ContentSyncStatus> syncStatuses,
                                        Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
         var libCapacities = destinationLibCapacities.entrySet()
                 .stream()
@@ -20,7 +20,7 @@ public class GreedySyncStrategy extends AbstractSyncStrategy {
         sortedDesiredContent.sort(
                 (info1, info2) -> Long.signum(info2.getSize() - info1.getSize()));
 
-        var contentDestinations = new HashMap<String, UUID>();
+        var contentDestinations = new HashMap<Long, UUID>();
         for (var lib : libCapacities) {
             var libId = lib.getKey();
             long remainingCapacity = lib.getValue();

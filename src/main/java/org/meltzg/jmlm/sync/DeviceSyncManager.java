@@ -1,5 +1,6 @@
 package org.meltzg.jmlm.sync;
 
+import lombok.Getter;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
@@ -19,8 +20,9 @@ import java.util.stream.Collectors;
 public class DeviceSyncManager {
     private FileSystemAudioContentDevice mainLibrary;
     private FileSystemAudioContentDevice attachedDevice;
-    private Map<String, ContentSyncStatus> syncStatuses;
-    private Map<String, AudioContent> allContent;
+    @Getter
+    private Map<Long, ContentSyncStatus> syncStatuses;
+    private Map<Long, AudioContent> allContent;
     private List<String> rankedStrategyClassNames;
 
 
@@ -53,12 +55,7 @@ public class DeviceSyncManager {
         }
     }
 
-
-    public Map<String, ContentSyncStatus> getSyncStatuses() {
-        return syncStatuses;
-    }
-
-    public ContentSyncStatus getSyncStatus(String id) {
+    public ContentSyncStatus getSyncStatus(Long id) {
         var status = this.syncStatuses.get(id);
         if (status == null) {
             AudioContent contentInfo = new AudioContent();
@@ -72,7 +69,7 @@ public class DeviceSyncManager {
         this.rankedStrategyClassNames = rankedStrategyClassNames;
     }
 
-    public SyncPlan createSyncPlan(Set<String> desiredContent, NotInLibraryStrategy notInLibraryStrategy) throws FileNotFoundException, SyncStrategyException, InsufficientSpaceException, ClassNotFoundException {
+    public SyncPlan createSyncPlan(Set<Long> desiredContent, NotInLibraryStrategy notInLibraryStrategy) throws FileNotFoundException, SyncStrategyException, InsufficientSpaceException, ClassNotFoundException {
         if (mainLibrary.getLibraryRoots().isEmpty()) {
             throw new IllegalStateException("Main library device has no libraries configured");
         }
@@ -91,7 +88,7 @@ public class DeviceSyncManager {
         var plan = strategy.createPlan(desiredContentInfo, syncStatuses,
                 attachedDevice.getLibraryRootCapacities(), attachedDevice.getLibraryRootFreeSpace());
 
-        var transferToLibrary = new LinkedList<String>();
+        var transferToLibrary = new LinkedList<Long>();
         for (var toDelete : plan.getDeleteFromDevice()) {
             if (!syncStatuses.get(toDelete).isInLibrary()) {
                 switch (notInLibraryStrategy) {
@@ -126,7 +123,7 @@ public class DeviceSyncManager {
         return plan;
     }
 
-    public void syncDevice(Set<String> desiredContent, NotInLibraryStrategy notInLibraryStrategy) throws ClassNotFoundException, IOException, InsufficientSpaceException, SyncStrategyException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
+    public void syncDevice(Set<Long> desiredContent, NotInLibraryStrategy notInLibraryStrategy) throws ClassNotFoundException, IOException, InsufficientSpaceException, SyncStrategyException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
         var plan = createSyncPlan(desiredContent, notInLibraryStrategy);
         syncDevice(plan);
     }
@@ -161,7 +158,7 @@ public class DeviceSyncManager {
     }
 
 
-    private AudioContent getContentInfo(String contentId) {
+    private AudioContent getContentInfo(Long contentId) {
         var syncStatus = syncStatuses.get(contentId);
         if (syncStatus != null) {
             if (syncStatus.isInLibrary()) {

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class LazySyncStrategy extends AbstractSyncStrategy {
 
     @Override
-    protected void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses, Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
+    protected void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<Long, ContentSyncStatus> syncStatuses, Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
         var libFreeSpaces = new HashMap<UUID, Long>();
 
         for (var toDeleteId : plan.getDeleteFromDevice()) {

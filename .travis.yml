@@ -7,8 +7,7 @@ env:
   - _JAVA_OPTIONS="-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500"
 
 script:
-  - ./gradlew check -i
-  - ./gradlew jacocoTestReport
+  - ./gradlew check jacocoTestReport
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

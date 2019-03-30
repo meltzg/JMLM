@@ -40,7 +40,6 @@ dependencies {
 	testCompile 'org.mockito:mockito-core:2.+'
 
 	compile 'net.jthink:jaudiotagger:2+'
-	compile 'commons-codec:commons-codec:1.+'
 	compile 'commons-io:commons-io:2.+'
 	compile 'org.apache.commons:commons-lang3:3.+'
 	compile 'org.controlsfx:controlsfx:9.0.0'

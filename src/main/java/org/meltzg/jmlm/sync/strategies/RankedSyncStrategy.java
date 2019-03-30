@@ -25,7 +25,7 @@ public class RankedSyncStrategy extends AbstractSyncStrategy {
     }
 
     @Override
-    protected void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<String, ContentSyncStatus> syncStatuses, Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
+    protected void planDeviceTransfers(List<AudioContent> desiredContentInfo, Map<Long, ContentSyncStatus> syncStatuses, Map<UUID, Long> destinationLibCapacities, Map<UUID, Long> destinationLibFreeSpace) throws InsufficientSpaceException {
         for (var strategyClass : rankedStrategies) {
             try {
                 var strategy = strategyClass.getDeclaredConstructor().newInstance();

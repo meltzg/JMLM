@@ -21,7 +21,7 @@ public abstract class AbstractSyncStrategyTest {
     private Map<UUID, Long> libCapacities;
     private Map<UUID, Long> libFreespace;
     private List<AudioContent> desiredContentInfo;
-    private Map<String, ContentSyncStatus> syncStatuses;
+    private Map<Long, ContentSyncStatus> syncStatuses;
 
     @Before
     public void setUp() throws ClassNotFoundException {
@@ -45,7 +45,7 @@ public abstract class AbstractSyncStrategyTest {
     public void createPlanEmptyDevice() throws InsufficientSpaceException {
         for (var i = 0; i < 4; i++) {
             var content = new AudioContent();
-            content.setId(UUID.randomUUID().toString());
+            content.setId(new Random().nextLong());
             content.setSize(25);
             desiredContentInfo.add(content);
 
@@ -67,7 +67,7 @@ public abstract class AbstractSyncStrategyTest {
     public void createPlanInsufficientSpace() throws InsufficientSpaceException {
         for (var i = 0; i < 5; i++) {
             var content = new AudioContent();
-            content.setId(UUID.randomUUID().toString());
+            content.setId(new Random().nextLong());
             content.setSize(25);
             desiredContentInfo.add(content);
 
@@ -86,7 +86,7 @@ public abstract class AbstractSyncStrategyTest {
         var contents = new ArrayList<AudioContent>();
         for (var i = 0; i < 3; i++) {
             var content = new AudioContent();
-            content.setId(UUID.randomUUID().toString());
+            content.setId(new Random().nextLong());
             content.setSize(25);
             contents.add(content);
             desiredContentInfo.add(content);
@@ -123,7 +123,7 @@ public abstract class AbstractSyncStrategyTest {
     public void createPlanNeedsDeleteContent() throws InsufficientSpaceException {
         for (var i = 0; i < 4; i++) {
             var content = new AudioContent();
-            content.setId(UUID.randomUUID().toString());
+            content.setId(new Random().nextLong());
             content.setSize(25);
             desiredContentInfo.add(content);
 
@@ -135,7 +135,7 @@ public abstract class AbstractSyncStrategyTest {
         }
 
         var existingContent = new AudioContent();
-        existingContent.setId(UUID.randomUUID().toString());
+        existingContent.setId(new Random().nextLong());
         existingContent.setSize(25);
         libFreespace.put(libId1, libFreespace.get(libId1) - existingContent.getSize());
         syncStatuses.put(existingContent.getId(), new ContentSyncStatus(

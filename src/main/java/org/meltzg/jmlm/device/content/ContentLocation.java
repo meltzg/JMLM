@@ -14,11 +14,11 @@ import java.util.UUID;
 public class ContentLocation {
     @Id
     private String id;
-    private String contentId;
+    private Long contentId;
     private UUID libraryId;
     private String librarySubPath;
 
-    public ContentLocation(String contentId, UUID libraryId, String librarySubPath) {
+    public ContentLocation(Long contentId, UUID libraryId, String librarySubPath) {
         id = UUID.randomUUID().toString();
         this.contentId = contentId;
         this.libraryId = libraryId;
