@@ -1,11 +1,13 @@
 package org.meltzg.jmlm.ui.components.controls.sync;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
@@ -13,6 +15,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.util.Callback;
+import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jaudiotagger.tag.FieldKey;
@@ -46,7 +49,7 @@ public class DeviceSyncManagerController implements DialogController, Initializa
     @FXML
     private ChoiceBox<DeviceWrapper> chcAttached;
     @FXML
-    public TableView contentTable;
+    public TableView<SelectedContent> contentTable;
     @FXML
     public TableColumn colOnDevice;
     @FXML
@@ -61,7 +64,8 @@ public class DeviceSyncManagerController implements DialogController, Initializa
     public TableColumn colTrack;
     @FXML
     public TableColumn colDisc;
-    ObservableSet<ContentSyncStatus> selectedContent;
+
+    private ObservableList<SelectedContent> selectedContent;
     private DeviceSyncManager syncManager;
 
     @Override
@@ -85,10 +89,10 @@ public class DeviceSyncManagerController implements DialogController, Initializa
             });
         }
 
-        selectedContent = FXCollections.observableSet();
+        selectedContent = FXCollections.observableArrayList();
 
-        colOnDevice.setCellValueFactory((Callback<TableColumn.CellDataFeatures<ContentSyncStatus, Boolean>, ObservableValue>) param ->
-                new SimpleBooleanProperty(param.getValue().isOnDevice()));
+        colOnDevice.setCellValueFactory((Callback<TableColumn.CellDataFeatures<SelectedContent, Boolean>, ObservableValue>) param ->
+                param.getValue().selectedProperty);
         colOnDevice.setCellFactory(CheckBoxTableCell.forTableColumn(colOnDevice));
 
         setContentTableColumnFactory(colTitle, FieldKey.TITLE);
@@ -97,6 +101,9 @@ public class DeviceSyncManagerController implements DialogController, Initializa
         setContentTableColumnFactory(colGenre, FieldKey.GENRE);
         setContentTableColumnFactory(colTrack, FieldKey.TRACK);
         setContentTableColumnFactory(colDisc, FieldKey.DISC_NO);
+
+        contentTable.setItems(selectedContent);
+        contentTable.setEditable(true);
     }
 
     public void refreshDevices() {
@@ -110,7 +117,11 @@ public class DeviceSyncManagerController implements DialogController, Initializa
     }
 
     private void refreshContentTable() {
-        contentTable.getItems().setAll(syncManager.getSyncStatuses().values());
+        var mergedLibraryContent = syncManager.getSyncStatuses().values().stream()
+                .map(contentSyncStatus -> new SelectedContent(contentSyncStatus.isOnDevice(), contentSyncStatus))
+                .collect(Collectors.toList());
+        selectedContent.setAll(mergedLibraryContent);
+        contentTable.setItems(selectedContent);
     }
 
     private void handleSelectedDeviceChange() throws InvalidStateException {
@@ -137,8 +148,8 @@ public class DeviceSyncManagerController implements DialogController, Initializa
 
     private void setContentTableColumnFactory(TableColumn column, FieldKey fieldKey) {
 
-        column.setCellValueFactory((Callback<TableColumn.CellDataFeatures<ContentSyncStatus, String>, ObservableValue<Object>>) data -> {
-            var contentInfo = data.getValue().getContentInfo();
+        column.setCellValueFactory((Callback<TableColumn.CellDataFeatures<SelectedContent, String>, ObservableValue<Object>>) data -> {
+            var contentInfo = data.getValue().getContentSyncStatusProperty().get().getContentInfo();
             var value = new SimpleObjectProperty<>();
             switch (fieldKey) {
                 case GENRE:
@@ -164,5 +175,16 @@ public class DeviceSyncManagerController implements DialogController, Initializa
             }
             return value;
         });
+    }
+
+    @Data
+    class SelectedContent {
+        private BooleanProperty selectedProperty = new SimpleBooleanProperty();
+        private ObjectProperty<ContentSyncStatus> contentSyncStatusProperty = new SimpleObjectProperty<>();
+
+        public SelectedContent(boolean selected, ContentSyncStatus contentSyncStatus) {
+            selectedProperty.set(selected);
+            contentSyncStatusProperty.set(contentSyncStatus);
+        }
     }
 }

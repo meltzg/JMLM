@@ -7,6 +7,7 @@
             fx:controller="org.meltzg.jmlm.ui.components.controls.sync.DeviceSyncManagerController">
     <top>
         <HBox>
+            <Button mnemonicParsing="false" onMouseClicked="#refreshDevices" text="Refresh Devices"/>
             <Label text="Library Device"/>
             <ChoiceBox fx:id="chcLibrary" prefWidth="150.0"/>
             <Label text="Attached Device"/>
