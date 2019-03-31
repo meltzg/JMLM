@@ -97,7 +97,15 @@ public class DeviceSyncManagerControllerTest extends ApplicationTest {
         clickOn("#chcAttached");
         clickOn("device2");
 
-        TableView contentTable = lookup("#contentTable").queryTableView();
-        assertEquals(contentRepository.count(), contentTable.getItems().size());
+        TableView<DeviceSyncManagerController.SelectedContent> contentTable = lookup("#contentTable")
+                .queryTableView();
+        var content = contentTable.getItems();
+
+        assertEquals(contentRepository.count(), content.size());
+        for (var item : content) {
+            var itemInfo = item.getContentSyncStatusProperty().get();
+            var checked = item.getSelectedProperty().get();
+            assertEquals(checked, itemInfo.isOnDevice());
+        }
     }
 }

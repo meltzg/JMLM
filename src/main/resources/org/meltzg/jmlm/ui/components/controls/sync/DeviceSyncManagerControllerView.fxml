@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.*?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.172-ea"
             fx:controller="org.meltzg.jmlm.ui.components.controls.sync.DeviceSyncManagerController">
     <top>
@@ -27,4 +26,13 @@
             </columns>
         </TableView>
     </center>
+    <bottom>
+        <HBox>
+            <Label text="Device Used Space/Capacity: "/>
+            <StackPane>
+                <ProgressBar fx:id="prgCapacityBar" prefWidth="200.0" progress="0.0"/>
+                <Label fx:id="lblStorageInfo"/>
+            </StackPane>
+        </HBox>
+    </bottom>
 </BorderPane>

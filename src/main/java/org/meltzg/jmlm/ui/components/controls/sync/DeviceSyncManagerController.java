@@ -10,14 +10,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.util.Callback;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.jaudiotagger.tag.FieldKey;
 import org.meltzg.jmlm.exceptions.InvalidStateException;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
@@ -64,6 +63,10 @@ public class DeviceSyncManagerController implements DialogController, Initializa
     public TableColumn colTrack;
     @FXML
     public TableColumn colDisc;
+    @FXML
+    public Label lblStorageInfo;
+    @FXML
+    public ProgressBar prgCapacityBar;
 
     private ObservableList<SelectedContent> selectedContent;
     private DeviceSyncManager syncManager;
@@ -124,6 +127,34 @@ public class DeviceSyncManagerController implements DialogController, Initializa
         contentTable.setItems(selectedContent);
     }
 
+    private void refreshCapacityBar() {
+        var attachedDeviceIdx = chcAttached.getSelectionModel().getSelectedIndex();
+        var attachedDevice = chcAttached.getItems().get(attachedDeviceIdx);
+
+        var usedCapacity = selectedContent.stream()
+                .map(sc -> {
+                    if (sc.selectedProperty.get()) {
+                        return sc.getContentSyncStatusProperty().get().getContentInfo().getSize();
+                    }
+                    return 0L;
+                })
+                .mapToDouble(Long::doubleValue)
+                .sum();
+
+        var attachedCapacity = attachedDevice.getDevice().getLibraryRootCapacities().values().stream()
+                .mapToDouble(Long::doubleValue)
+                .sum();
+
+        var pctUsed = usedCapacity / attachedCapacity;
+
+        log.info("used: {}, total: {}, pct: {}", usedCapacity, attachedCapacity, pctUsed);
+
+        lblStorageInfo.setText(String.format("%.2f/%.2f GB",
+                usedCapacity / FileUtils.ONE_GB,
+                attachedCapacity / FileUtils.ONE_GB));
+        prgCapacityBar.setProgress(pctUsed);
+    }
+
     private void handleSelectedDeviceChange() throws InvalidStateException {
         var libDeviceIdx = chcLibrary.getSelectionModel().getSelectedIndex();
         var attachedDeviceIdx = chcAttached.getSelectionModel().getSelectedIndex();
@@ -143,7 +174,9 @@ public class DeviceSyncManagerController implements DialogController, Initializa
 
         syncManager = new DeviceSyncManager(libDevice.getDevice(), attachedDevice.getDevice(),
                 Arrays.asList(LazySyncStrategy.class.getCanonicalName(), GreedySyncStrategy.class.getCanonicalName()));
+
         refreshContentTable();
+        refreshCapacityBar();
     }
 
     private void setContentTableColumnFactory(TableColumn column, FieldKey fieldKey) {
@@ -182,8 +215,15 @@ public class DeviceSyncManagerController implements DialogController, Initializa
         private BooleanProperty selectedProperty = new SimpleBooleanProperty();
         private ObjectProperty<ContentSyncStatus> contentSyncStatusProperty = new SimpleObjectProperty<>();
 
-        public SelectedContent(boolean selected, ContentSyncStatus contentSyncStatus) {
+        SelectedContent(boolean selected, ContentSyncStatus contentSyncStatus) {
             selectedProperty.set(selected);
+            selectedProperty.addListener(new ChangeListener<Boolean>() {
+                @Override
+                public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                    log.info("Content Selection Change");
+                    refreshCapacityBar();
+                }
+            });
             contentSyncStatusProperty.set(contentSyncStatus);
         }
     }
