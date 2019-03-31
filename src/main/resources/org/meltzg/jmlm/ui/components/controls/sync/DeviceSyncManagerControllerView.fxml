@@ -1,17 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.ChoiceBox?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.172-ea"
             fx:controller="org.meltzg.jmlm.ui.components.controls.sync.DeviceSyncManagerController">
     <top>
         <HBox>
+            <Button mnemonicParsing="false" onMouseClicked="#refreshDevices" text="Refresh Devices"/>
             <Label text="Library Device"/>
             <ChoiceBox fx:id="chcLibrary" prefWidth="150.0"/>
             <Label text="Attached Device"/>
             <ChoiceBox fx:id="chcAttached" prefWidth="150.0"/>
         </HBox>
     </top>
+    <center>
+        <TableView fx:id="contentTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <columns>
+                <TableColumn fx:id="colOnDevice"/>
+                <TableColumn fx:id="colTitle" text="Title"/>
+                <TableColumn fx:id="colArtist" text="Artist"/>
+                <TableColumn fx:id="colAlbum" text="Album"/>
+                <TableColumn fx:id="colGenre" text="Genre"/>
+                <TableColumn fx:id="colTrack" text="Track"/>
+                <TableColumn fx:id="colDisc" text="Disc"/>
+            </columns>
+        </TableView>
+    </center>
 </BorderPane>
