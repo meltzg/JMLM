@@ -16,10 +16,7 @@ import org.meltzg.jmlm.ui.types.PathWrapper;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 public class LibraryRootSelectionPane extends ValidatableControl {
@@ -113,6 +110,12 @@ public class LibraryRootSelectionPane extends ValidatableControl {
                 var location = treeItem.getValue();
                 try {
                     var children = device.getChildrenDirs(location.getPath());
+                    children.sort(new Comparator<Path>() {
+                        @Override
+                        public int compare(Path o1, Path o2) {
+                            return o1.compareTo(o2);
+                        }
+                    });
                     if (children.size() > 0) {
                         ObservableList<TreeItem<PathWrapper>> observableChildren = FXCollections.observableArrayList();
                         for (var child : children) {
