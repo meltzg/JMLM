@@ -12,16 +12,25 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.TagException;
+import org.meltzg.jmlm.device.content.AudioContent;
+import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
 import org.meltzg.jmlm.exceptions.InvalidStateException;
+import org.meltzg.jmlm.exceptions.SyncStrategyException;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
 import org.meltzg.jmlm.sync.ContentSyncStatus;
 import org.meltzg.jmlm.sync.DeviceSyncManager;
+import org.meltzg.jmlm.sync.NotInLibraryStrategy;
 import org.meltzg.jmlm.sync.strategies.GreedySyncStrategy;
 import org.meltzg.jmlm.sync.strategies.LazySyncStrategy;
 import org.meltzg.jmlm.ui.components.DialogController;
@@ -29,6 +38,7 @@ import org.meltzg.jmlm.ui.components.FXMLDialog;
 import org.meltzg.jmlm.ui.types.DeviceWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,6 +127,36 @@ public class DeviceSyncManagerController implements DialogController, Initializa
         log.info(devices.stream().map(dev -> dev.getDevice().toString()).collect(Collectors.joining()));
         chcLibrary.getItems().setAll(devices);
         chcAttached.getItems().setAll(devices);
+    }
+
+    public void syncSelection(MouseEvent mouseEvent) {
+        var desiredContent = selectedContent.stream()
+                .map(SelectedContent::getContentSyncStatusProperty)
+                .map(ObjectProperty::get)
+                .map(ContentSyncStatus::getContentInfo)
+                .map(AudioContent::getId)
+                .collect(Collectors.toSet());
+
+        try {
+            syncManager.syncDevice(desiredContent, NotInLibraryStrategy.CANCEL_SYNC);
+        } catch (ClassNotFoundException | IOException | InsufficientSpaceException |
+                SyncStrategyException | ReadOnlyFileException | TagException | InvalidAudioFrameException |
+                CannotReadException e) {
+            log.error("Error syncing selected content to device", e);
+
+            showAlert("Unexpected Error",
+                    "Sync Failure",
+                    e.getMessage(),
+                    Alert.AlertType.ERROR);
+        }
+    }
+
+    public void resetSelection(MouseEvent mouseEvent) {
+        for (var selectedContent : this.selectedContent) {
+            selectedContent.getSelectedProperty()
+                    .set(selectedContent.contentSyncStatusProperty.get()
+                            .isOnDevice());
+        }
     }
 
     private void refreshContentTable() {
@@ -210,6 +250,7 @@ public class DeviceSyncManagerController implements DialogController, Initializa
         });
     }
 
+
     @Data
     class SelectedContent {
         private BooleanProperty selectedProperty = new SimpleBooleanProperty();
@@ -220,7 +261,7 @@ public class DeviceSyncManagerController implements DialogController, Initializa
             selectedProperty.addListener(new ChangeListener<Boolean>() {
                 @Override
                 public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                    log.info("Content Selection Change");
+                    log.debug("Content Selection Change");
                     refreshCapacityBar();
                 }
             });

@@ -18,6 +18,7 @@ import org.meltzg.jmlm.ui.configuration.ScreensConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.testfx.api.FxRobot;
 import org.testfx.framework.junit.ApplicationTest;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.meltzg.jmlm.CommonUtil.RESOURCEDIR;
 import static org.meltzg.jmlm.CommonUtil.TMPDIR;
 
@@ -106,6 +108,33 @@ public class DeviceSyncManagerControllerTest extends ApplicationTest {
             var itemInfo = item.getContentSyncStatusProperty().get();
             var checked = item.getSelectedProperty().get();
             assertEquals(checked, itemInfo.isOnDevice());
+        }
+    }
+
+    @Test
+    public void resetSelection() {
+        var robot = new FxRobot();
+        clickOn("#chcLibrary");
+        clickOn("device1");
+        clickOn("#chcAttached");
+        clickOn("device2");
+
+        TableView<DeviceSyncManagerController.SelectedContent> contentTable = lookup("#contentTable")
+                .queryTableView();
+        var content = contentTable.getItems();
+        for (var contentItem : content) {
+            robot.interact(() -> {
+                contentItem.getSelectedProperty().set(!contentItem.getSelectedProperty().get());
+            });
+            assertNotEquals(contentItem.getContentSyncStatusProperty().get().isOnDevice(),
+                    contentItem.getSelectedProperty().get());
+        }
+
+        clickOn("#btnResetSelection");
+
+        for (var contentItem : content) {
+            assertEquals(contentItem.getContentSyncStatusProperty().get().isOnDevice(),
+                    contentItem.getSelectedProperty().get());
         }
     }
 }
