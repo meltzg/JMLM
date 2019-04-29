@@ -33,7 +33,7 @@
                 <ProgressBar fx:id="prgCapacityBar" prefWidth="200.0" progress="0.0"/>
                 <Label fx:id="lblStorageInfo"/>
             </StackPane>
-            <Button id="btnSyncSelection" onMouseClicked="#syncSelection" text="Sync with Device"/>
+            <Button fx:id="btnSyncSelection" onMouseClicked="#syncSelection" text="Sync with Device"/>
             <Button id="btnResetSelection" onMouseClicked="#resetSelection" text="Reset Selection"/>
         </HBox>
     </bottom>

@@ -80,6 +80,8 @@ public class DeviceSyncManagerController implements DialogController, Initializa
     public Label lblStorageInfo;
     @FXML
     public ProgressBar prgCapacityBar;
+    @FXML
+    public Button btnSyncSelection;
 
     private ObservableList<SelectedContent> selectedContent;
     private DeviceSyncManager syncManager;
@@ -192,6 +194,13 @@ public class DeviceSyncManagerController implements DialogController, Initializa
                 .sum();
 
         var pctUsed = usedCapacity / attachedCapacity;
+
+        if (pctUsed > 1.0) {
+            log.warn("Selection has exceeded device capacity");
+            btnSyncSelection.setDisable(true);
+        } else {
+            btnSyncSelection.setDisable(false);
+        }
 
         log.info("used: {}, total: {}, pct: {}", usedCapacity, attachedCapacity, pctUsed);
 

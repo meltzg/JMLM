@@ -113,7 +113,7 @@ public class DeviceSyncManagerControllerTest extends ApplicationTest {
     }
 
     @Test
-    public void syncSelection() {
+    public void testSyncSelection() {
         var robot = new FxRobot();
         clickOn("#chcLibrary");
         clickOn("device1");
@@ -159,7 +159,7 @@ public class DeviceSyncManagerControllerTest extends ApplicationTest {
     }
 
     @Test
-    public void resetSelection() {
+    public void testResetSelection() {
         var robot = new FxRobot();
         clickOn("#chcLibrary");
         clickOn("device1");
