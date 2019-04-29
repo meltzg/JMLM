@@ -129,9 +129,6 @@ public class DeviceSyncManager {
     }
 
     public void syncDevice(SyncPlan plan) throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
-        for (var toDelete : plan.getDeleteFromLibrary()) {
-            mainLibrary.deleteContent(toDelete);
-        }
         for (var transferOn : plan.getTransferOnLibrary().entrySet()) {
             mainLibrary.moveContent(transferOn.getKey(), transferOn.getValue());
         }
@@ -155,6 +152,12 @@ public class DeviceSyncManager {
                     contentLocation.getLibrarySubPath(),
                     transferTo.getValue());
         }
+
+        // delete from library last
+        for (var toDelete : plan.getDeleteFromLibrary()) {
+            mainLibrary.deleteContent(toDelete);
+        }
+        refreshSyncStatus();
     }
 
 

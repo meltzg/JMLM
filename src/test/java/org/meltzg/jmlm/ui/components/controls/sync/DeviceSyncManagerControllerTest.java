@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -108,6 +109,52 @@ public class DeviceSyncManagerControllerTest extends ApplicationTest {
             var itemInfo = item.getContentSyncStatusProperty().get();
             var checked = item.getSelectedProperty().get();
             assertEquals(checked, itemInfo.isOnDevice());
+        }
+    }
+
+    @Test
+    public void syncSelection() {
+        var robot = new FxRobot();
+        clickOn("#chcLibrary");
+        clickOn("device1");
+        clickOn("#chcAttached");
+        clickOn("device2");
+
+        var originalDevice2Content = new HashSet<>(device2.getContent().keySet());
+
+        TableView<DeviceSyncManagerController.SelectedContent> contentTable = lookup("#contentTable")
+                .queryTableView();
+        var content = contentTable.getItems();
+        for (var contentItem : content) {
+            robot.interact(() -> {
+                contentItem.getSelectedProperty().set(true);
+            });
+        }
+
+        robot.interact(() -> {
+            clickOn("#btnSyncSelection");
+        });
+
+        for (var contentItem : content) {
+            assertEquals(contentItem.getContentSyncStatusProperty().get().isOnDevice(),
+                    contentItem.getSelectedProperty().get());
+        }
+
+        for (var contentItem : content) {
+            robot.interact(() -> {
+                contentItem.getSelectedProperty().set(
+                        originalDevice2Content.contains(contentItem.getContentSyncStatusProperty().get().getContentInfo().getId()
+                        ));
+            });
+        }
+
+        robot.interact(() -> {
+            clickOn("#btnSyncSelection");
+        });
+
+        for (var contentItem : content) {
+            assertEquals(contentItem.getContentSyncStatusProperty().get().isOnDevice(),
+                    contentItem.getSelectedProperty().get());
         }
     }
 

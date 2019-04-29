@@ -1,5 +1,9 @@
 package org.meltzg.jmlm.sync;
 
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.TagException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -135,5 +139,33 @@ public class DeviceSyncManagerTest {
         var syncManager = new DeviceSyncManager(device1, device2, getRankedStrategies());
         syncManager.createSyncPlan(new HashSet<>(Collections.singletonList(9001L)),
                 NotInLibraryStrategy.CANCEL_SYNC);
+    }
+
+    @Test
+    public void testSyncDevice() throws InsufficientSpaceException, SyncStrategyException, TagException, IOException, CannotReadException, ReadOnlyFileException, InvalidAudioFrameException, ClassNotFoundException {
+        var numContent1 = device1.getContent().size();
+        var numContent2 = device2.getContent().size();
+        var originalDevice2Content = new HashSet<>(device2.getContent().keySet());
+
+        var syncManager = new DeviceSyncManager(device1, device2, getRankedStrategies());
+        syncManager.syncDevice(device1.getContent().keySet(), NotInLibraryStrategy.TRANSFER_TO_LIBRARY);
+
+        assertEquals(numContent1 + numContent2, device1.getContent().size());
+        assertEquals(numContent1, device2.getContent().size());
+
+        var changeBackPlan = syncManager.createSyncPlan(originalDevice2Content, NotInLibraryStrategy.CANCEL_SYNC);
+        assertEquals(changeBackPlan.getTransferToDevice().size(), numContent2);
+        assertEquals(changeBackPlan.getTransferOnDevice().size(), 0);
+        assertTrue(changeBackPlan.getDeleteFromDevice().containsAll(device2.getContent().keySet()));
+        assertEquals(changeBackPlan.getTransferToLibrary().size(), 0);
+        assertEquals(changeBackPlan.getTransferOnLibrary().size(), 0);
+        assertEquals(changeBackPlan.getDeleteFromLibrary().size(), 0);
+
+        changeBackPlan.getDeleteFromLibrary().addAll(originalDevice2Content);
+
+        syncManager.syncDevice(changeBackPlan);
+
+        assertEquals(device1.getContent().size(), numContent1);
+        assertEquals(device2.getContent().size(), numContent2);
     }
 }

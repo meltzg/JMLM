@@ -27,6 +27,7 @@ import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
 import org.meltzg.jmlm.exceptions.InvalidStateException;
 import org.meltzg.jmlm.exceptions.SyncStrategyException;
+import org.meltzg.jmlm.repositories.AudioContentRepository;
 import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
 import org.meltzg.jmlm.sync.ContentSyncStatus;
 import org.meltzg.jmlm.sync.DeviceSyncManager;
@@ -52,6 +53,8 @@ public class DeviceSyncManagerController implements DialogController, Initializa
 
     @Autowired
     FileSystemAudioContentDeviceRepository deviceRepository;
+    @Autowired
+    AudioContentRepository contentRepository;
 
     @FXML
     private ChoiceBox<DeviceWrapper> chcLibrary;
@@ -122,6 +125,7 @@ public class DeviceSyncManagerController implements DialogController, Initializa
     public void refreshDevices() {
         var devices = new ArrayList<DeviceWrapper>();
         for (var device : deviceRepository.findAll()) {
+            device.setContentRepo(contentRepository);
             devices.add(new DeviceWrapper(device));
         }
         log.info(devices.stream().map(dev -> dev.getDevice().toString()).collect(Collectors.joining()));
@@ -129,26 +133,28 @@ public class DeviceSyncManagerController implements DialogController, Initializa
         chcAttached.getItems().setAll(devices);
     }
 
-    public void syncSelection(MouseEvent mouseEvent) {
+    public void syncSelection(MouseEvent mouseEvent) throws InsufficientSpaceException, SyncStrategyException, TagException, IOException, CannotReadException, ReadOnlyFileException, InvalidAudioFrameException, ClassNotFoundException {
         var desiredContent = selectedContent.stream()
+                .filter((selection) -> selection.getSelectedProperty().get())
                 .map(SelectedContent::getContentSyncStatusProperty)
                 .map(ObjectProperty::get)
                 .map(ContentSyncStatus::getContentInfo)
                 .map(AudioContent::getId)
                 .collect(Collectors.toSet());
 
-        try {
-            syncManager.syncDevice(desiredContent, NotInLibraryStrategy.CANCEL_SYNC);
-        } catch (ClassNotFoundException | IOException | InsufficientSpaceException |
-                SyncStrategyException | ReadOnlyFileException | TagException | InvalidAudioFrameException |
-                CannotReadException e) {
-            log.error("Error syncing selected content to device", e);
-
-            showAlert("Unexpected Error",
-                    "Sync Failure",
-                    e.getMessage(),
-                    Alert.AlertType.ERROR);
-        }
+//        try {
+        syncManager.syncDevice(desiredContent, NotInLibraryStrategy.CANCEL_SYNC);
+        refreshContentTable();
+//        } catch (ClassNotFoundException | IOException | InsufficientSpaceException |
+//                SyncStrategyException | ReadOnlyFileException | TagException | InvalidAudioFrameException |
+//                CannotReadException e) {
+//            log.error("Error syncing selected content to device", e);
+//
+//            showAlert("Unexpected Error",
+//                    "Sync Failure",
+//                    e.getMessage(),
+//                    Alert.AlertType.ERROR);
+//        }
     }
 
     public void resetSelection(MouseEvent mouseEvent) {

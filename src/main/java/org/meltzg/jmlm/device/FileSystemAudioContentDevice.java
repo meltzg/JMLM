@@ -157,7 +157,7 @@ public class FileSystemAudioContentDevice {
 
     public AudioContent addContent(InputStream stream, String librarySubPath, UUID libraryId) throws ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException, IOException {
         var destination = Paths.get(libraryRoots.get(libraryId), librarySubPath);
-        if (!destination.getParent().toFile().mkdirs()) {
+        if (!destination.getParent().toFile().exists() && !destination.getParent().toFile().mkdirs()) {
             throw new IOException("Could not create intermediate directories for " + destination);
         }
         try {
