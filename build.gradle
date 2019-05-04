@@ -64,3 +64,9 @@ application {
 	mainClassName = 'org.meltzg.jmlm.JmlmApplication'
 	applicationDefaultJvmArgs = ['--add-opens', 'javafx.graphics/javafx.scene=ALL-UNNAMED']
 }
+
+test {
+	if (project.hasProperty('excludeTests')) {
+		exclude project.property('excludeTests')
+	}
+}

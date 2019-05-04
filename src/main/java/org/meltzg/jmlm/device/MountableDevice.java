@@ -1,5 +1,6 @@
 package org.meltzg.jmlm.device;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -8,11 +9,11 @@ public interface MountableDevice extends AutoCloseable {
     Map<String, String> getMountProperties();
     void setMountProperties(Map<String, String> mountProperties);
 
-    void mount();
+    void mount() throws IOException;
 
-    void unmount();
+    void unmount() throws IOException;
 
-    default void close() {
+    default void close() throws IOException {
         unmount();
     }
 

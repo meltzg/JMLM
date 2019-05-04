@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @ToString
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
-public class FileSystemAudioContentDevice {
+public class FileSystemAudioContentDevice implements MountableDevice {
     @Id
     @Getter
     private String id;
@@ -62,6 +62,11 @@ public class FileSystemAudioContentDevice {
 
     @ElementCollection(fetch = FetchType.EAGER)
     private Map<UUID, String> libraryRootToStorage = new HashMap<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Getter
+    @Setter
+    private Map<String, String> mountProperties = new HashMap<>();
 
     @Transient
     @ToString.Exclude
@@ -266,6 +271,14 @@ public class FileSystemAudioContentDevice {
         return Files.list(path)
                 .filter(p -> p.toFile().isDirectory())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void mount() throws IOException {
+    }
+
+    @Override
+    public void unmount() throws IOException {
     }
 
     protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
