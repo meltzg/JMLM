@@ -101,26 +101,19 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
         if (!mountPath.toFile().exists() && !Paths.get(getRootPath()).toFile().mkdirs()) {
             throw new IOException("Could not create intermediate directories for " + getRootPath());
         }
-        var allDevices = getAllDeviceMountProperties();
-        for (var props : allDevices) {
-            var match = true;
-            for (var key : Arrays.asList(PRODUCT_ID, VENDOR_ID, PRODUCT, VENDOR)) {
-                if (!props.get(key).equals(mountProperties.get(key))) {
-                    match = false;
-                }
-            }
-            if (match) {
-                var busLocation = props.get(BUS_LOCATION);
-                var devNum = props.get(DEV_NUM);
+        var props = getFullMountProperties();
+        if (props == null) {
+            log.error("Could not mount device with properties {}", mountProperties);
+            throw new IOException("Could not mount device");
+        }
+        var busLocation = props.get(BUS_LOCATION);
+        var devNum = props.get(DEV_NUM);
 
-                var mountResult = CommandRunner.runCommand(Arrays.asList(
-                        JMTP_CMD, String.format(DEVICE_LOC, busLocation, devNum), getRootPath()));
+        var mountResult = CommandRunner.runCommand(Arrays.asList(
+                JMTP_CMD, String.format(DEVICE_LOC, busLocation, devNum), getRootPath()));
 
-                if (mountResult.getExitValue() != 0) {
-                    throw new IOException("Could not mount device");
-                }
-                break;
-            }
+        if (mountResult.getExitValue() != 0) {
+            throw new IOException("Could not mount device");
         }
         log.info("Device mounted: {}", mountProperties);
         return this;
@@ -137,6 +130,40 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
     @Override
     protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
-        return super.getStorageDevice(path);
+        var props = getFullMountProperties();
+        if (props == null) {
+            log.error("Could not get storage device for device with properties {}", mountProperties);
+            throw new IOException("Could not get storage device");
+        }
+
+        var productId = Integer.parseInt(props.get(PRODUCT_ID).replace("0x", ""), 16);
+        var vendorId = Integer.parseInt(props.get(VENDOR_ID).replace("0x", ""), 16);
+        var busLocation = Integer.parseInt(props.get(BUS_LOCATION));
+        var devNum = Integer.parseInt(props.get(DEV_NUM));
+
+        var storage = getStorageDevice(path.toString(), productId, vendorId, busLocation, devNum);
+        if (storage == null) {
+            log.error("Could not get storage device for path {}", path);
+            throw new IOException("Could not get storage device");
+        }
+        return storage;
     }
+
+    private Map<String, String> getFullMountProperties() throws IOException {
+        var allDevices = getAllDeviceMountProperties();
+        for (var props : allDevices) {
+            var match = true;
+            for (var key : Arrays.asList(PRODUCT_ID, VENDOR_ID, PRODUCT, VENDOR)) {
+                if (!props.get(key).equals(mountProperties.get(key))) {
+                    match = false;
+                }
+            }
+            if (match) {
+                return props;
+            }
+        }
+        return null;
+    }
+
+    private native StorageDevice getStorageDevice(String path, int productId, int vendorId, int busLocation, int devNum);
 }
