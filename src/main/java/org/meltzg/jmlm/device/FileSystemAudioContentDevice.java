@@ -274,11 +274,14 @@ public class FileSystemAudioContentDevice implements MountableDevice {
     }
 
     @Override
-    public void mount() throws IOException {
+    public FileSystemAudioContentDevice mount() throws IOException {
+        log.info("Device mounted: {}", mountProperties);
+        return this;
     }
 
     @Override
     public void unmount() throws IOException {
+        log.info("Device unmounted: {}", mountProperties);
     }
 
     protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {

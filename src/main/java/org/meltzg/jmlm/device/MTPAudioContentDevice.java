@@ -92,7 +92,7 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
     }
 
     @Override
-    public void mount() throws IOException {
+    public MTPAudioContentDevice mount() throws IOException {
         setRootPath(Paths.get(mountDir, getId()).toString());
         var mountPath = Paths.get(getRootPath());
         if (!mountPath.toFile().exists() && !Paths.get(getRootPath()).toFile().mkdirs()) {
@@ -135,6 +135,7 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
             }
         }
         log.info("Device mounted: {}", mountProperties);
+        return this;
     }
 
     @Override

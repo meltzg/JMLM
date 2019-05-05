@@ -9,7 +9,7 @@ public interface MountableDevice extends AutoCloseable {
     Map<String, String> getMountProperties();
     void setMountProperties(Map<String, String> mountProperties);
 
-    void mount() throws IOException;
+    MountableDevice mount() throws IOException;
 
     void unmount() throws IOException;
 

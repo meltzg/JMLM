@@ -129,35 +129,38 @@ public class DeviceSyncManager {
     }
 
     public void syncDevice(SyncPlan plan) throws IOException, ReadOnlyFileException, TagException, InvalidAudioFrameException, CannotReadException {
-        for (var transferOn : plan.getTransferOnLibrary().entrySet()) {
-            mainLibrary.moveContent(transferOn.getKey(), transferOn.getValue());
-        }
-        for (var transferTo : plan.getTransferToLibrary().entrySet()) {
-            var contentLocation = attachedDevice.getContentLocations().get(transferTo.getKey());
-            mainLibrary.addContent(attachedDevice.getContentStream(transferTo.getKey()),
-                    contentLocation.getLibrarySubPath(),
-                    transferTo.getValue());
-        }
+        try (var mainLibrary = this.mainLibrary.mount();
+             var attachedDevice = this.attachedDevice.mount()) {
+            for (var transferOn : plan.getTransferOnLibrary().entrySet()) {
+                mainLibrary.moveContent(transferOn.getKey(), transferOn.getValue());
+            }
+            for (var transferTo : plan.getTransferToLibrary().entrySet()) {
+                var contentLocation = attachedDevice.getContentLocations().get(transferTo.getKey());
+                mainLibrary.addContent(attachedDevice.getContentStream(transferTo.getKey()),
+                        contentLocation.getLibrarySubPath(),
+                        transferTo.getValue());
+            }
 
 
-        for (var toDelete : plan.getDeleteFromDevice()) {
-            attachedDevice.deleteContent(toDelete);
-        }
-        for (var transferOn : plan.getTransferOnDevice().entrySet()) {
-            attachedDevice.moveContent(transferOn.getKey(), transferOn.getValue());
-        }
-        for (var transferTo : plan.getTransferToDevice().entrySet()) {
-            var contentLocation = mainLibrary.getContentLocations().get(transferTo.getKey());
-            attachedDevice.addContent(mainLibrary.getContentStream(transferTo.getKey()),
-                    contentLocation.getLibrarySubPath(),
-                    transferTo.getValue());
-        }
+            for (var toDelete : plan.getDeleteFromDevice()) {
+                attachedDevice.deleteContent(toDelete);
+            }
+            for (var transferOn : plan.getTransferOnDevice().entrySet()) {
+                attachedDevice.moveContent(transferOn.getKey(), transferOn.getValue());
+            }
+            for (var transferTo : plan.getTransferToDevice().entrySet()) {
+                var contentLocation = mainLibrary.getContentLocations().get(transferTo.getKey());
+                attachedDevice.addContent(mainLibrary.getContentStream(transferTo.getKey()),
+                        contentLocation.getLibrarySubPath(),
+                        transferTo.getValue());
+            }
 
-        // delete from library last
-        for (var toDelete : plan.getDeleteFromLibrary()) {
-            mainLibrary.deleteContent(toDelete);
+            // delete from library last
+            for (var toDelete : plan.getDeleteFromLibrary()) {
+                mainLibrary.deleteContent(toDelete);
+            }
+            refreshSyncStatus();
         }
-        refreshSyncStatus();
     }
 
 
