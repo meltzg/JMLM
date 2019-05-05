@@ -3,11 +3,15 @@ package org.meltzg.jmlm.device;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.meltzg.jmlm.device.storage.StorageDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
+import org.meltzg.jmlm.utilities.CommandRunner;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,9 +66,8 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
     @Override
     public List<Map<String, String>> getAllDeviceMountProperties() throws IOException {
-        var processBuilder = new ProcessBuilder(Arrays.asList(JMTP_CMD, LIST_FLG));
-        var process = processBuilder.start();
-        var reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        var listResult = CommandRunner.runCommand(Arrays.asList(JMTP_CMD, LIST_FLG));
+        var reader = new BufferedReader(new StringReader(listResult.getOutput()));
 
         var allDeviceProps = new ArrayList<Map<String, String>>();
 
@@ -110,25 +113,10 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
                 var busLocation = props.get(BUS_LOCATION);
                 var devNum = props.get(DEV_NUM);
 
-                var processBuilder = new ProcessBuilder(Arrays.asList(
+                var mountResult = CommandRunner.runCommand(Arrays.asList(
                         JMTP_CMD, String.format(DEVICE_LOC, busLocation, devNum), getRootPath()));
-                processBuilder.inheritIO();
-                var process = processBuilder.start();
-                var exitVal = 0;
-                try {
-                    exitVal = process.waitFor();
-                } catch (InterruptedException e) {
-                    log.error("Device mounting was interrupted", e);
-                    unmount();
-                    exitVal = 1;
-                }
 
-                if (exitVal != 0) {
-                    var reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        log.error(line);
-                    }
+                if (mountResult.getExitValue() != 0) {
                     throw new IOException("Could not mount device");
                 }
                 break;
@@ -140,26 +128,15 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
     @Override
     public void unmount() throws IOException {
-        var processBuilder = new ProcessBuilder(Arrays.asList(FUSERMOUNT, "-u", getRootPath()));
-        processBuilder.inheritIO();
-        var process = processBuilder.start();
-        var exitVal = 0;
-        try {
-            exitVal = process.waitFor();
-        } catch (InterruptedException e) {
-            log.error("Device unmounting was interrupted", e);
-            unmount();
-            exitVal = 1;
-        }
-
-        if (exitVal != 0) {
-            var reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                log.error(line);
-            }
+        var unmountResult = CommandRunner.runCommand(Arrays.asList(FUSERMOUNT, "-u", getRootPath()));
+        if (unmountResult.getExitValue() != 0) {
             throw new IOException("Could not unmount device");
         }
         log.info("Device unmounted: {}", mountProperties);
+    }
+
+    @Override
+    protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
+        return super.getStorageDevice(path);
     }
 }

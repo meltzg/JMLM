@@ -96,7 +96,7 @@ public class FileSystemAudioContentDevice implements MountableDevice {
     }
 
     public void addLibraryRoot(String libraryPath, boolean scanContent) throws IOException, URISyntaxException {
-        var libPath = Paths.get(libraryPath);
+        var libPath = Paths.get(rootPath, libraryPath);
         if (!Files.isDirectory(libPath)) {
             throw new IllegalArgumentException("Library root must be a valid directory (" +
                     libPath.toAbsolutePath() + ")");

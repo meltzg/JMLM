@@ -20,6 +20,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'cpp'
 
 group = 'org.meltzg'
 version = '0.0.1-SNAPSHOT'
@@ -49,6 +50,87 @@ dependencies {
 	testCompile 'org.testfx:openjfx-monocle:jdk-11+26'
 }
 
+model {
+	repositories {
+		libs(PrebuiltLibraries) {
+			mtp {
+				headers.srcDir '/usr/include'
+			}
+
+			def libDir = '/usr/lib/x86_64-linux-gnu/'
+
+			mtplib {
+				binaries.withType(SharedLibraryBinary) {
+					sharedLibraryFile = file(libDir + 'libmtp.so')
+				}
+			}
+		}
+	}
+	binaries {
+		all {
+			if (toolChain in Gcc) {
+				if (buildType ==buildTypes.debug) {
+					cppCompiler.args '-g', '-std=c++17'
+				} else {
+					cppCompiler.args '-std=c++17'
+				}
+			}
+			if (toolChain in VisualCpp && buildType == buildTypes.debug) {
+				cppCompiler.args '/Zi'
+				cppCompiler.define 'DEBUG'
+				linker.args '/DEBUG'
+			}
+		}
+	}
+	components {
+		jmtp(NativeLibrarySpec) {
+			sources {
+				cpp {
+					source {
+						srcDir 'src/main/cpp/src'
+						include '*.cpp'
+					}
+					exportedHeaders {
+						srcDirs 'src/main/cpp/include', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
+					}
+
+					lib library: 'mtp', linkage: 'api'
+					lib library: 'mtplib'
+				}
+
+			}
+			buildTypes {
+				debug
+				release
+			}
+		}
+		jmtpx(NativeExecutableSpec) {
+			sources {
+				cpp {
+					source {
+						srcDir 'src/main/cpp/src'
+						include '*.cpp'
+					}
+					exportedHeaders {
+						srcDirs 'src/main/cpp/include', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
+					}
+
+					lib library: 'mtp', linkage: 'api'
+					lib library: 'mtplib'
+				}
+			}
+			buildTypes {
+				debug
+				release
+			}
+		}
+	}
+}
+
+compileJava {
+	options.compilerArgs += ['-h', file('src/main/cpp/include/')]
+}
+
 jacocoTestReport {
 	reports {
 		xml.enabled true
@@ -69,4 +151,6 @@ test {
 	if (project.hasProperty('excludeTests')) {
 		exclude project.property('excludeTests')
 	}
+	systemProperty 'java.library.path', '.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/'
+	dependsOn 'jmtpDebugSharedLibrary'
 }
