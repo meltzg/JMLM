@@ -18,6 +18,9 @@ struct MTPDeviceInfo
     std::wstring manufacturer;
 
     MTPDeviceIdInfo id_info;
+
+    uint32_t busLocation;
+    uint8_t devNum;
 };
 
 struct MTPStorageDevice

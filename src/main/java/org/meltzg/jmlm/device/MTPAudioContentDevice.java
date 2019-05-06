@@ -1,7 +1,9 @@
 package org.meltzg.jmlm.device;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
@@ -17,28 +19,29 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class MTPAudioContentDevice extends FileSystemAudioContentDevice implements ListableDevice {
+    private static final String DEVICE_ID = "deviceId";
+    private static final String FRIENDLY_NAME = "friendlyName";
+    private static final String DESCRIPTION = "description";
+    private static final String MANUFACTURER = "manufacturer";
+    private static final String SERIAL = "serial";
     private static final String DEV_NUM = "devNum";
     private static final String BUS_LOCATION = "busLocation";
-    private static final String PRODUCT_ID = "productId";
-    private static final String VENDOR_ID = "vendorId";
-    private static final String PRODUCT = "product";
-    private static final String VENDOR = "vendor";
 
     private static final String JMTP_CMD = "jmtpfs";
-    private static final String LIST_FLG = "--listDevices";
     private static final String DEVICE_LOC = "-device=%s,%s";
     private static final String FUSERMOUNT = "fusermount";
 
     @Getter
     @Setter
     private Map<String, String> mountProperties = toMap(new String[][]{
-            {PRODUCT_ID, "null"},
-            {VENDOR_ID, "null"},
-            {PRODUCT, "null"},
-            {VENDOR, "null"}
+            {DEVICE_ID, "null"},
+            {DEV_NUM, "null"},
+            {BUS_LOCATION, "null"}
     });
 
     @Getter
@@ -66,32 +69,9 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
     @Override
     public List<Map<String, String>> getAllDeviceMountProperties() throws IOException {
-        var listResult = CommandRunner.runCommand(Arrays.asList(JMTP_CMD, LIST_FLG));
-        var reader = new BufferedReader(new StringReader(listResult.getOutput()));
-
-        var allDeviceProps = new ArrayList<Map<String, String>>();
-
-        String line;
-        boolean startParsing = false;
-        while ((line = reader.readLine()) != null) {
-            log.info(line);
-            if (startParsing) {
-                var parts = line.split(",");
-                allDeviceProps.add(toMap(new String[][]{
-                        {BUS_LOCATION, parts[0].trim()},
-                        {DEV_NUM, parts[1].trim()},
-                        {PRODUCT_ID, parts[2].trim()},
-                        {VENDOR_ID, parts[3].trim()},
-                        {PRODUCT, parts[4].trim()},
-                        {VENDOR, parts[5].trim()}
-                }));
-            } else {
-                if (line.contains("Available devices")) {
-                    startParsing = true;
-                }
-            }
-        }
-        return allDeviceProps;
+        return getDevicesInfo().stream()
+                .map(MTPDeviceInfo::toMap)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -101,7 +81,7 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
         if (!mountPath.toFile().exists() && !Paths.get(getRootPath()).toFile().mkdirs()) {
             throw new IOException("Could not create intermediate directories for " + getRootPath());
         }
-        var props = getFullMountProperties();
+        var props = getDeviceInfo(mountProperties.get(DEVICE_ID)).toMap();
         if (props == null) {
             log.error("Could not mount device with properties {}", mountProperties);
             throw new IOException("Could not mount device");
@@ -130,18 +110,7 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
     @Override
     protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
-        var props = getFullMountProperties();
-        if (props == null) {
-            log.error("Could not get storage device for device with properties {}", mountProperties);
-            throw new IOException("Could not get storage device");
-        }
-
-        var productId = Integer.parseInt(props.get(PRODUCT_ID).replace("0x", ""), 16);
-        var vendorId = Integer.parseInt(props.get(VENDOR_ID).replace("0x", ""), 16);
-        var busLocation = Integer.parseInt(props.get(BUS_LOCATION));
-        var devNum = Integer.parseInt(props.get(DEV_NUM));
-
-        var storage = getStorageDevice(path.toString(), productId, vendorId, busLocation, devNum);
+        var storage = getStorageDevice(path.toString(), mountProperties.get(DEVICE_ID));
         if (storage == null) {
             log.error("Could not get storage device for path {}", path);
             throw new IOException("Could not get storage device");
@@ -149,21 +118,33 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
         return storage;
     }
 
-    private Map<String, String> getFullMountProperties() throws IOException {
-        var allDevices = getAllDeviceMountProperties();
-        for (var props : allDevices) {
-            var match = true;
-            for (var key : Arrays.asList(PRODUCT_ID, VENDOR_ID, PRODUCT, VENDOR)) {
-                if (!props.get(key).equals(mountProperties.get(key))) {
-                    match = false;
-                }
-            }
-            if (match) {
-                return props;
-            }
-        }
-        return null;
-    }
+    private native StorageDevice getStorageDevice(String path, String deviceId);
 
-    private native StorageDevice getStorageDevice(String path, int productId, int vendorId, int busLocation, int devNum);
+    private static native List<MTPDeviceInfo> getDevicesInfo();
+
+    private static native MTPDeviceInfo getDeviceInfo(String id);
+
+    @Value
+    private class MTPDeviceInfo {
+        private final String deviceId;
+        private final String friendlyName;
+        private final String description;
+        private final String manufacturer;
+        private final String serial;
+
+        long busLocation;
+        long devNum;
+
+        Map<String, String> toMap() {
+            return Stream.of(new String[][] {
+                    {DEVICE_ID, deviceId},
+                    {FRIENDLY_NAME, friendlyName},
+                    {DESCRIPTION, description},
+                    {MANUFACTURER, manufacturer},
+                    {SERIAL, serial},
+                    {BUS_LOCATION, Long.toString(busLocation)},
+                    {DEV_NUM, Long.toString(devNum)}
+            }).collect(Collectors.toMap(prop -> prop[0], prop -> prop[1]));
+        }
+    }
 }

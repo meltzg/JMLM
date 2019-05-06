@@ -1,15 +1,22 @@
 #include <iostream>
 #include "org_meltzg_jmlm_device_MTPAudioContentDevice.h"
 #include "mtp_helpers.h"
+#include "common_helpers.h"
 
 using std::endl;
 using std::hex;
 using std::wcout;
 
-JNIEXPORT jobject JNICALL
-Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getStorageDevice(JNIEnv *env, jobject obj, jstring path, jint productId, jint vendorId, jint busLocation, jint devNum)
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getStorageDevice(JNIEnv *env, jobject obj, jstring path, jstring deviceId)
 {
-  return nullptr;
+}
+
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getDevicesInfo(JNIEnv *env, jobject cls)
+{
+}
+
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getDeviceInfo(JNIEnv *env, jobject cls, jstring deviceId)
+{
 }
 
 // Available devices (busLocation, devNum, productId, vendorId, product, vendor):
@@ -19,12 +26,15 @@ int main(int argc, char *argv)
   auto devices = jmtp::getDevicesInfo();
   for (int i = 0; i < devices.size(); i++)
   {
-    wcout << hex << devices[i].id_info.product_id << ' ' << hex << devices[i].id_info.vendor_id << endl;
-
-    std::optional<std::wstring> id = jmtp::toDeviceId(1, 2, devices[i].id_info.product_id, devices[i].id_info.vendor_id);
-    if (id.has_value())
-    {
-      wcout << "id string:" << id.value() << endl;
-    }
+    auto device = devices[i];
+    wcout << device.busLocation << ' ' <<
+      device.devNum << ' ' <<
+      device.device_id << ' ' <<
+      device.friendly_name << ' ' <<
+      device.description << ' ' <<
+      device.manufacturer << ' ' <<
+      hex << device.id_info.product_id << ' ' <<
+      hex << device.id_info.vendor_id << ' ' <<
+      device.id_info.serial << endl;
   }
 }
