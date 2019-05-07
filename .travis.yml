@@ -21,8 +21,7 @@ before_install:
   - sudo apt-get install jmtpfs libmtp-dev -y
   - sudo rm /usr/bin/g++
   - sudo ln -s /usr/bin/g++-7 /usr/bin/g++
-  - ls -al /usr/lib/jvm/default-java/include
-  - ls -al /usr/lib/jvm/default-java/include/linux
+  - ls -alR /usr/lib/jvm/
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
