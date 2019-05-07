@@ -9,7 +9,6 @@ env:
 script:
   - ./gradlew check jacocoTestReport -PexcludeTests=**/MTP*
 
-install: export CXX="g++-7"
 addons:
   apt:
     sources:
@@ -19,6 +18,8 @@ addons:
 
 before_install:
   - sudo apt-get install jmtpfs -y
+  - sudo ln -s /usr/bin/g++-7 /usr/bin/g++
+  - echo "WHICH g++ $(which g++)"
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
