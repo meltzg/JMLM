@@ -9,5 +9,16 @@ env:
 script:
   - ./gradlew check jacocoTestReport -PexcludeTests=**/MTP*
 
+install: export CXX="g++-7"
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-7
+
+before_install:
+  - sudo apt-get install jmtpfs -y
+
 after_success:
   - bash <(curl -s https://codecov.io/bash)
