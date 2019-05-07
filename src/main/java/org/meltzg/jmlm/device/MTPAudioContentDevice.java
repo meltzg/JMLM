@@ -1,6 +1,5 @@
 package org.meltzg.jmlm.device;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Value;
@@ -9,13 +8,10 @@ import org.meltzg.jmlm.device.storage.StorageDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
 import org.meltzg.jmlm.utilities.CommandRunner;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +31,11 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
     private static final String JMTP_CMD = "jmtpfs";
     private static final String DEVICE_LOC = "-device=%s,%s";
     private static final String FUSERMOUNT = "fusermount";
+
+    static {
+        System.loadLibrary("jmtp");
+//        MTPContentDevice.initMTP();
+    }
 
     @Getter
     @Setter
@@ -125,7 +126,7 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
     private static native MTPDeviceInfo getDeviceInfo(String id);
 
     @Value
-    private class MTPDeviceInfo {
+    public class MTPDeviceInfo {
         private final String deviceId;
         private final String friendlyName;
         private final String description;

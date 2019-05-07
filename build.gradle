@@ -127,6 +127,10 @@ model {
 	}
 }
 
+tasks.withType(JavaExec) {
+	 applicationDefaultJvmArgs = ['-Djava.library.path=.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/']
+}
+
 compileJava {
 	options.compilerArgs += ['-h', file('src/main/cpp/include/')]
 }
@@ -151,6 +155,5 @@ test {
 	if (project.hasProperty('excludeTests')) {
 		exclude project.property('excludeTests')
 	}
-	systemProperty 'java.library.path', '.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/'
 	dependsOn 'jmtpDebugSharedLibrary'
 }
