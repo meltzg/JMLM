@@ -1,7 +1,7 @@
 // #include <wchar.h>
 // #include <stdio.h>
 // #include <string.h>
-// #include "jni_helpers.h"
+#include "jni_helpers.h"
 
 // jstring wcharToJString(JNIEnv *env, const wchar_t *wstr)
 // {
@@ -35,12 +35,12 @@
 //     return ret;
 // }
 
-// jobject getNewArrayList(JNIEnv *env)
-// {
-//     jclass array_list_class = env->FindClass(JARRLIST);
-//     jmethodID array_list_constructor = env->GetMethodID(array_list_class, "<init>", "()V");
-//     return env->NewObject(array_list_class, array_list_constructor);
-// }
+jobject getNewArrayList(JNIEnv *env)
+{
+    jclass array_list_class = (*env)->FindClass(env, JARRLIST);
+    jmethodID array_list_constructor = (*env)->GetMethodID(env, array_list_class, "<init>", "()V");
+    return (*env)->NewObject(env, array_list_class, array_list_constructor);
+}
 
 // void arrayListAdd(JNIEnv *env, jobject list, jobject element)
 // {
