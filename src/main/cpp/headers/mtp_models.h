@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MTP_MODELS_H
+#define MTP_MODELS_H
+
 #include <libmtp.h>
 
 struct MTPDeviceIdInfo
@@ -15,7 +17,7 @@ struct MTPDeviceInfo
     char *description;
     char *manufacturer;
 
-    MTPDeviceIdInfo id_info;
+    struct MTPDeviceIdInfo id_info;
 
     uint32_t busLocation;
     uint8_t devNum;
@@ -26,3 +28,5 @@ struct MTPStorageDevice
     char *id;
     long capacity;
 };
+
+#endif
