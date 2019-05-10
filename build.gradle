@@ -1,20 +1,33 @@
 buildscript {
-	ext {
-		springBootVersion = '2.1.2.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
+    ext {
+        springBootVersion = '2.1.2.RELEASE'
+        javaHome = System.getenv('JAVA_HOME')
+        javaHomeInclude = javaHome + '/include'
+        if (System.properties['os.name'].toLowerCase().contains('linux')) {
+            javaHomeIncludeOs = javaHomeInclude + '/linux'
+        } else {
+            javaHomeIncludeOs = javaHomeInclude + '/win32'
+        }
+    }
+    dependencies {
+        if (!javaHome) {
+            logger.error('JAVA_HOME is not set.')
+        }
+        println 'JAVA_HOME: ' + javaHome
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
 }
 
 plugins {
-	id 'io.franzbecker.gradle-lombok' version '2.0'
-	id 'jacoco'
-	id 'org.openjfx.javafxplugin' version '0.0.7'
-	id 'application'
+    id 'io.franzbecker.gradle-lombok' version '2.0'
+    id 'jacoco'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
+    id 'application'
 }
 
 apply plugin: 'java'
@@ -27,98 +40,98 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
 repositories {
-	mavenCentral()
-	maven {
-		url 'https://dl.bintray.com/ijabz/maven'
-	}
+    mavenCentral()
+    maven {
+        url 'https://dl.bintray.com/ijabz/maven'
+    }
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	runtimeOnly 'com.h2database:h2'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testCompile 'junit:junit'
-	testCompile 'org.mockito:mockito-core:2.+'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'junit:junit'
+    testCompile 'org.mockito:mockito-core:2.+'
 
-	compile 'net.jthink:jaudiotagger:2+'
-	compile 'commons-io:commons-io:2.+'
-	compile 'org.apache.commons:commons-lang3:3.+'
-	compile 'org.controlsfx:controlsfx:9.0.0'
+    compile 'net.jthink:jaudiotagger:2+'
+    compile 'commons-io:commons-io:2.+'
+    compile 'org.apache.commons:commons-lang3:3.+'
+    compile 'org.controlsfx:controlsfx:9.0.0'
 
-	testCompile 'org.testfx:testfx-core:4.0.15-alpha'
-	testCompile 'org.testfx:testfx-junit:4.0.15-alpha'
-	testCompile 'org.testfx:openjfx-monocle:jdk-11+26'
+    testCompile 'org.testfx:testfx-core:4.0.15-alpha'
+    testCompile 'org.testfx:testfx-junit:4.0.15-alpha'
+    testCompile 'org.testfx:openjfx-monocle:jdk-11+26'
 }
 
 model {
-	repositories {
-		libs(PrebuiltLibraries) {
-			mtp {
-				headers.srcDir '/usr/include'
-			}
+    repositories {
+        libs(PrebuiltLibraries) {
+            mtp {
+                headers.srcDir '/usr/include'
+            }
 
-			def libDir = '/usr/lib/x86_64-linux-gnu/'
+            def libDir = '/usr/lib/x86_64-linux-gnu/'
 
-			mtplib {
-				binaries.withType(SharedLibraryBinary) {
-					sharedLibraryFile = file(libDir + 'libmtp.so')
-				}
-			}
-		}
-	}
-	components {
-		jmtp(NativeLibrarySpec) {
-			sources {
-				c {
-					source {
-						srcDir 'src/main/c/src'
-						include '*.c'
-					}
-					exportedHeaders {
-						srcDirs 'src/main/c/headers', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
-					}
+            mtplib {
+                binaries.withType(SharedLibraryBinary) {
+                    sharedLibraryFile = file(libDir + 'libmtp.so')
+                }
+            }
+        }
+    }
+    components {
+        jmtp(NativeLibrarySpec) {
+            sources {
+                c {
+                    source {
+                        srcDir 'src/main/c/src'
+                        include '*.c'
+                    }
+                    exportedHeaders {
+                        srcDirs 'src/main/c/headers', '/usr/include', '/usr/local/include', javaHomeInclude, javaHomeIncludeOs
+                    }
 
-					lib library: 'mtp', linkage: 'api'
-					lib library: 'mtplib'
-				}
+                    lib library: 'mtp', linkage: 'api'
+                    lib library: 'mtplib'
+                }
 
-			}
-			buildTypes {
-				debug
-				release
-			}
-		}
-	}
+            }
+            buildTypes {
+                debug
+                release
+            }
+        }
+    }
 }
 
 tasks.withType(JavaExec) {
-	 applicationDefaultJvmArgs = ['-Djava.library.path=.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/']
+    applicationDefaultJvmArgs = ['-Djava.library.path=.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/']
 }
 
 compileJava {
-	options.compilerArgs += ['-h', file('src/main/c/headers/')]
+    options.compilerArgs += ['-h', file('src/main/c/headers/')]
 }
 
 jacocoTestReport {
-	reports {
-		xml.enabled true
-		html.enabled true
-	}
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
 }
 
 javafx {
-	modules = ['javafx.controls', 'javafx.fxml']
+    modules = ['javafx.controls', 'javafx.fxml']
 }
 
 application {
-	mainClassName = 'org.meltzg.jmlm.JmlmApplication'
-	applicationDefaultJvmArgs = ['--add-opens', 'javafx.graphics/javafx.scene=ALL-UNNAMED']
+    mainClassName = 'org.meltzg.jmlm.JmlmApplication'
+    applicationDefaultJvmArgs = ['--add-opens', 'javafx.graphics/javafx.scene=ALL-UNNAMED']
 }
 
 test {
-	if (project.hasProperty('excludeTests')) {
-		exclude project.property('excludeTests')
-	}
-	systemProperty 'java.library.path', '.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/'
-	dependsOn 'jmtpDebugSharedLibrary'
+    if (project.hasProperty('excludeTests')) {
+        exclude project.property('excludeTests')
+    }
+    systemProperty 'java.library.path', '.:/usr/lib/x86_64-linux-gnu/:build/libs/jmtp/shared/debug/'
+    dependsOn 'jmtpDebugSharedLibrary'
 }
