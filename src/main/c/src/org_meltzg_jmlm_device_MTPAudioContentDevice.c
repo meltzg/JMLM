@@ -23,7 +23,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getD
     MTPDeviceInfo *deviceList = NULL;
     unsigned int numDevices = getDevicesInfo(&deviceList);;
 
-    jobject newList = getNewArrayList(env);
+    jobject newList = toJMTPDeviceInfoList(env, cls, deviceList, numDevices);
     if (deviceList != NULL && numDevices > 0)
     {
         for (int i = 0; i < numDevices; i++)
@@ -42,5 +42,6 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getD
 */
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getDeviceInfo(JNIEnv *env, jclass cls, jstring deviceId)
 {
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     return NULL;
 }

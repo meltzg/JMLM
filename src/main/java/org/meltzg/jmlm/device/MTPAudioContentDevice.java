@@ -13,10 +13,10 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 public class MTPAudioContentDevice extends FileSystemAudioContentDevice implements ListableDevice {
@@ -70,7 +70,8 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
     @Override
     public List<Map<String, String>> getAllDeviceMountProperties() throws IOException {
-        return getDevicesInfo().stream()
+        var devices = getDevicesInfo();
+        return devices.stream()
                 .map(MTPDeviceInfo::toMap)
                 .collect(Collectors.toList());
     }
@@ -137,15 +138,17 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
         long devNum;
 
         Map<String, String> toMap() {
-            return Stream.of(new String[][] {
-                    {DEVICE_ID, deviceId},
-                    {FRIENDLY_NAME, friendlyName},
-                    {DESCRIPTION, description},
-                    {MANUFACTURER, manufacturer},
-                    {SERIAL, serial},
-                    {BUS_LOCATION, Long.toString(busLocation)},
-                    {DEV_NUM, Long.toString(devNum)}
-            }).collect(Collectors.toMap(prop -> prop[0], prop -> prop[1]));
+            var map = new HashMap<String, String>();
+
+            map.put(DEVICE_ID, deviceId);
+            map.put(FRIENDLY_NAME, friendlyName);
+            map.put(DESCRIPTION, description);
+            map.put(MANUFACTURER, manufacturer);
+            map.put(SERIAL, serial);
+            map.put(BUS_LOCATION, Long.toString(busLocation));
+            map.put(DEV_NUM, Long.toString(devNum));
+
+            return map;
         }
     }
 }

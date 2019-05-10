@@ -1,5 +1,5 @@
 // #include <wchar.h>
-// #include <stdio.h>
+#include <stdio.h>
 // #include <string.h>
 #include "jni_helpers.h"
 
@@ -42,62 +42,50 @@ jobject getNewArrayList(JNIEnv *env)
     return (*env)->NewObject(env, array_list_class, array_list_constructor);
 }
 
-// void arrayListAdd(JNIEnv *env, jobject list, jobject element)
-// {
-//     jclass array_list_class = env->FindClass(JARRLIST);
-//     jmethodID array_list_add = env->GetMethodID(array_list_class, "add", "(Ljava/lang/Object;)Z");
-//     env->CallBooleanMethod(list, array_list_add, element);
-// }
+void arrayListAdd(JNIEnv *env, jobject list, jobject element)
+{
+    jclass array_list_class = (*env)->FindClass(env, JARRLIST);
+    jmethodID array_list_add = (*env)->GetMethodID(env, array_list_class, "add", "(Ljava/lang/Object;)Z");
+    jboolean val = (*env)->CallBooleanMethod(env, list, array_list_add, element);
+}
 
-// jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
-// {
-//     jclass device_info_class = env->FindClass(JMTPDEVICEINFO);
+jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
+{
+    jclass device_info_class = (*env)->FindClass(env, JMTPDEVICEINFO);
+    char sig[1024];
+    sprintf(sig, "(%s%s%s%s%s%sJJ)V", JMTPDEVICE, JSTRING, JSTRING, JSTRING, JSTRING, JSTRING);
+    jmethodID device_info_constr = (*env)->GetMethodID(env, device_info_class, JCONSTRUCTOR, sig);
+    jstring jdevice_id = (*env)->NewStringUTF(env, info.device_id);
+    jstring jdescription = (*env)->NewStringUTF(env, info.description);
+    jstring jfriendly_name = (*env)->NewStringUTF(env, info.friendly_name);
+    jstring jmanufacturer = (*env)->NewStringUTF(env, info.manufacturer);
+    jstring jserial = (*env)->NewStringUTF(env, info.id_info.serial);
 
-//     ostringstream sig;
-//     sig << "("
-//         << JSTRING
-//         << JSTRING
-//         << JSTRING
-//         << JSTRING
-//         << JSTRING
-//         << "J"
-//         << "J"
-//         << ")V";
+    jobject jinfo = (*env)->NewObject(env,
+                                      device_info_class,
+                                      device_info_constr,
+                                      obj,
+                                      jdevice_id,
+                                      jfriendly_name,
+                                      jdescription,
+                                      jmanufacturer,
+                                      jserial,
+                                      info.busLocation,
+                                      info.devNum);
 
-//     jmethodID device_info_constr = env->GetMethodID(device_info_class, JCONSTRUCTOR, sig.str().c_str());
+    return jinfo;
+}
 
-//     jstring jdevice_id = wcharToJString(env, info.device_id.c_str());
-//     jstring jdescription = wcharToJString(env, info.description.c_str());
-//     jstring jfriendly_name = wcharToJString(env, info.friendly_name.c_str());
-//     jstring jmanufacturer = wcharToJString(env, info.manufacturer.c_str());
-//     jstring jserial = wcharToJString(env, info.id_info.serial.c_str());
-
-//     jobject jinfo = env->NewObject(device_info_class,
-//                                    device_info_constr,
-//                                    obj,
-//                                    jdevice_id,
-//                                    jfriendly_name,
-//                                    jdescription,
-//                                    jmanufacturer,
-//                                    jserial,
-//                                    info.busLocation,
-//                                    info.devNum);
-
-//     return jinfo;
-// }
-
-// jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, vector<MTPDeviceInfo> info)
-// {
-//     jobject jlist = getNewArrayList(env);
-
-//     for (auto iter = info.begin(); iter != info.end(); iter++)
-//     {
-//         jobject jinfo = toJMTPDeviceInfo(env, obj, *iter);
-
-//         arrayListAdd(env, jlist, jinfo);
-//     }
-//     return jlist;
-// }
+jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo *info, int numDevices)
+{
+    jobject jlist = getNewArrayList(env);
+    for (int i = 0; i < numDevices; i++)
+    {
+        jobject jinfo = toJMTPDeviceInfo(env, obj, info[i]);
+        arrayListAdd(env, jlist, jinfo);
+    }
+    return jlist;
+}
 
 // jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice storage_device);
 // } // namespace jmtp
