@@ -71,11 +71,11 @@ model {
 			sources {
 				c {
 					source {
-						srcDir 'src/main/cpp/src'
+						srcDir 'src/main/c/src'
 						include '*.c'
 					}
 					exportedHeaders {
-						srcDirs 'src/main/cpp/headers', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
+						srcDirs 'src/main/c/headers', '/usr/include', '/usr/local/include', '/usr/lib/jvm/default-java/include', '/usr/lib/jvm/default-java/include/linux'
 					}
 
 					lib library: 'mtp', linkage: 'api'
@@ -96,7 +96,7 @@ tasks.withType(JavaExec) {
 }
 
 compileJava {
-	options.compilerArgs += ['-h', file('src/main/cpp/headers/')]
+	options.compilerArgs += ['-h', file('src/main/c/headers/')]
 }
 
 jacocoTestReport {
