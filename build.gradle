@@ -64,6 +64,15 @@ dependencies {
 }
 
 model {
+    toolChains {
+        gcc(Gcc) {
+            eachPlatform {
+                cCompiler.withArguments { args ->
+                    args << "-std=c99"
+                }
+            }
+        }
+    }
     repositories {
         libs(PrebuiltLibraries) {
             mtp {
