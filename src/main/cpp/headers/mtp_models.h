@@ -3,30 +3,38 @@
 
 #include <libmtp.h>
 
-struct MTPDeviceIdInfo
+typedef struct MTPDeviceIdInfo_struct MTPDeviceIdInfo;
+typedef struct MTPDeviceInfo_struct MTPDeviceInfo;
+typedef struct MTPStorageDevice_struct MTPStorageDevice;
+
+struct MTPDeviceIdInfo_struct
 {
     uint16_t vendor_id;
     uint16_t product_id;
     char *serial;
 };
 
-struct MTPDeviceInfo
+struct MTPDeviceInfo_struct
 {
     char *device_id;
     char *friendly_name;
     char *description;
     char *manufacturer;
 
-    struct MTPDeviceIdInfo id_info;
+    MTPDeviceIdInfo id_info;
 
     uint32_t busLocation;
     uint8_t devNum;
 };
 
-struct MTPStorageDevice
+struct MTPStorageDevice_struct
 {
     char *id;
     long capacity;
 };
+
+void freeMTPDeviceIdInfo(MTPDeviceIdInfo deviceIdInfo);
+void freeMTPDeviceInfo(MTPDeviceInfo deviceInfo);
+void freeMTPStorageDevice(MTPStorageDevice storageDevice);
 
 #endif

@@ -17,8 +17,8 @@ jstring cstrToJString(JNIEnv *env, const char *str);
 jobject getNewArrayList(JNIEnv *env);
 void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 
-jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, struct MTPDeviceInfo info);
-jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, struct MTPDeviceInfo *info);
-jobject toJMTPStorageDevice(JNIEnv *env, struct MTPStorageDevice storage_device);
+jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info);
+jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo *info);
+jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice storage_device);
 
 #endif

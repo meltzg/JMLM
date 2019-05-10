@@ -1,15 +1,20 @@
-// #include <libmtp.h>
-// #include "mtp_helpers.h"
+#include <libmtp.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include "mtp_helpers.h"
 // #include "common_helpers.h"
 
-// wstring toIDStr(MTPDeviceIdInfo info)
-// {
-//     wstringstream wss;
-//     wss << info.vendor_id
-//         << L":" << info.product_id
-//         << L":" << info.serial;
-//     return wss.str();
-// }
+char *toIDStr(MTPDeviceIdInfo info)
+{
+    char buffer[1024];
+    sprintf(buffer, "%d:%d:%s", info.vendor_id, info.product_id, info.serial);
+    unsigned int idLen = strlen(buffer);
+    char *idStr = malloc((idLen + 1) * idLen);
+    strcpy(idStr, buffer);
+
+    return idStr;
+}
 
 // MTPDeviceIdInfo fromIDStr(wstring str)
 // {
@@ -29,35 +34,25 @@
 //     return info;
 // }
 
-// MTPDeviceInfo toMTPDeviceInfo(LIBMTP_mtpdevice_t *device, uint32_t busLocation, uint8_t devNum, uint16_t vendor_id, uint16_t product_id)
-// {
-//     char *serial = LIBMTP_Get_Serialnumber(device);
-//     char *friendly = LIBMTP_Get_Friendlyname(device);
-//     char *description = LIBMTP_Get_Modelname(device);
-//     char *manufacturer = LIBMTP_Get_Manufacturername(device);
-//     MTPDeviceIdInfo id_info;
-//     id_info.vendor_id = vendor_id;
-//     id_info.product_id = product_id;
-//     id_info.serial = charToWString(serial);
+void toMTPDeviceInfo(MTPDeviceInfo *device_info, LIBMTP_mtpdevice_t *device, uint32_t busLocation, uint8_t devNum, uint16_t vendor_id, uint16_t product_id)
+{
+    char *serial = LIBMTP_Get_Serialnumber(device);
+    char *friendly = LIBMTP_Get_Friendlyname(device);
+    char *description = LIBMTP_Get_Modelname(device);
+    char *manufacturer = LIBMTP_Get_Manufacturername(device);
 
-//     MTPDeviceInfo device_info;
+    device_info->id_info.vendor_id = vendor_id;
+    device_info->id_info.product_id = product_id;
+    device_info->id_info.serial = serial;
+    
+    device_info->device_id = toIDStr(device_info->id_info);
+    device_info->friendly_name = friendly;
+    device_info->description = description;
+    device_info->manufacturer = manufacturer;
 
-//     device_info.device_id = toIDStr(id_info);
-//     device_info.friendly_name = charToWString(friendly);
-//     device_info.description = charToWString(description);
-//     device_info.manufacturer = charToWString(manufacturer);
-
-//     device_info.id_info = id_info;
-//     device_info.busLocation = busLocation;
-//     device_info.devNum = devNum;
-
-//     free(serial);
-//     free(friendly);
-//     free(description);
-//     free(manufacturer);
-
-//     return device_info;
-// }
+    device_info->busLocation = busLocation;
+    device_info->devNum = devNum;
+}
 
 // int toDeviceFileId(wstring path, LIBMTP_mtpdevice_t *device)
 // {
@@ -102,33 +97,37 @@
 //     free(raw_devs);
 // }
 
-// vector<MTPDeviceInfo> getDevicesInfo()
-// {
-//     vector<MTPDeviceInfo> devices;
-//     LIBMTP_raw_device_t *raw_devs = nullptr;
-//     LIBMTP_error_number_t ret;
-//     int numdevs;
+int getDevicesInfo(MTPDeviceInfo **devices)
+{
+    LIBMTP_raw_device_t *raw_devs = NULL;
+    LIBMTP_error_number_t ret;
+    int numdevs;
 
-//     ret = LIBMTP_Detect_Raw_Devices(&raw_devs, &numdevs);
+    ret = LIBMTP_Detect_Raw_Devices(&raw_devs, &numdevs);
 
-//     if (ret == LIBMTP_ERROR_NONE && numdevs > 0)
-//     {
-//         for (int i = 0; i < numdevs; i++)
-//         {
-//             LIBMTP_mtpdevice_t *device = LIBMTP_Open_Raw_Device_Uncached(&raw_devs[i]);
-//             MTPDeviceInfo device_info = toMTPDeviceInfo(device,
-//                                                         raw_devs[i].bus_location,
-//                                                         raw_devs[i].devnum,
-//                                                         raw_devs[i].device_entry.vendor_id,
-//                                                         raw_devs[i].device_entry.product_id);
-//             devices.push_back(device_info);
+    if (ret == LIBMTP_ERROR_NONE && numdevs > 0)
+    {
+        *devices = malloc(numdevs * sizeof(MTPDeviceInfo));
+        for (int i = 0; i < numdevs; i++)
+        {
+            LIBMTP_mtpdevice_t *device = LIBMTP_Open_Raw_Device_Uncached(&raw_devs[i]);
+            toMTPDeviceInfo(&((*devices)[i]),
+                            device,
+                            raw_devs[i].bus_location,
+                            raw_devs[i].devnum,
+                            raw_devs[i].device_entry.vendor_id,
+                            raw_devs[i].device_entry.product_id);
 
-//             LIBMTP_Release_Device(device);
-//         }
-//     }
-//     free(raw_devs);
-//     return devices;
-// }
+            LIBMTP_Release_Device(device);
+        }
+    }
+    if (raw_devs != NULL)
+    {
+        free(raw_devs);
+    }
+
+    return numdevs;
+}
 
 // optional<MTPDeviceInfo> getDeviceInfo(wstring id)
 // {
