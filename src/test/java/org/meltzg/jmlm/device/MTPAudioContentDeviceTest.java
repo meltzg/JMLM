@@ -12,10 +12,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.meltzg.jmlm.CommonUtil.TMPDIR;
+import static org.meltzg.jmlm.device.MTPAudioContentDevice.MountProperties.*;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -40,19 +42,19 @@ public class MTPAudioContentDeviceTest {
     @Test
     public void testGetAllDeviceMountProperties() throws IOException {
         var allDevices = device.getAllDeviceMountProperties();
-        var expectedDevices = device.toMap(new String[][]{
-                {"productId", "0x1191"},
-                {"vendorId", "0x4102"},
-                {"product", "UNKNOWN"},
-                {"vendor", "UNKNOWN"}
-        });
+        var expectedDevice = new HashMap<String, String>();
+        expectedDevice.put(DESCRIPTION.toString(), "AK100_II");
+        expectedDevice.put(FRIENDLY_NAME.toString(), null);
+        expectedDevice.put(MANUFACTURER.toString(), "IRIVER");
+        expectedDevice.put(SERIAL.toString(), "F2000018D562F2A412B4");
+        expectedDevice.put(DEVICE_ID.toString(), "16642:4497:F2000018D562F2A412B4");
         assertEquals(1, allDevices.size());
         var deviceProps = allDevices.get(0);
-        for (var prop : expectedDevices.entrySet()) {
+        for (var prop : expectedDevice.entrySet()) {
             assertEquals(deviceProps.get(prop.getKey()), prop.getValue());
         }
-        assertTrue(deviceProps.containsKey("busLocation"));
-        assertTrue(deviceProps.containsKey("devNum"));
+        assertTrue(deviceProps.containsKey(BUS_LOCATION.toString()));
+        assertTrue(deviceProps.containsKey(DEV_NUM.toString()));
     }
 
     @Test

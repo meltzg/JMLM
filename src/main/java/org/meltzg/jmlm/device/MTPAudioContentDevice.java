@@ -1,5 +1,6 @@
 package org.meltzg.jmlm.device;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Value;
@@ -18,15 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.meltzg.jmlm.device.MTPAudioContentDevice.MountProperties.*;
+
 @Slf4j
 public class MTPAudioContentDevice extends FileSystemAudioContentDevice implements ListableDevice {
-    private static final String DEVICE_ID = "deviceId";
-    private static final String FRIENDLY_NAME = "friendlyName";
-    private static final String DESCRIPTION = "description";
-    private static final String MANUFACTURER = "manufacturer";
-    private static final String SERIAL = "serial";
-    private static final String DEV_NUM = "devNum";
-    private static final String BUS_LOCATION = "busLocation";
+    @Getter
+    @Setter
+    private Map<String, String> mountProperties = initializeProperties();
 
     private static final String JMTP_CMD = "jmtpfs";
     private static final String DEVICE_LOC = "-device=%s,%s";
@@ -37,13 +36,38 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 //        MTPContentDevice.initMTP();
     }
 
-    @Getter
-    @Setter
-    private Map<String, String> mountProperties = toMap(new String[][]{
-            {DEVICE_ID, "null"},
-            {DEV_NUM, "null"},
-            {BUS_LOCATION, "null"}
-    });
+    private static Map<String, String> initializeProperties() {
+        var properties = new HashMap<String, String>();
+        for (var prop : MountProperties.values()) {
+            properties.put(prop.toString(), null);
+        }
+        return properties;
+    }
+
+    @Override
+    public MTPAudioContentDevice mount() throws IOException {
+        setRootPath(Paths.get(mountDir, getId()).toString());
+        var mountPath = Paths.get(getRootPath());
+        if (!mountPath.toFile().exists() && !Paths.get(getRootPath()).toFile().mkdirs()) {
+            throw new IOException("Could not create intermediate directories for " + getRootPath());
+        }
+        var props = getDeviceInfo(mountProperties.get(DEVICE_ID.toString())).toMap();
+        if (props == null) {
+            log.error("Could not mount device with properties {}", mountProperties);
+            throw new IOException("Could not mount device");
+        }
+        var busLocation = props.get(BUS_LOCATION.toString());
+        var devNum = props.get(DEV_NUM.toString());
+
+        var mountResult = CommandRunner.runCommand(Arrays.asList(
+                JMTP_CMD, String.format(DEVICE_LOC, busLocation, devNum), getRootPath()));
+
+        if (mountResult.getExitValue() != 0) {
+            throw new IOException("Could not mount device");
+        }
+        log.info("Device mounted: {}", mountProperties);
+        return this;
+    }
 
     @Getter
     @Setter
@@ -77,28 +101,13 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
     }
 
     @Override
-    public MTPAudioContentDevice mount() throws IOException {
-        setRootPath(Paths.get(mountDir, getId()).toString());
-        var mountPath = Paths.get(getRootPath());
-        if (!mountPath.toFile().exists() && !Paths.get(getRootPath()).toFile().mkdirs()) {
-            throw new IOException("Could not create intermediate directories for " + getRootPath());
+    protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
+        var storage = getStorageDevice(path.toString(), mountProperties.get(DEVICE_ID.toString()));
+        if (storage == null) {
+            log.error("Could not get storage device for path {}", path);
+            throw new IOException("Could not get storage device");
         }
-        var props = getDeviceInfo(mountProperties.get(DEVICE_ID)).toMap();
-        if (props == null) {
-            log.error("Could not mount device with properties {}", mountProperties);
-            throw new IOException("Could not mount device");
-        }
-        var busLocation = props.get(BUS_LOCATION);
-        var devNum = props.get(DEV_NUM);
-
-        var mountResult = CommandRunner.runCommand(Arrays.asList(
-                JMTP_CMD, String.format(DEVICE_LOC, busLocation, devNum), getRootPath()));
-
-        if (mountResult.getExitValue() != 0) {
-            throw new IOException("Could not mount device");
-        }
-        log.info("Device mounted: {}", mountProperties);
-        return this;
+        return storage;
     }
 
     @Override
@@ -110,14 +119,17 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
         log.info("Device unmounted: {}", mountProperties);
     }
 
-    @Override
-    protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
-        var storage = getStorageDevice(path.toString(), mountProperties.get(DEVICE_ID));
-        if (storage == null) {
-            log.error("Could not get storage device for path {}", path);
-            throw new IOException("Could not get storage device");
-        }
-        return storage;
+    @AllArgsConstructor
+    public enum MountProperties {
+        DEVICE_ID("deviceId"),
+        FRIENDLY_NAME("friendlyName"),
+        DESCRIPTION("description"),
+        MANUFACTURER("manufacturer"),
+        SERIAL("serial"),
+        DEV_NUM("devNum"),
+        BUS_LOCATION("busLocation");
+
+        private final String value;
     }
 
     private native StorageDevice getStorageDevice(String path, String deviceId);
@@ -137,16 +149,16 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
         long busLocation;
         long devNum;
 
-        Map<String, String> toMap() {
+        private Map<String, String> toMap() {
             var map = new HashMap<String, String>();
 
-            map.put(DEVICE_ID, deviceId);
-            map.put(FRIENDLY_NAME, friendlyName);
-            map.put(DESCRIPTION, description);
-            map.put(MANUFACTURER, manufacturer);
-            map.put(SERIAL, serial);
-            map.put(BUS_LOCATION, Long.toString(busLocation));
-            map.put(DEV_NUM, Long.toString(devNum));
+            map.put(DEVICE_ID.toString(), deviceId);
+            map.put(FRIENDLY_NAME.toString(), friendlyName);
+            map.put(DESCRIPTION.toString(), description);
+            map.put(MANUFACTURER.toString(), manufacturer);
+            map.put(SERIAL.toString(), serial);
+            map.put(BUS_LOCATION.toString(), Long.toString(busLocation));
+            map.put(DEV_NUM.toString(), Long.toString(devNum));
 
             return map;
         }

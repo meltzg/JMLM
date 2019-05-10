@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "org_meltzg_jmlm_device_MTPAudioContentDevice.h"
 #include "jni_helpers.h"
+#include "mtp_helpers.h"
 
 /*
 * Class:     org_meltzg_jmlm_device_MTPAudioContentDevice
@@ -21,7 +22,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getS
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getDevicesInfo(JNIEnv *env, jclass cls)
 {
     MTPDeviceInfo *deviceList = NULL;
-    unsigned int numDevices = getDevicesInfo(&deviceList);;
+    int numDevices = getDevicesInfo(&deviceList);
 
     jobject newList = toJMTPDeviceInfoList(env, cls, deviceList, numDevices);
     if (deviceList != NULL && numDevices > 0)
@@ -43,5 +44,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getD
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getDeviceInfo(JNIEnv *env, jclass cls, jstring deviceId)
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
-    return NULL;
+    MTPDeviceInfo deviceInfo = getDeviceInfo(cDeviceId);
+
+    return toJMTPDeviceInfo(env, cls, deviceInfo);
 }
