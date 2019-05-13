@@ -11,6 +11,17 @@
 */
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getStorageDevice(JNIEnv *env, jobject obj, jstring path, jstring deviceId)
 {
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
+    const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    MTPStorageDevice storageDevice;
+    
+    if (getStorageDevice(&storageDevice, cDeviceId, cPath))
+    {       
+        jobject jstorage = toJMTPStorageDevice(env, storageDevice);
+        freeMTPStorageDevice(storageDevice);
+        return jstorage;
+    }
+    
     return NULL;
 }
 
@@ -44,7 +55,12 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getD
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getDeviceInfo(JNIEnv *env, jclass cls, jstring deviceId)
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
-    MTPDeviceInfo deviceInfo = getDeviceInfo(cDeviceId);
-
-    return toJMTPDeviceInfo(env, cls, deviceInfo);
+    MTPDeviceInfo deviceInfo;
+    if (getDeviceInfo(&deviceInfo, cDeviceId))
+    {
+        jobject jdevice = toJMTPDeviceInfo(env, cls, deviceInfo);
+        freeMTPDeviceInfo(deviceInfo);
+        return jdevice;
+    }
+    return NULL;
 }

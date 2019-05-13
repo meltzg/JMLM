@@ -87,5 +87,20 @@ jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo *info, int 
     return jlist;
 }
 
-// jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice storage_device);
-// } // namespace jmtp
+jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice storage_device)
+{
+    jclass storage_info_class = (*env)->FindClass(env, JMTPSTORAGEDEVICE);
+    char sig[1024];
+    sprintf(sig, "(%sJJI)V", JSTRING);
+    jmethodID storage_info_constr = (*env)->GetMethodID(env, storage_info_class, JCONSTRUCTOR, sig);
+    jstring jstorage_id = (*env)->NewStringUTF(env, storage_device.storage_id);
+
+    jobject jstorage = (*env)->NewObject(env,
+                                         storage_info_class,
+                                         storage_info_constr,
+                                         jstorage_id,
+                                         storage_device.capacity,
+                                         storage_device.free_space,
+                                         0);
+    return jstorage;
+}

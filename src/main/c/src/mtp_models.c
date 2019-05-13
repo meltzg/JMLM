@@ -33,8 +33,8 @@ void freeMTPDeviceInfo(MTPDeviceInfo deviceInfo)
 
 void freeMTPStorageDevice(MTPStorageDevice storageDevice)
 {
-    if (storageDevice.id != NULL)
+    if (storageDevice.storage_id != NULL)
     {
-        free(storageDevice.id);
+        free(storageDevice.storage_id);
     }
 }

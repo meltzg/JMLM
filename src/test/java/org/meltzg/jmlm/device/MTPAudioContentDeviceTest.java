@@ -5,17 +5,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.meltzg.jmlm.device.storage.StorageDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.meltzg.jmlm.CommonUtil.TMPDIR;
 import static org.meltzg.jmlm.device.MTPAudioContentDevice.MountProperties.*;
 
@@ -97,7 +98,7 @@ public class MTPAudioContentDeviceTest {
         assertTrue(thrown);
     }
 
-    @Test
+    @Test(expected = IOException.class)
     public void testAlreadyUnmounted() throws IOException {
         var allDevices = device.getAllDeviceMountProperties();
         var deviceProps = allDevices.get(0);
@@ -109,14 +110,20 @@ public class MTPAudioContentDeviceTest {
         assertEquals(2, children.length);
 
         mountableDevice.unmount();
+        mountableDevice.unmount();
+    }
 
-        var thrown = false;
-        try {
-            mountableDevice.unmount();
-        } catch (IOException e) {
-            thrown = true;
-        }
+    @Test
+    public void testGetStorageDevice() throws IOException, URISyntaxException {
+        var allDevices = device.getAllDeviceMountProperties();
+        var deviceProps = allDevices.get(0);
+        var mountableDevice = new MTPAudioContentDevice("Device 2", contentRepo, deviceProps);
 
-        assertTrue(thrown);
+        mountableDevice.mount();
+
+        StorageDevice storage = mountableDevice.getStorageDevice(Paths.get("/Internal storage/"));
+
+        assertNotNull(storage.getStorageId());
+        assertFalse(storage.getStorageId().isEmpty());
     }
 }

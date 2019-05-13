@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdio.h>
 #include "mtp_helpers.h"
-// #include "common_helpers.h"
 
 char *toIDStr(MTPDeviceIdInfo info)
 {
@@ -15,24 +14,6 @@ char *toIDStr(MTPDeviceIdInfo info)
 
     return idStr;
 }
-
-// MTPDeviceIdInfo fromIDStr(wstring str)
-// {
-//     MTPDeviceIdInfo info;
-
-//     wstring tmp;
-//     wchar_t *pEnd;
-//     wstringstream wss(str);
-
-//     std::getline(wss, tmp, L':');
-//     info.vendor_id = wcstol(tmp.c_str(), &pEnd, 10);
-//     std::getline(wss, tmp, L':');
-//     info.product_id = wcstol(tmp.c_str(), &pEnd, 10);
-//     std::getline(wss, tmp, L':');
-//     info.serial = tmp.c_str();
-
-//     return info;
-// }
 
 void toMTPDeviceInfo(MTPDeviceInfo *device_info, LIBMTP_mtpdevice_t *device, uint32_t busLocation, uint8_t devNum, uint16_t vendor_id, uint16_t product_id)
 {
@@ -54,19 +35,13 @@ void toMTPDeviceInfo(MTPDeviceInfo *device_info, LIBMTP_mtpdevice_t *device, uin
     device_info->devNum = devNum;
 }
 
-// int toDeviceFileId(wstring path, LIBMTP_mtpdevice_t *device)
-// {
-// }
-
-MTPDeviceInfo getOpenDevice(const char *deviceId, LIBMTP_mtpdevice_t **device, uint32_t *busLocation, uint8_t *devNum)
+bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpdevice_t **device, uint32_t *busLocation, uint8_t *devNum)
 {
     LIBMTP_raw_device_t *raw_devs = NULL;
     LIBMTP_mtpdevice_t *open_device = NULL;
     LIBMTP_error_number_t ret;
     int numdevs;
-
     ret = LIBMTP_Detect_Raw_Devices(&raw_devs, &numdevs);
-
     if (ret == LIBMTP_ERROR_NONE && numdevs > 0)
     {
         for (int i = 0; i < numdevs; i++)
@@ -83,15 +58,15 @@ MTPDeviceInfo getOpenDevice(const char *deviceId, LIBMTP_mtpdevice_t **device, u
                 *device = found_device;
                 *busLocation = raw_devs[i].bus_location;
                 *devNum = raw_devs[i].devnum;
-                MTPDeviceInfo deviceInfo;
-                toMTPDeviceInfo(&deviceInfo, found_device, *busLocation, *devNum, id_info.vendor_id, id_info.product_id);
-                free(raw_devs);
-                return deviceInfo;
+                toMTPDeviceInfo(deviceInfo, found_device, *busLocation, *devNum, id_info.vendor_id, id_info.product_id);
+                // free(raw_devs);
+                return true;
             }
             LIBMTP_Release_Device(found_device);
         }
     }
     free(raw_devs);
+    return false;
 }
 
 int getDevicesInfo(MTPDeviceInfo **devices)
@@ -126,30 +101,76 @@ int getDevicesInfo(MTPDeviceInfo **devices)
     return numdevs;
 }
 
-MTPDeviceInfo getDeviceInfo(const char *deviceId)
+bool getDeviceInfo(MTPDeviceInfo *deviceInfo, const char *deviceId)
 {
     LIBMTP_mtpdevice_t *device = NULL;
     uint32_t busLocation;
     uint8_t devNum;
-    MTPDeviceInfo devicInfo = getOpenDevice(deviceId, &device, &busLocation, &devNum);
 
-    LIBMTP_Release_Device(device);
-    return devicInfo;
+    if (getOpenDevice(deviceInfo, deviceId, &device, &busLocation, &devNum))
+    {
+        LIBMTP_Release_Device(device);
+        return true;
+    }
+
+    return false;
 }
 
-// optional<MTPStorageDevice> getStorageDevice(wstring device_id, wstring path)
-// {
-//     LIBMTP_mtpdevice_t *device = nullptr;
-//     uint32_t busLocation;
-//     uint8_t devNum;
-//     getOpenDevice(device_id, &device, &busLocation, &devNum);
+static uint32_t
+lookup_folder_id(LIBMTP_folder_t *folder, char *path, char *parent)
+{
+    char *current;
+    uint32_t ret = (uint32_t)-1;
 
-//     if (device == nullptr)
-//     {
-//         return std::nullopt;
-//     }
+    if (strcmp(path, "/") == 0)
+        return 0;
 
-//     LIBMTP_Release_Device(device);
-//     return std::nullopt;
-// }
-// } // namespace jmtp
+    if (folder == NULL)
+    {
+        return ret;
+    }
+
+    current = malloc(strlen(parent) + strlen(folder->name) + 2);
+    sprintf(current, "%s/%s", parent, folder->name);
+    if (strcasecmp(path, current) == 0)
+    {
+        free(current);
+        return folder->folder_id;
+    }
+    if (strncasecmp(path, current, strlen(current)) == 0)
+    {
+        ret = lookup_folder_id(folder->child, path, current);
+    }
+    free(current);
+    if (ret != (uint32_t)(-1))
+    {
+        return ret;
+    }
+    ret = lookup_folder_id(folder->sibling, path, parent);
+    return ret;
+}
+
+bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, const char *path)
+{
+    LIBMTP_mtpdevice_t *device = NULL;
+    uint32_t busLocation;
+    uint8_t devNum;
+    MTPDeviceInfo deviceInfo;
+
+    if (!getOpenDevice(&deviceInfo, device_id, &device, &busLocation, &devNum))
+    {
+        return false;
+    }
+
+    LIBMTP_folder_t *folders = LIBMTP_Get_Folder_List(device);
+
+    uint32_t folderId = lookup_folder_id(folders, path, "");
+    printf("Folder ID %d\n", folderId);
+
+    storageDevice->storage_id = NULL;
+    storageDevice->capacity = 0;
+    storageDevice->free_space = 0;
+
+    LIBMTP_Release_Device(device);
+    return true;
+}

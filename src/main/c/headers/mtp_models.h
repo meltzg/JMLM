@@ -29,8 +29,9 @@ struct MTPDeviceInfo_struct
 
 struct MTPStorageDevice_struct
 {
-    char *id;
+    char *storage_id;
     long capacity;
+    long free_space;
 };
 
 void freeMTPDeviceIdInfo(MTPDeviceIdInfo deviceIdInfo);
