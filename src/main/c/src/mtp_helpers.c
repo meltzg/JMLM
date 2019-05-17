@@ -116,6 +116,10 @@ bool getDeviceInfo(MTPDeviceInfo *deviceInfo, const char *deviceId)
     return false;
 }
 
+void initMTP() {
+    LIBMTP_Init();
+}
+
 static uint32_t
 lookup_folder_id(LIBMTP_folder_t *folder, char *path, char *parent)
 {

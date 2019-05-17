@@ -14,15 +14,25 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getS
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
     MTPStorageDevice storageDevice;
-    
+
     if (getStorageDevice(&storageDevice, cDeviceId, cPath))
-    {       
+    {
         jobject jstorage = toJMTPStorageDevice(env, storageDevice);
         freeMTPStorageDevice(storageDevice);
         return jstorage;
     }
-    
+
     return NULL;
+}
+
+/*
+ * Class:     org_meltzg_jmlm_device_MTPAudioContentDevice
+ * Method:    initMTP
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_initMTP(JNIEnv *env, jclass cls)
+{
+    initMTP();
 }
 
 /*

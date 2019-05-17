@@ -33,7 +33,7 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
     static {
         System.loadLibrary("jmtp");
-//        MTPContentDevice.initMTP();
+        MTPAudioContentDevice.initMTP();
     }
 
     private static Map<String, String> initializeProperties() {
@@ -131,9 +131,11 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
         private final String value;
     }
-
+    
     private native StorageDevice getStorageDevice(String path, String deviceId);
 
+    private static native void initMTP();
+    
     private static native List<MTPDeviceInfo> getDevicesInfo();
 
     private static native MTPDeviceInfo getDeviceInfo(String id);
