@@ -39,7 +39,7 @@ bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpde
 {
     *device = NULL;
     *raw_devs = NULL;
-    
+
     LIBMTP_mtpdevice_t *open_device = NULL;
     LIBMTP_error_number_t ret;
     int numdevs;
@@ -135,8 +135,11 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        printf("storage is null %d\n", device->storage == 0);
-
+        LIBMTP_devicestorage_t *storage;
+        for (storage = device->storage; storage != 0; storage = storage->next)
+        {
+            printf("storage is %d\n", storage->id);
+        }
         storageDevice->storage_id = NULL;
         storageDevice->capacity = 0;
         storageDevice->free_space = 0;
