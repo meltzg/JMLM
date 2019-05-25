@@ -40,7 +40,7 @@ public class FileSystemAudioContentDevice implements MountableDevice {
 
     @Getter
     @Setter
-    private String rootPath = "/";
+    protected String rootPath = "/";
 
     @ManyToMany(fetch = FetchType.EAGER)
     @Getter
@@ -103,7 +103,7 @@ public class FileSystemAudioContentDevice implements MountableDevice {
         }
         libPath = libPath.toAbsolutePath();
 
-        if (!libraryRoots.values().contains(libPath.toString())) {
+        if (!libraryRoots.containsValue(libPath.toString())) {
             for (var existingLib : libraryRoots.values()) {
                 var existingPath = Paths.get(existingLib).toAbsolutePath();
                 if (existingPath.startsWith(libPath) || libPath.startsWith(existingPath)) {

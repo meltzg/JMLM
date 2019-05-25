@@ -102,11 +102,14 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
 
     @Override
     protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
-        var storage = getStorageDevice(path.toString(), mountProperties.get(DEVICE_ID.toString()));
+        unmount();
+        var devicePath = path.toString().substring(rootPath.length());
+        var storage = getStorageDevice(devicePath, mountProperties.get(DEVICE_ID.toString()));
         if (storage == null) {
             log.error("Could not get storage device for path {}", path);
             throw new IOException("Could not get storage device");
         }
+        mount();
         return storage;
     }
 

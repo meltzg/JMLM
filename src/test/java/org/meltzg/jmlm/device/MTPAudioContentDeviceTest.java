@@ -128,4 +128,16 @@ public class MTPAudioContentDeviceTest {
 
         mountableDevice.unmount();
     }
+
+    @Test
+    public void testScanAndSaveDevice() throws IOException, URISyntaxException {
+        var allDevices = device.getAllDeviceMountProperties();
+        var deviceProps = allDevices.get(0);
+        var mountableDevice = new MTPAudioContentDevice("Device 1", contentRepo, deviceProps);
+
+        mountableDevice.mount();
+        mountableDevice.addLibraryRoot("/Internal storage/Music");
+        mountableDevice.addLibraryRoot("/SD card/Music");
+        mountableDevice.unmount();
+    }
 }

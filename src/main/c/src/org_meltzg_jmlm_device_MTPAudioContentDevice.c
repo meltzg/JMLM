@@ -17,7 +17,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getS
 
     if (getStorageDevice(&storageDevice, cDeviceId, cPath))
     {
-        printf("storage id: %s, capacity: %llu, freespace: %llu", storageDevice.storage_id, storageDevice.capacity, storageDevice.free_space);
+        printf("storage id: %s, capacity: %llu, freespace: %llu\n", storageDevice.storage_id, storageDevice.capacity, storageDevice.free_space);
         jobject jstorage = toJMTPStorageDevice(env, storageDevice);
         freeMTPStorageDevice(storageDevice);
         return jstorage;
