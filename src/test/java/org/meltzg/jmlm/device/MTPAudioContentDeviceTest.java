@@ -121,7 +121,7 @@ public class MTPAudioContentDeviceTest {
 
         mountableDevice.mount();
 
-        StorageDevice storage = mountableDevice.getStorageDevice(Paths.get("/Internal storage/"));
+        StorageDevice storage = mountableDevice.getStorageDevice(Paths.get("/Internal storage/Music"));
 
         assertNotNull(storage.getStorageId());
         assertFalse(storage.getStorageId().isEmpty());

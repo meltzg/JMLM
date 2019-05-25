@@ -70,6 +70,22 @@ bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpde
     return false;
 }
 
+bool getFileFromPath(const char *path, const LIBMTP_mtpdevice_t *device, uint32_t storageId, LIBMTP_file_t **file)
+{
+    char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
+    strcpy(pathCopy, path);
+    char *pathPart = strtok(pathCopy, "/");
+    while (pathPart != NULL)
+    {
+        printf("**%s**\n", pathPart);
+        pathPart = strtok(NULL, "/");
+    }
+
+    free(pathCopy);
+
+    return false;
+}
+
 int getDevicesInfo(MTPDeviceInfo **devices)
 {
     LIBMTP_raw_device_t *raw_devs = NULL;
@@ -139,6 +155,11 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
         for (storage = device->storage; storage != 0; storage = storage->next)
         {
             printf("storage is %d\n", storage->id);
+            LIBMTP_file_t *file;
+            if (getFileFromPath(path, device, storage->id, &file))
+            {
+                printf("found file");
+            }
         }
         storageDevice->storage_id = NULL;
         storageDevice->capacity = 0;
