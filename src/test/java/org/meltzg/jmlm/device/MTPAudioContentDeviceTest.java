@@ -125,5 +125,7 @@ public class MTPAudioContentDeviceTest {
 
         assertNotNull(storage.getStorageId());
         assertFalse(storage.getStorageId().isEmpty());
+
+        mountableDevice.unmount();
     }
 }

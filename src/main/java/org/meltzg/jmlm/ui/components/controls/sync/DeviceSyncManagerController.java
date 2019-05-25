@@ -23,6 +23,7 @@ import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.TagException;
+import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.device.content.AudioContent;
 import org.meltzg.jmlm.exceptions.InsufficientSpaceException;
 import org.meltzg.jmlm.exceptions.InvalidStateException;
@@ -48,18 +49,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class DeviceSyncManagerController implements DialogController, Initializable {
-    @Setter
-    private FXMLDialog dialog;
-
-    @Autowired
-    FileSystemAudioContentDeviceRepository deviceRepository;
-    @Autowired
-    AudioContentRepository contentRepository;
-
-    @FXML
-    private ChoiceBox<DeviceWrapper> chcLibrary;
-    @FXML
-    private ChoiceBox<DeviceWrapper> chcAttached;
     @FXML
     public TableView<SelectedContent> contentTable;
     @FXML
@@ -82,7 +71,16 @@ public class DeviceSyncManagerController implements DialogController, Initializa
     public ProgressBar prgCapacityBar;
     @FXML
     public Button btnSyncSelection;
-
+    @Autowired
+    FileSystemAudioContentDeviceRepository deviceRepository;
+    @Autowired
+    AudioContentRepository contentRepository;
+    @Setter
+    private FXMLDialog dialog;
+    @FXML
+    private ChoiceBox<DeviceWrapper> chcLibrary;
+    @FXML
+    private ChoiceBox<DeviceWrapper> chcAttached;
     private ObservableList<SelectedContent> selectedContent;
     private DeviceSyncManager syncManager;
 
@@ -135,7 +133,7 @@ public class DeviceSyncManagerController implements DialogController, Initializa
         chcAttached.getItems().setAll(devices);
     }
 
-    public void syncSelection(MouseEvent mouseEvent) throws InsufficientSpaceException, SyncStrategyException, TagException, IOException, CannotReadException, ReadOnlyFileException, InvalidAudioFrameException, ClassNotFoundException {
+    public void syncSelection(MouseEvent mouseEvent) {
         var desiredContent = selectedContent.stream()
                 .filter((selection) -> selection.getSelectedProperty().get())
                 .map(SelectedContent::getContentSyncStatusProperty)
@@ -144,19 +142,61 @@ public class DeviceSyncManagerController implements DialogController, Initializa
                 .map(AudioContent::getId)
                 .collect(Collectors.toSet());
 
-//        try {
-        syncManager.syncDevice(desiredContent, NotInLibraryStrategy.CANCEL_SYNC);
-        refreshContentTable();
-//        } catch (ClassNotFoundException | IOException | InsufficientSpaceException |
-//                SyncStrategyException | ReadOnlyFileException | TagException | InvalidAudioFrameException |
-//                CannotReadException e) {
-//            log.error("Error syncing selected content to device", e);
-//
-//            showAlert("Unexpected Error",
-//                    "Sync Failure",
-//                    e.getMessage(),
-//                    Alert.AlertType.ERROR);
-//        }
+        try {
+            syncManager.syncDevice(desiredContent, NotInLibraryStrategy.CANCEL_SYNC);
+            deviceRepository.saveAll(Arrays.asList(getAttachedDevice(), getLibraryDevice()));
+            refreshContentTable();
+        } catch (SyncStrategyException e) {
+            log.error("Could not apply any sync strategy");
+            var choice = showAlert("Unexpected Error",
+                    "Content to remove from device not in library",
+                    "Click Apply to continue (DOES NOT TRANSFER TO LIBRARY)\n" +
+                            "Click Cancel to cancel sync operation\n" +
+                            "Click OK to transfer missing tracks to library",
+                    Alert.AlertType.ERROR,
+                    ButtonType.APPLY,
+                    ButtonType.OK,
+                    ButtonType.CANCEL);
+            choice.ifPresent(buttonType -> {
+                if (buttonType == ButtonType.APPLY) {
+                    log.info("delete from library");
+                } else if (buttonType == ButtonType.OK) {
+                    log.info("transfer to library");
+                }
+            });
+
+        } catch (ClassNotFoundException | IOException | InsufficientSpaceException |
+                ReadOnlyFileException | TagException | InvalidAudioFrameException |
+                CannotReadException e) {
+            log.error("Error syncing selected content to device", e);
+
+            showAlert("Unexpected Error",
+                    "Sync Failure",
+                    e.getMessage(),
+                    Alert.AlertType.ERROR);
+        }
+    }
+
+    private FileSystemAudioContentDevice getDevice(boolean libraryDevice) {
+        ChoiceBox<DeviceWrapper> chcBox = libraryDevice ? chcLibrary : chcAttached;
+
+        var deviceIdx = chcBox.getSelectionModel().getSelectedIndex();
+
+        log.info("Library: {}, Index: {}", libraryDevice, deviceIdx);
+
+        if (deviceIdx == -1) {
+            return null;
+        }
+
+        return chcBox.getItems().get(deviceIdx).getDevice();
+    }
+
+    private FileSystemAudioContentDevice getLibraryDevice() {
+        return getDevice(true);
+    }
+
+    private FileSystemAudioContentDevice getAttachedDevice() {
+        return getDevice(false);
     }
 
     public void resetSelection(MouseEvent mouseEvent) {
@@ -211,23 +251,18 @@ public class DeviceSyncManagerController implements DialogController, Initializa
     }
 
     private void handleSelectedDeviceChange() throws InvalidStateException {
-        var libDeviceIdx = chcLibrary.getSelectionModel().getSelectedIndex();
-        var attachedDeviceIdx = chcAttached.getSelectionModel().getSelectedIndex();
+        var libDevice = getLibraryDevice();
+        var attachedDevice = getAttachedDevice();
 
-        log.info("Library: {}, Attached: {}", libDeviceIdx, attachedDeviceIdx);
-
-        if (libDeviceIdx == -1 || attachedDeviceIdx == -1) {
+        if (libDevice == null || attachedDevice == null) {
             return;
         }
 
-        if (libDeviceIdx == attachedDeviceIdx) {
+        if (libDevice.getId() == attachedDevice.getId()) {
             throw new InvalidStateException("Cannot use the same device for library and managed device");
         }
 
-        var libDevice = chcLibrary.getItems().get(libDeviceIdx);
-        var attachedDevice = chcAttached.getItems().get(attachedDeviceIdx);
-
-        syncManager = new DeviceSyncManager(libDevice.getDevice(), attachedDevice.getDevice(),
+        syncManager = new DeviceSyncManager(libDevice, attachedDevice,
                 Arrays.asList(LazySyncStrategy.class.getCanonicalName(), GreedySyncStrategy.class.getCanonicalName()));
 
         refreshContentTable();
