@@ -144,8 +144,6 @@ public class DeviceSyncManagerController implements DialogController, Initializa
 
         try {
             syncManager.syncDevice(desiredContent, NotInLibraryStrategy.CANCEL_SYNC);
-            deviceRepository.saveAll(Arrays.asList(getAttachedDevice(), getLibraryDevice()));
-            refreshContentTable();
         } catch (SyncStrategyException e) {
             log.error("Could not apply any sync strategy");
             var choice = showAlert("Unexpected Error",
@@ -160,8 +158,29 @@ public class DeviceSyncManagerController implements DialogController, Initializa
             choice.ifPresent(buttonType -> {
                 if (buttonType == ButtonType.APPLY) {
                     log.info("delete from library");
+                    try {
+                        syncManager.syncDevice(desiredContent, NotInLibraryStrategy.DELETE_FROM_DEVICE);
+                    } catch (ClassNotFoundException | IOException | InsufficientSpaceException | SyncStrategyException |
+                            ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException ex) {
+                        log.error("Error syncing selected content to device", e);
+
+                        showAlert("Unexpected Error",
+                                "Sync Failure",
+                                e.getMessage(),
+                                Alert.AlertType.ERROR);
+                    }
                 } else if (buttonType == ButtonType.OK) {
-                    log.info("transfer to library");
+                    try {
+                        syncManager.syncDevice(desiredContent, NotInLibraryStrategy.TRANSFER_TO_LIBRARY);
+                    } catch (ClassNotFoundException | IOException | InsufficientSpaceException | SyncStrategyException |
+                            ReadOnlyFileException | TagException | InvalidAudioFrameException | CannotReadException ex) {
+                        log.error("Error syncing selected content to device", e);
+
+                        showAlert("Unexpected Error",
+                                "Sync Failure",
+                                e.getMessage(),
+                                Alert.AlertType.ERROR);
+                    }
                 }
             });
 
@@ -175,6 +194,9 @@ public class DeviceSyncManagerController implements DialogController, Initializa
                     e.getMessage(),
                     Alert.AlertType.ERROR);
         }
+
+        deviceRepository.saveAll(Arrays.asList(getAttachedDevice(), getLibraryDevice()));
+        refreshContentTable();
     }
 
     private FileSystemAudioContentDevice getDevice(boolean libraryDevice) {
