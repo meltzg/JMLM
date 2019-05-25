@@ -70,22 +70,6 @@ bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpde
     return false;
 }
 
-bool getFileFromPath(const char *path, const LIBMTP_mtpdevice_t *device, uint32_t storageId, LIBMTP_file_t **file)
-{
-    char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
-    strcpy(pathCopy, path);
-    char *pathPart = strtok(pathCopy, "/");
-    while (pathPart != NULL)
-    {
-        printf("**%s**\n", pathPart);
-        pathPart = strtok(NULL, "/");
-    }
-
-    free(pathCopy);
-
-    return false;
-}
-
 int getDevicesInfo(MTPDeviceInfo **devices)
 {
     LIBMTP_raw_device_t *raw_devs = NULL;
@@ -152,20 +136,30 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
         LIBMTP_devicestorage_t *storage;
-        for (storage = device->storage; storage != 0; storage = storage->next)
-        {
-            printf("storage is %d\n", storage->id);
-            LIBMTP_file_t *file;
-            if (getFileFromPath(path, device, storage->id, &file))
-            {
-                printf("found file");
-            }
-        }
         storageDevice->storage_id = NULL;
         storageDevice->capacity = 0;
         storageDevice->free_space = 0;
 
+        char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
+        strcpy(pathCopy, path);
+        char *pathPart = strtok(pathCopy, "/");
+
+        for (storage = device->storage; storage != 0 && pathPart != NULL; storage = storage->next)
+        {
+            if (strcmp(storage->StorageDescription, pathPart) == 0)
+            {
+                storageDevice->storage_id = malloc(sizeof(char) * 20);
+                sprintf(storageDevice->storage_id, "%#lx", storage->id);
+
+                storageDevice->free_space = storage->FreeSpaceInBytes;
+                storageDevice->capacity = storage->MaxCapacity;
+
+                ret = true;
+            }
+        }
+
         LIBMTP_Release_Device(device);
+        free(pathCopy);
     }
 
     if (rawdevices != NULL)

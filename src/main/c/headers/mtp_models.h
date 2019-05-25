@@ -30,8 +30,8 @@ struct MTPDeviceInfo_struct
 struct MTPStorageDevice_struct
 {
     char *storage_id;
-    long capacity;
-    long free_space;
+    uint64_t capacity;
+    uint64_t free_space;
 };
 
 void freeMTPDeviceIdInfo(MTPDeviceIdInfo deviceIdInfo);
