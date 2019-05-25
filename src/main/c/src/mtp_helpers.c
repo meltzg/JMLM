@@ -61,7 +61,6 @@ bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpde
                 *busLocation = (*raw_devs)[i].bus_location;
                 *devNum = (*raw_devs)[i].devnum;
                 toMTPDeviceInfo(deviceInfo, found_device, *busLocation, *devNum, id_info.vendor_id, id_info.product_id);
-                // free(raw_devs);
                 return true;
             }
             LIBMTP_Release_Device(found_device);
@@ -95,10 +94,6 @@ int getDevicesInfo(MTPDeviceInfo **devices)
             LIBMTP_Release_Device(device);
         }
     }
-    // if (raw_devs != NULL)
-    // {
-    //     free(raw_devs);
-    // }
 
     return numdevs;
 }
@@ -140,8 +135,7 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        LIBMTP_folder_t *folders = LIBMTP_Get_Folder_List(device);
-        printf("folders is null %d\n", folders == NULL);
+        printf("storage is null %d\n", device->storage == 0);
 
         storageDevice->storage_id = NULL;
         storageDevice->capacity = 0;
