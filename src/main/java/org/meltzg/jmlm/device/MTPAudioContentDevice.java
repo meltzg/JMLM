@@ -1,14 +1,12 @@
 package org.meltzg.jmlm.device;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Value;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
 import org.meltzg.jmlm.utilities.CommandRunner;
 
+import javax.persistence.Entity;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -22,6 +20,8 @@ import java.util.stream.Collectors;
 import static org.meltzg.jmlm.device.MTPAudioContentDevice.MountProperties.*;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
 public class MTPAudioContentDevice extends FileSystemAudioContentDevice implements ListableDevice {
     @Getter
     @Setter
@@ -103,7 +103,10 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
     @Override
     protected StorageDevice getStorageDevice(Path path) throws IOException, URISyntaxException {
         unmount();
-        var devicePath = path.toString().substring(rootPath.length());
+        var devicePath = path.toString();
+        if (devicePath.startsWith(rootPath)) {
+            devicePath = path.toString().substring(rootPath.length());
+        }
         var storage = getStorageDevice(devicePath, mountProperties.get(DEVICE_ID.toString()));
         if (storage == null) {
             log.error("Could not get storage device for path {}", path);
@@ -116,8 +119,16 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
     @Override
     public void unmount() throws IOException {
         var unmountResult = CommandRunner.runCommand(Arrays.asList(FUSERMOUNT, "-u", getRootPath()));
+        for (int i = 0; i < 10 && unmountResult.getExitValue() != 0; i++) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                log.error("Failed to sleep", e);
+            }
+            unmountResult = CommandRunner.runCommand(Arrays.asList(FUSERMOUNT, "-u", getRootPath()));
+        }
         if (unmountResult.getExitValue() != 0) {
-            throw new IOException("Could not unmount device");
+            throw new IOException("Could not unmount device: " + unmountResult.getOutput());
         }
         log.info("Device unmounted: {}", mountProperties);
     }

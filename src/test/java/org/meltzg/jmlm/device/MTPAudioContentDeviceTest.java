@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 import org.meltzg.jmlm.repositories.AudioContentRepository;
+import org.meltzg.jmlm.repositories.FileSystemAudioContentDeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -26,6 +27,9 @@ public class MTPAudioContentDeviceTest {
 
     @Autowired
     AudioContentRepository contentRepo;
+
+    @Autowired
+    FileSystemAudioContentDeviceRepository deviceRepo;
 
     MTPAudioContentDevice device;
 
@@ -136,8 +140,12 @@ public class MTPAudioContentDeviceTest {
         var mountableDevice = new MTPAudioContentDevice("Device 1", contentRepo, deviceProps);
 
         mountableDevice.mount();
-        mountableDevice.addLibraryRoot("/Internal storage/Music");
-        mountableDevice.addLibraryRoot("/SD card/Music");
+        mountableDevice.addLibraryRoot("/Internal storage/Music/Monomer");
         mountableDevice.unmount();
+
+        deviceRepo.save(mountableDevice);
+        var readDevice = deviceRepo.findById(mountableDevice.getId());
+        assertEquals(deviceProps, readDevice.get().getMountProperties());
+        assertTrue(readDevice.get() instanceof MTPAudioContentDevice);
     }
 }

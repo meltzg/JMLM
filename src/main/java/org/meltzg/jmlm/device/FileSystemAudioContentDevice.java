@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Entity
 @ToString
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Slf4j
 public class FileSystemAudioContentDevice implements MountableDevice {
     @Id
