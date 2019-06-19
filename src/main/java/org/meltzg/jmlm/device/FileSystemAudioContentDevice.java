@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Slf4j
