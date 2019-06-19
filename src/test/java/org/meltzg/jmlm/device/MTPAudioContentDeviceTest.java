@@ -140,7 +140,7 @@ public class MTPAudioContentDeviceTest {
         var mountableDevice = new MTPAudioContentDevice("Device 1", contentRepo, deviceProps);
 
         mountableDevice.mount();
-        mountableDevice.addLibraryRoot("/Internal storage/Music/Monomer");
+        mountableDevice.addLibraryRoot("/Internal storage/Contents/Sample");
         mountableDevice.unmount();
 
         deviceRepo.save(mountableDevice);
