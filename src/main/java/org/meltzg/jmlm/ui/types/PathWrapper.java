@@ -5,17 +5,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @AllArgsConstructor
 public class PathWrapper {
     @Getter
-    private Path path;
+    private String path;
 
     @Override
     public String toString() {
-        if (path.getFileName() == null) {
-            return path.toString();
+        var pathPath = Paths.get(path);
+        if (pathPath.getFileName() == null) {
+            return path;
         }
-        return path.getFileName().toString();
+        return pathPath.getFileName().toString();
     }
 }

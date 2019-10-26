@@ -14,9 +14,9 @@ import org.meltzg.jmlm.device.FileSystemAudioContentDevice;
 import org.meltzg.jmlm.ui.types.PathWrapper;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class LibraryRootSelectionPane extends ValidatableControl {
@@ -26,15 +26,16 @@ public class LibraryRootSelectionPane extends ValidatableControl {
     private TreeView<PathWrapper> deviceTree;
 
     @FXML
-    private ListView<Path> lstLibraryRoots;
+    private ListView<String> lstLibraryRoots;
 
-    private Set<Path> libraryRoots;
+    private Set<String> libraryRoots;
 
-    public LibraryRootSelectionPane(FileSystemAudioContentDevice device) {
+    public LibraryRootSelectionPane(FileSystemAudioContentDevice device) throws IOException {
         super();
         this.device = device;
+        device.mount();
         libraryRoots = new HashSet<>();
-        deviceTree.setRoot(createNode(new PathWrapper(Paths.get(device.getRootPath()))));
+        deviceTree.setRoot(createNode(new PathWrapper(device.getRootPath())));
     }
 
     @Override
@@ -54,7 +55,7 @@ public class LibraryRootSelectionPane extends ValidatableControl {
         if (selection != null) {
             var newRoot = selection.getValue().getPath();
             for (var existingPath : libraryRoots) {
-                if (existingPath.startsWith(newRoot) || newRoot.startsWith(existingPath)) {
+                if (existingPath.startsWith(newRoot) || newRoot.startsWith(existingPath.toString())) {
                     var alert = new Alert(
                             Alert.AlertType.ERROR,
                             "Cannot add parent or child of an existing selection");
@@ -97,7 +98,7 @@ public class LibraryRootSelectionPane extends ValidatableControl {
                     isFirstTimeLeaf = false;
                     var location1 = getValue();
                     try {
-                        isLeaf = device.getChildrenDirs(location1.getPath()).size() == 0;
+                        isLeaf = device.getChildrenDirs(Paths.get(location1.getPath())).size() == 0;
                     } catch (IllegalAccessException | IOException e) {
                         log.error("Could not determine if location is a leaf: " + location1, e);
                         isLeaf = true;
@@ -109,17 +110,12 @@ public class LibraryRootSelectionPane extends ValidatableControl {
             private ObservableList<TreeItem<PathWrapper>> buildChildren(TreeItem<PathWrapper> treeItem) {
                 var location = treeItem.getValue();
                 try {
-                    var children = device.getChildrenDirs(location.getPath());
-                    children.sort(new Comparator<Path>() {
-                        @Override
-                        public int compare(Path o1, Path o2) {
-                            return o1.compareTo(o2);
-                        }
-                    });
+                    var children = device.getChildrenDirs(Paths.get(location.getPath())).stream().map(child -> child.toString()).collect(Collectors.toList());
+                    Collections.sort(children);
                     if (children.size() > 0) {
                         ObservableList<TreeItem<PathWrapper>> observableChildren = FXCollections.observableArrayList();
                         for (var child : children) {
-                            observableChildren.add(createNode(new PathWrapper(child)));
+                            observableChildren.add(createNode(new PathWrapper(child.toString())));
                         }
                         return observableChildren;
                     }
