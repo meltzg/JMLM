@@ -48,10 +48,7 @@ public class DeviceWizard {
     private void buildAndSaveDevice() {
         var settings = wizard.getSettings();
         device.setName((String) settings.get("deviceName"));
-        try {
-
-
-            device.mount();
+        try (var device = this.device.mount()) {
             var libraryRoots = (Collection<String>) settings.get("libraryRoots");
             for (var root : libraryRoots) {
                 try {
@@ -61,7 +58,6 @@ public class DeviceWizard {
                 }
             }
             deviceRepository.save(device);
-            device.unmount();
         } catch (IOException e) {
             e.printStackTrace();
         }

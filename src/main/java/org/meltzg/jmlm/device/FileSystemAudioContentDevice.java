@@ -269,9 +269,11 @@ public class FileSystemAudioContentDevice implements MountableDevice {
             throw new IllegalAccessException("Cannot access " + path);
         }
 
-        return Files.list(path)
-                .filter(p -> p.toFile().isDirectory())
-                .collect(Collectors.toList());
+        try (var fileList = Files.list(path)) {
+            return fileList
+                    .filter(p -> p.toFile().isDirectory())
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override
