@@ -84,42 +84,50 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public Path getPath(URI uri) {
-        return null;
+        validateURI(uri);
+        var schemaSpecificPart = uri.getSchemeSpecificPart();
+        var pathStart = schemaSpecificPart.indexOf("!/");
+        if (pathStart == -1) {
+            throw new IllegalArgumentException(String.format("URI %s does not contain path info", uri));
+        }
+        return getFileSystem(uri, true).getPath(schemaSpecificPart.substring(pathStart + 1));
     }
 
     @Override
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-        return null;
+        validatePathProvider(path);
+        return ((MTPPath) path).getFileSystem().newByteChannel(path, options, attrs);
     }
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-        return null;
+        validatePathProvider(dir);
+        return ((MTPPath) dir).getFileSystem().newDirectoryStream(dir, filter);
     }
 
     @Override
     public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-
+        throw new ReadOnlyFileSystemException();
     }
 
     @Override
     public void delete(Path path) throws IOException {
-
+        throw new ReadOnlyFileSystemException();
     }
 
     @Override
     public void copy(Path source, Path target, CopyOption... options) throws IOException {
-
+        throw new ReadOnlyFileSystemException();
     }
 
     @Override
     public void move(Path source, Path target, CopyOption... options) throws IOException {
-
+        throw new ReadOnlyFileSystemException();
     }
 
     @Override
     public boolean isSameFile(Path path, Path path2) throws IOException {
-        return false;
+        return path.toAbsolutePath().equals(path2.toAbsolutePath());
     }
 
     @Override
@@ -128,7 +136,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public FileStore getFileStore(Path path) throws IOException {
+    public MTPFileStore getFileStore(Path path) throws IOException {
         return null;
     }
 
@@ -165,6 +173,12 @@ public class MTPFileSystemProvider extends FileSystemProvider {
         var deviceIdentifier = getDeviceIdentifier(uri);
         if (getDeviceInfo(deviceIdentifier.toString()) == null) {
             throw new FileSystemNotFoundException(String.format("Device %s could not be found", deviceIdentifier.toString()));
+        }
+    }
+
+    void validatePathProvider(Path path) {
+        if (!(path instanceof MTPPath)) {
+            throw new ProviderMismatchException();
         }
     }
 

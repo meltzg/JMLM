@@ -1,15 +1,23 @@
 package org.meltzg.jmlm.filesystem.mtp;
 
 import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Map;
 import java.util.Set;
 
 public class MTPFileSystem extends FileSystem {
-    public MTPFileSystem(MTPFileSystemProvider fileSystemProvider, MTPFileSystemProvider.DeviceIdentifier deviceIdentifier, Map<String, ?> env) {
 
+    private final MTPFileSystemProvider fileSystemProvider;
+    private final MTPFileSystemProvider.DeviceIdentifier deviceIdentifier;
+
+    public MTPFileSystem(MTPFileSystemProvider fileSystemProvider, MTPFileSystemProvider.DeviceIdentifier deviceIdentifier, Map<String, ?> env) {
+        this.fileSystemProvider = fileSystemProvider;
+        this.deviceIdentifier = deviceIdentifier;
     }
 
     @Override
@@ -71,4 +79,13 @@ public class MTPFileSystem extends FileSystem {
     public WatchService newWatchService() throws IOException {
         return null;
     }
+
+    public <A extends BasicFileAttributes> SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>[] attrs) throws IOException {
+        return null;
+    }
+
+    public DirectoryStream<Path> newDirectoryStream(final Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
+        return null;
+    }
+
 }
