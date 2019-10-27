@@ -53,7 +53,7 @@ jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
 {
     jclass device_info_class = (*env)->FindClass(env, JMTPDEVICEINFO);
     char sig[1024];
-    sprintf(sig, "(%s%s%s%s%s%sJJ)V", JMTPDEVICE, JSTRING, JSTRING, JSTRING, JSTRING, JSTRING);
+    sprintf(sig, "(%s%s%s%s%sJJ)V", JSTRING, JSTRING, JSTRING, JSTRING, JSTRING);
     jmethodID device_info_constr = (*env)->GetMethodID(env, device_info_class, JCONSTRUCTOR, sig);
     jstring jdevice_id = (*env)->NewStringUTF(env, info.device_id);
     jstring jdescription = (*env)->NewStringUTF(env, info.description);

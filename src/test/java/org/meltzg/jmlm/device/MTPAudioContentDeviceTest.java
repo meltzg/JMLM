@@ -19,7 +19,7 @@ import java.util.HashMap;
 
 import static org.junit.Assert.*;
 import static org.meltzg.jmlm.CommonUtil.TMPDIR;
-import static org.meltzg.jmlm.device.MTPAudioContentDevice.MountProperties.*;
+import static org.meltzg.jmlm.filesystem.mtp.MTPFileSystemProvider.MountProperties.*;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest

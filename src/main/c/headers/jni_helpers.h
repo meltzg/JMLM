@@ -9,8 +9,7 @@ static const char *const JSTRING = "Ljava/lang/String;";
 static const char *const JARRLIST = "Ljava/util/ArrayList;";
 static const char *const JLIST = "Ljava/util/List;";
 
-static const char *const JMTPDEVICE = "Lorg/meltzg/jmlm/device/MTPAudioContentDevice;";
-static const char *const JMTPDEVICEINFO = "Lorg/meltzg/jmlm/device/MTPAudioContentDevice$MTPDeviceInfo;";
+static const char *const JMTPDEVICEINFO = "Lorg/meltzg/jmlm/filesystem/mtp/MTPFileSystemProvider$MTPDeviceInfo;";
 static const char *const JMTPCONTENTNODE = "Lorg/meltzg/jmlm/device/content/MTPContentNode;";
 static const char *const JMTPSTORAGEDEVICE = "Lorg/meltzg/jmlm/device/storage/StorageDevice;";
 

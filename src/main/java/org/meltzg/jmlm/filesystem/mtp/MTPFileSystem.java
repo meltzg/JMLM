@@ -4,9 +4,14 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.Map;
 import java.util.Set;
 
 public class MTPFileSystem extends FileSystem {
+    public MTPFileSystem(MTPFileSystemProvider fileSystemProvider, MTPFileSystemProvider.DeviceIdentifier deviceIdentifier, Map<String, ?> env) {
+
+    }
+
     @Override
     public FileSystemProvider provider() {
         return null;

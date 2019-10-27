@@ -66,7 +66,6 @@ bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpde
             LIBMTP_Release_Device(found_device);
         }
     }
-    free(raw_devs);
     return false;
 }
 
