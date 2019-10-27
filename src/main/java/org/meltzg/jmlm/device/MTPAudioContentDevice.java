@@ -31,11 +31,6 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
     private static final String DEVICE_LOC = "-device=%s,%s";
     private static final String FUSERMOUNT = "fusermount";
 
-    static {
-        System.loadLibrary("jmtp");
-        MTPAudioContentDevice.initMTP();
-    }
-
     private static Map<String, String> initializeProperties() {
         var properties = new HashMap<String, String>();
         for (var prop : MountProperties.values()) {
@@ -148,8 +143,6 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
     
     private native StorageDevice getStorageDevice(String path, String deviceId);
 
-    private static native void initMTP();
-    
     private static native List<MTPDeviceInfo> getDevicesInfo();
 
     private static native MTPDeviceInfo getDeviceInfo(String id);

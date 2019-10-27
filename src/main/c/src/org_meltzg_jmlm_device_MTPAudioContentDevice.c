@@ -27,16 +27,6 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_getS
 }
 
 /*
- * Class:     org_meltzg_jmlm_device_MTPAudioContentDevice
- * Method:    initMTP
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_org_meltzg_jmlm_device_MTPAudioContentDevice_initMTP(JNIEnv *env, jclass cls)
-{
-    initMTP();
-}
-
-/*
 * Class:     org_meltzg_jmlm_device_MTPAudioContentDevice
 * Method:    getDevicesInfo
 * Signature: ()Ljava/util/List;
