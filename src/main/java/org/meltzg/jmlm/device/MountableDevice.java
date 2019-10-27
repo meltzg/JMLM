@@ -1,12 +1,14 @@
 package org.meltzg.jmlm.device;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface MountableDevice extends AutoCloseable {
+public interface MountableDevice extends Closeable {
     Map<String, String> getMountProperties();
+
     void setMountProperties(Map<String, String> mountProperties);
 
     MountableDevice mount() throws IOException;

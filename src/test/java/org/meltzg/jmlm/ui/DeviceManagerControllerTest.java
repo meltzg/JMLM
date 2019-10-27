@@ -71,8 +71,9 @@ public class DeviceManagerControllerTest extends ApplicationTest {
     @Test
     public void testAddDevice() {
         clickOn("Add Device");
+        clickOn("#radFsDevice");
+        clickOn("Next");
         clickOn("#deviceName").write("Test");
-
         clickOn("Next");
 
         var pathToAdd = Paths.get(".").toAbsolutePath().toString().replace(".", "");

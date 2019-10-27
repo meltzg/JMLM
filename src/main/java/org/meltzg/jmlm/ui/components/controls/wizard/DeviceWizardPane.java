@@ -1,14 +1,16 @@
 package org.meltzg.jmlm.ui.components.controls.wizard;
 
+import lombok.Getter;
 import org.controlsfx.dialog.Wizard;
 import org.controlsfx.dialog.WizardPane;
 import org.controlsfx.validation.ValidationSupport;
 
-public class DeviceWizardPane extends WizardPane {
-    private final ValidatableControl control;
+public class DeviceWizardPane<T extends ValidatableControl> extends WizardPane {
+    @Getter
+    private final T control;
     private ValidationSupport vs = new ValidationSupport();
 
-    public DeviceWizardPane(ValidatableControl control) {
+    public DeviceWizardPane(T control) {
         this.control = control;
         vs.initInitialDecoration();
         this.control.registerValidators(vs);

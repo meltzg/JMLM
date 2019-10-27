@@ -52,7 +52,7 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
             throw new IOException("Could not create intermediate directories for " + getRootPath());
         }
         var props = getDeviceInfo(mountProperties.get(DEVICE_ID.toString())).toMap();
-        if (props == null) {
+        if (props.isEmpty()) {
             log.error("Could not mount device with properties {}", mountProperties);
             throw new IOException("Could not mount device");
         }
