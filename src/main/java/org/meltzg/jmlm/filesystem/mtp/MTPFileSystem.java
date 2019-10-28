@@ -1,7 +1,10 @@
 package org.meltzg.jmlm.filesystem.mtp;
 
+import lombok.Getter;
+
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -13,6 +16,7 @@ import java.util.Set;
 public class MTPFileSystem extends FileSystem {
 
     private final MTPFileSystemProvider fileSystemProvider;
+    @Getter
     private final MTPFileSystemProvider.DeviceIdentifier deviceIdentifier;
 
     public MTPFileSystem(MTPFileSystemProvider fileSystemProvider, MTPFileSystemProvider.DeviceIdentifier deviceIdentifier, Map<String, ?> env) {
@@ -22,7 +26,7 @@ public class MTPFileSystem extends FileSystem {
 
     @Override
     public FileSystemProvider provider() {
-        return null;
+        return fileSystemProvider;
     }
 
     @Override
@@ -62,7 +66,17 @@ public class MTPFileSystem extends FileSystem {
 
     @Override
     public Path getPath(String first, String... more) {
-        return null;
+        var stringBuilder = new StringBuilder(first);
+        for (var segment : more) {
+            if (segment.length() > 0) {
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append("/");
+                }
+                stringBuilder.append(segment);
+            }
+        }
+        var path = stringBuilder.toString();
+        return new MTPPath(this, path.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override

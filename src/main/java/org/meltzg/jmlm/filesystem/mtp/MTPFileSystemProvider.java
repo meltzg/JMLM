@@ -2,6 +2,7 @@ package org.meltzg.jmlm.filesystem.mtp;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import org.meltzg.jmlm.device.storage.StorageDevice;
 
 import java.io.IOException;
 import java.net.URI;
@@ -36,6 +37,8 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     private static native List<MTPDeviceInfo> getDevicesInfo();
 
     private static native MTPDeviceInfo getDeviceInfo(String id);
+
+    private native StorageDevice getFileStore(String path, String deviceId);
 
     @Override
     public String getScheme() {
@@ -137,7 +140,10 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public MTPFileStore getFileStore(Path path) throws IOException {
-        return null;
+        validatePathProvider(path);
+        var deviceIdentifier = getDeviceIdentifier(path.toUri());
+        var storageDevice = getFileStore(path.toString(), deviceIdentifier.toString());
+        return new MTPFileStore(this, deviceIdentifier, storageDevice.getStorageId());
     }
 
     @Override

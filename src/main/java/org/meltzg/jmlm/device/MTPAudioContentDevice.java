@@ -20,8 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.meltzg.jmlm.filesystem.mtp.MTPFileSystemProvider.MountProperties.DEVICE_ID;
-
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -107,7 +105,7 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
         if (devicePath.startsWith(rootPath)) {
             devicePath = path.toString().substring(rootPath.length());
         }
-        var storage = getStorageDevice(devicePath, mountProperties.get(DEVICE_ID.toString()));
+        StorageDevice storage = null; //getStorageDevice(devicePath, mountProperties.get(DEVICE_ID.toString()));
         if (storage == null) {
             log.error("Could not get storage device for path {}", path);
             throw new IOException("Could not get storage device");
@@ -132,8 +130,4 @@ public class MTPAudioContentDevice extends FileSystemAudioContentDevice implemen
         }
         log.info("Device unmounted: {}", mountProperties);
     }
-
-
-    
-    private native StorageDevice getStorageDevice(String path, String deviceId);
 }

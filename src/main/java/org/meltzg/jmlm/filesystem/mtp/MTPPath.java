@@ -3,7 +3,11 @@ package org.meltzg.jmlm.filesystem.mtp;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
 @RequiredArgsConstructor
@@ -18,7 +22,7 @@ public class MTPPath implements Path {
 
     @Override
     public boolean isAbsolute() {
-        return false;
+        return (path.length > 0) && (path[0] == '/');
     }
 
     @Override
@@ -78,12 +82,22 @@ public class MTPPath implements Path {
 
     @Override
     public URI toUri() {
-        return null;
+        try {
+            var absolutePath = toAbsolutePath().toString(false);
+            return new URI(String.format("%s:%s!%s", fileSystem.provider().getScheme(), fileSystem.getDeviceIdentifier(), absolutePath));
+        } catch (URISyntaxException e) {
+            return null;
+        }
     }
 
     @Override
-    public Path toAbsolutePath() {
-        return null;
+    public MTPPath toAbsolutePath() {
+        if (isAbsolute()) {
+            return this;
+        }
+        var absoluteBytes = new byte[path.length + 1];
+        System.arraycopy(path, 0, absoluteBytes, 1, path.length);
+        return new MTPPath(fileSystem, absoluteBytes);
     }
 
     @Override
@@ -99,5 +113,21 @@ public class MTPPath implements Path {
     @Override
     public int compareTo(Path other) {
         return 0;
+    }
+
+    @Override
+    public String toString() {
+        return toString(true);
+    }
+
+    public String toString(boolean decode) {
+        if (!decode) {
+            return new String(path);
+        }
+        try {
+            return URLDecoder.decode(new String(path), StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            return new String(path);
+        }
     }
 }

@@ -4,8 +4,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
 
@@ -55,6 +58,16 @@ public class MTPFileSystemProviderTest {
     public void getFileSystemCreated() throws URISyntaxException, IOException {
         var uri = new URI(String.format("mtp:%s!/", deviceIdentifier.toString()));
         assertNotNull(provider.getFileSystem(uri, true));
+    }
+
+    @Test
+    public void getPath() throws UnsupportedEncodingException, URISyntaxException {
+        var strPath = "Internal Storage";
+        var uriStr = String.format("mtp:%s!/%s", deviceIdentifier.toString(), URLEncoder.encode(strPath, StandardCharsets.UTF_8.toString()));
+        var uri = new URI(uriStr);
+        var path = provider.getPath(uri);
+        assertEquals(String.format("/%s", strPath), path.toString());
+        assertEquals(uri, path.toUri());
     }
 
     @Test
