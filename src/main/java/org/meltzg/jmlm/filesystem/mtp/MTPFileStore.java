@@ -1,5 +1,6 @@
 package org.meltzg.jmlm.filesystem.mtp;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
@@ -11,12 +12,13 @@ import java.nio.file.attribute.FileStoreAttributeView;
 public class MTPFileStore extends FileStore {
 
     private final MTPFileSystemProvider fileSystemProvider;
+    @Getter
     private final MTPFileSystemProvider.DeviceIdentifier deviceIdentifier;
-    private final String storageId;
+    private final String name;
 
     @Override
     public String name() {
-        return null;
+        return name;
     }
 
     @Override

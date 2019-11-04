@@ -154,6 +154,7 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
                 storageDevice->capacity = storage->MaxCapacity;
 
                 ret = true;
+                break;
             }
         }
 

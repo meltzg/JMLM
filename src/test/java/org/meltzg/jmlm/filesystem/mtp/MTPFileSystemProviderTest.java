@@ -63,11 +63,18 @@ public class MTPFileSystemProviderTest {
     @Test
     public void getPath() throws UnsupportedEncodingException, URISyntaxException {
         var strPath = "Internal Storage";
-        var uriStr = String.format("mtp:%s!/%s", deviceIdentifier.toString(), URLEncoder.encode(strPath, StandardCharsets.UTF_8.toString()));
-        var uri = new URI(uriStr);
+        var uri = getURI(strPath);
         var path = provider.getPath(uri);
         assertEquals(String.format("/%s", strPath), path.toString());
         assertEquals(uri, path.toUri());
+    }
+
+    @Test
+    public void getFileStore() throws URISyntaxException, IOException {
+        var uri = getURI("Internal storage");
+        var path = provider.getPath(uri);
+        var fileStore = provider.getFileStore(path);
+        assertEquals("0x10001", fileStore.name());
     }
 
     @Test
@@ -92,5 +99,10 @@ public class MTPFileSystemProviderTest {
     public void validateUriDeviceNotFound() throws URISyntaxException {
         var uri = new URI(String.format("mtp:%s!/", "1:2:serial"));
         provider.validateURI(uri);
+    }
+
+    URI getURI(String path) throws URISyntaxException, UnsupportedEncodingException {
+        var uriStr = String.format("mtp:%s!/%s", deviceIdentifier.toString(), URLEncoder.encode(path, StandardCharsets.UTF_8.toString()));
+        return new URI(uriStr);
     }
 }
