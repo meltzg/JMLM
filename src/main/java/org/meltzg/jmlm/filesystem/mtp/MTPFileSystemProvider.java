@@ -38,7 +38,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     private static native MTPDeviceInfo getDeviceInfo(String id);
 
-    private native StorageDevice getFileStore(String path, String deviceId);
+    private native String getFileStoreId(String path, String deviceId);
 
     @Override
     public String getScheme() {
@@ -142,8 +142,8 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     public MTPFileStore getFileStore(Path path) throws IOException {
         validatePathProvider(path);
         var deviceIdentifier = getDeviceIdentifier(path.toUri());
-        var storageDevice = getFileStore(path.toString(), deviceIdentifier.toString());
-        return new MTPFileStore(this, deviceIdentifier, storageDevice.getStorageId());
+        var fileStoreId = getFileStoreId(path.toString(), deviceIdentifier.toString());
+        return new MTPFileStore(this, deviceIdentifier, fileStoreId);
     }
 
     @Override

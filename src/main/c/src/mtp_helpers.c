@@ -122,6 +122,46 @@ void initMTP()
     LIBMTP_Init();
 }
 
+char *getStorageDeviceId(const char *device_id, const char *path)
+{
+    LIBMTP_mtpdevice_t *device;
+    LIBMTP_raw_device_t *rawdevices;
+
+    uint32_t busLocation;
+    uint8_t devNum;
+    MTPDeviceInfo deviceInfo;
+    char *storage_id = NULL;
+
+    if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
+    {
+        LIBMTP_devicestorage_t *storage;
+
+        char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
+        strcpy(pathCopy, path);
+        char *pathPart = strtok(pathCopy, "/");
+
+        for (storage = device->storage; storage != 0 && pathPart != NULL; storage = storage->next)
+        {
+            if (strcmp(storage->StorageDescription, pathPart) == 0)
+            {
+                storage_id = malloc(sizeof(char) * 20);
+                sprintf(storage_id, "%#lx", storage->id);
+                break;
+            }
+        }
+
+        LIBMTP_Release_Device(device);
+        free(pathCopy);
+    }
+
+    if (rawdevices != NULL)
+    {
+        free(rawdevices);
+    }
+
+    return storage_id;
+}
+
 bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, const char *path)
 {
     LIBMTP_mtpdevice_t *device;

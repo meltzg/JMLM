@@ -12,6 +12,7 @@ int getDevicesInfo(MTPDeviceInfo **devices);
 bool getDeviceInfo(MTPDeviceInfo *deviceInfo, const char *id);
 void initMTP();
 
+char *getStorageDeviceId(const char *device_id, const char *path);
 bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, const char *path);
 
 #endif

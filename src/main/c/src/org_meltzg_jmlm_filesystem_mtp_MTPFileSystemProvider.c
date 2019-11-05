@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider.h"
 #include "jni_helpers.h"
 #include "mtp_helpers.h"
@@ -53,21 +54,22 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
 }
 
 /*
-* Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
- * Method:    getFileStore
- * Signature: (Ljava/lang/String;Ljava/lang/String;)Lorg/meltzg/jmlm/filesystem/mtp/MTPFileStore;
+ * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
+ * Method:    getFileStoreId
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
  */
-JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_getFileStore(JNIEnv *env, jobject obj, jstring path, jstring deviceId)
+JNIEXPORT jstring JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_getFileStoreId(JNIEnv *env, jobject obj, jstring path, jstring deviceId)
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
     MTPStorageDevice storageDevice;
+    char *storageId = NULL;
 
-    if (getStorageDevice(&storageDevice, cDeviceId, cPath))
+    if (storageId = getStorageDeviceId(cDeviceId, cPath))
     {
-        printf("storage id: %s, capacity: %llu, freespace: %llu\n", storageDevice.storage_id, storageDevice.capacity, storageDevice.free_space);
-        jobject jstorage = toJMTPStorageDevice(env, storageDevice);
-        freeMTPStorageDevice(storageDevice);
+        printf("storage id: %s\n", storageId);
+        jobject jstorage = (*env)->NewStringUTF(env, storageId);
+        free(storageId);
         return jstorage;
     }
 
