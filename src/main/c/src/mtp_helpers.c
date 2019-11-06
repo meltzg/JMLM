@@ -162,7 +162,7 @@ char *getStorageDeviceId(const char *device_id, const char *path)
     return storage_id;
 }
 
-bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, const char *path)
+bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, const char *storage_id)
 {
     LIBMTP_mtpdevice_t *device;
     LIBMTP_raw_device_t *rawdevices;
@@ -179,13 +179,9 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
         storageDevice->capacity = 0;
         storageDevice->free_space = 0;
 
-        char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
-        strcpy(pathCopy, path);
-        char *pathPart = strtok(pathCopy, "/");
-
-        for (storage = device->storage; storage != 0 && pathPart != NULL; storage = storage->next)
+        for (storage = device->storage; storage != 0; storage = storage->next)
         {
-            if (strcmp(storage->StorageDescription, pathPart) == 0)
+            if (strtoul(storage_id, NULL, 0) == storage->id)
             {
                 storageDevice->storage_id = malloc(sizeof(char) * 20);
                 sprintf(storageDevice->storage_id, "%#lx", storage->id);
@@ -199,7 +195,6 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
         }
 
         LIBMTP_Release_Device(device);
-        free(pathCopy);
     }
 
     if (rawdevices != NULL)

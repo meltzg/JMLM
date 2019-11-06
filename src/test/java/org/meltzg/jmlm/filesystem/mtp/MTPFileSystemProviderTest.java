@@ -17,7 +17,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class MTPFileSystemProviderTest {
 
-    final MTPFileSystemProvider.DeviceIdentifier deviceIdentifier = new MTPFileSystemProvider.DeviceIdentifier(
+    static final MTPFileSystemProvider.DeviceIdentifier deviceIdentifier = new MTPFileSystemProvider.DeviceIdentifier(
             16642, 4497, "F2000018D562F2A412B4"
     );
 
@@ -101,7 +101,7 @@ public class MTPFileSystemProviderTest {
         provider.validateURI(uri);
     }
 
-    URI getURI(String path) throws URISyntaxException, UnsupportedEncodingException {
+    static URI getURI(String path) throws URISyntaxException, UnsupportedEncodingException {
         var uriStr = String.format("mtp:%s!/%s", deviceIdentifier.toString(), URLEncoder.encode(path, StandardCharsets.UTF_8.toString()));
         return new URI(uriStr);
     }

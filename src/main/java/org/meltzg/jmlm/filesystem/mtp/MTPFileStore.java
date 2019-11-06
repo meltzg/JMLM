@@ -14,11 +14,11 @@ public class MTPFileStore extends FileStore {
     private final MTPFileSystemProvider fileSystemProvider;
     @Getter
     private final MTPFileSystemProvider.DeviceIdentifier deviceIdentifier;
-    private final String name;
+    private final String storageId;
 
     @Override
     public String name() {
-        return name;
+        return storageId;
     }
 
     @Override
@@ -28,22 +28,25 @@ public class MTPFileStore extends FileStore {
 
     @Override
     public boolean isReadOnly() {
-        return false;
+        return true;
     }
 
     @Override
     public long getTotalSpace() throws IOException {
-        return 0;
+        var storageProperties = fileSystemProvider.getFileStoreProperties(storageId, deviceIdentifier.toString());
+        return storageProperties.getCapacity();
     }
 
     @Override
     public long getUsableSpace() throws IOException {
-        return 0;
+        var storageProperties = fileSystemProvider.getFileStoreProperties(storageId, deviceIdentifier.toString());
+        return storageProperties.getCapacity();
     }
 
     @Override
     public long getUnallocatedSpace() throws IOException {
-        return 0;
+        var storageProperties = fileSystemProvider.getFileStoreProperties(storageId, deviceIdentifier.toString());
+        return storageProperties.getFreeSpace();
     }
 
     @Override

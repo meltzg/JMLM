@@ -40,6 +40,8 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     private native String getFileStoreId(String path, String deviceId);
 
+    native StorageDevice getFileStoreProperties(String storageId, String deviceId);
+
     @Override
     public String getScheme() {
         return "mtp";

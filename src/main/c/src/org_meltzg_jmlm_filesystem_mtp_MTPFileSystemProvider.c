@@ -62,7 +62,6 @@ JNIEXPORT jstring JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
-    MTPStorageDevice storageDevice;
     char *storageId = NULL;
 
     if (storageId = getStorageDeviceId(cDeviceId, cPath))
@@ -73,5 +72,25 @@ JNIEXPORT jstring JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
         return jstorage;
     }
 
+    return NULL;
+}
+
+/*
+ * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
+ * Method:    getFileStoreProperties
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Lorg/meltzg/jmlm/device/storage/StorageDevice;
+ */
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_getFileStoreProperties(JNIEnv *env, jobject obj, jstring storageId, jstring deviceId)
+{
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
+    const char *cStorageId = (*env)->GetStringUTFChars(env, storageId, NULL);
+    MTPStorageDevice storageDevice;
+    
+    if (getStorageDevice(&storageDevice, cDeviceId, cStorageId)) {
+        jobject jstorage = toJMTPStorageDevice(env, storageDevice);
+        freeMTPStorageDevice(storageDevice);
+        return jstorage;
+    }
+    
     return NULL;
 }

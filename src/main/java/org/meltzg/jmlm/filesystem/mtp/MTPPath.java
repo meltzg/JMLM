@@ -1,5 +1,6 @@
 package org.meltzg.jmlm.filesystem.mtp;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
@@ -12,13 +13,9 @@ import java.nio.file.*;
 
 @RequiredArgsConstructor
 public class MTPPath implements Path {
+    @Getter
     private final MTPFileSystem fileSystem;
     private final byte[] path;
-
-    @Override
-    public MTPFileSystem getFileSystem() {
-        return fileSystem;
-    }
 
     @Override
     public boolean isAbsolute() {
