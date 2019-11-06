@@ -13,7 +13,6 @@ static const char *const JMTPDEVICEINFO = "Lorg/meltzg/jmlm/filesystem/mtp/MTPFi
 static const char *const JMTPCONTENTNODE = "Lorg/meltzg/jmlm/device/content/MTPContentNode;";
 static const char *const JMTPSTORAGEDEVICE = "Lorg/meltzg/jmlm/device/storage/StorageDevice;";
 
-jstring cstrToJString(JNIEnv *env, const char *str);
 jobject getNewArrayList(JNIEnv *env);
 void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 

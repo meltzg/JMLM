@@ -1,39 +1,5 @@
-// #include <wchar.h>
 #include <stdio.h>
-// #include <string.h>
 #include "jni_helpers.h"
-
-// jstring wcharToJString(JNIEnv *env, const wchar_t *wstr)
-// {
-//     mbstate_t state;
-//     memset(&state, 0, sizeof state);
-//     size_t len = 1 + wcsrtombs(NULL, &wstr, 0, &state);
-//     char mbstr[len];
-//     wcsrtombs(mbstr, &wstr, len, &state);
-//     jstring ret = env->NewStringUTF(mbstr);
-//     return ret;
-// }
-
-// wstring jStringToWString(JNIEnv *env, jstring jstr)
-// {
-//     if (jstr == NULL)
-//     {
-//         return nullptr;
-//     }
-
-//     const jchar *raw = env->GetStringChars(jstr, 0);
-//     jsize len = env->GetStringLength(jstr);
-//     wstring wstr;
-//     wchar_t *wstr_c = new wchar_t[len + 1];
-
-//     wstr.assign(raw, raw + len);
-//     wcscpy(wstr_c, wstr.c_str());
-
-//     wstring ret(wstr_c);
-//     delete[] wstr_c;
-
-//     return ret;
-// }
 
 jobject getNewArrayList(JNIEnv *env)
 {
