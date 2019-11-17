@@ -44,13 +44,14 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     MTPDeviceInfo deviceInfo;
+    jobject jdevice = NULL;
     if (getDeviceInfo(&deviceInfo, cDeviceId))
     {
-        jobject jdevice = toJMTPDeviceInfo(env, cls, deviceInfo);
+        jdevice = toJMTPDeviceInfo(env, cls, deviceInfo);
         freeMTPDeviceInfo(deviceInfo);
-        return jdevice;
     }
-    return NULL;
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    return jdevice;
 }
 
 /*
@@ -63,15 +64,32 @@ JNIEXPORT jstring JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
     char *storageId = NULL;
+    jobject jstorage = NULL;
 
     if (storageId = getStorageDeviceId(cDeviceId, cPath))
     {
         printf("storage id: %s\n", storageId);
-        jobject jstorage = (*env)->NewStringUTF(env, storageId);
+        jstorage = (*env)->NewStringUTF(env, storageId);
         free(storageId);
-        return jstorage;
     }
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, path, cPath);
 
+    return jstorage;
+}
+
+/*
+ * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
+ * Method:    getFileContent
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_getFileContent(JNIEnv *env, jobject obj, jstring path, jstring deviceId)
+{
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
+    const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, path, cPath);
     return NULL;
 }
 
@@ -85,12 +103,14 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cStorageId = (*env)->GetStringUTFChars(env, storageId, NULL);
     MTPStorageDevice storageDevice;
+    jobject jstorage = NULL;
     
     if (getStorageDevice(&storageDevice, cDeviceId, cStorageId)) {
-        jobject jstorage = toJMTPStorageDevice(env, storageDevice);
+        jstorage = toJMTPStorageDevice(env, storageDevice);
         freeMTPStorageDevice(storageDevice);
-        return jstorage;
     }
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, storageId, cStorageId);
     
-    return NULL;
+    return jstorage;
 }

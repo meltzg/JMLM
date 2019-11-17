@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.meltzg.jmlm.device.storage.StorageDevice;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
@@ -39,6 +41,8 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     private static native MTPDeviceInfo getDeviceInfo(String id);
 
     private native String getFileStoreId(String path, String deviceId);
+
+    private native byte[] getFileContent(String path, String deviceId);
 
     native StorageDevice getFileStoreProperties(String storageId, String deviceId);
 
@@ -96,6 +100,17 @@ public class MTPFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException(String.format("URI %s does not contain path info", uri));
         }
         return getFileSystem(uri, true).getPath(schemaSpecificPart.substring(pathStart + 1));
+    }
+
+    @Override
+    public InputStream newInputStream(Path path, OpenOption... options) throws IOException {
+        validatePathProvider(path);
+        var deviceIdentifier = getDeviceIdentifier(path.toUri());
+        var content = getFileContent(path.toString(), deviceIdentifier.toString());
+        if (content == null) {
+            throw new IOException(String.format("%s is not a valid file", path));
+        }
+        return new ByteArrayInputStream(content);
     }
 
     @Override
