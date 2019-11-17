@@ -11,6 +11,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -64,7 +66,7 @@ public class MTPFileSystemProviderTest {
     public void getPath() throws UnsupportedEncodingException, URISyntaxException {
         var strPath = "Internal Storage";
         var uri = getURI(strPath);
-        var path = provider.getPath(uri);
+        var path = Paths.get(uri);
         assertEquals(String.format("/%s", strPath), path.toString());
         assertEquals(uri, path.toUri());
     }
@@ -72,8 +74,8 @@ public class MTPFileSystemProviderTest {
     @Test
     public void getFileStore() throws URISyntaxException, IOException {
         var uri = getURI("Internal storage");
-        var path = provider.getPath(uri);
-        var fileStore = provider.getFileStore(path);
+        var path = Paths.get(uri);
+        var fileStore = Files.getFileStore(path);
         assertEquals("0x10001", fileStore.name());
     }
 
