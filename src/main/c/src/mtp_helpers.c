@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "mtp_helpers.h"
 
 char *toIDStr(MTPDeviceIdInfo info)
@@ -203,4 +204,143 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
     }
 
     return ret;
+}
+
+LIBMTP_file_t *getFile(const LIBMTP_mtpdevice_t *device, LIBMTP_devicestorage_t *storage, uint32_t parentId, const char *filepath)
+{
+    LIBMTP_file_t *file = LIBMTP_Get_Files_And_Folders(device, storage->id, parentId);
+    LIBMTP_file_t *foundFile = NULL;
+    if (file == NULL)
+    {
+        return NULL;
+    }
+    char *slash = strchr(filepath, '/');
+    char *restOfPath = NULL;
+    if (slash != NULL)
+    {
+        *slash = '\0';
+        restOfPath = slash + 1;
+    }
+    while (file && !foundFile)
+    {
+        if (strcmp(filepath, file->filename) == 0)
+        {
+            if (restOfPath == NULL)
+            {
+                foundFile = file;
+            }
+            else
+            {
+                foundFile = getFile(device, storage, file->item_id, restOfPath);
+            }
+            break;
+        }
+        LIBMTP_file_t *prevFile = file;
+        file = file->next;
+        LIBMTP_destroy_file_t(prevFile);
+    }
+    return foundFile;
+}
+
+struct FileContentWrapper
+{
+    uint64_t pos;
+    uint8_t *buf;
+};
+
+uint16_t copyFileContent(void *params, void *output, uint32_t sendlen, unsigned char *data, uint32_t *putlen)
+{
+    // fwrite(data, sizeof(char), sendlen, output);
+    // memcpy(output, data, sendlen);
+    struct FileContentWrapper *w = (struct FileContentWrapper *) output;
+    memcpy(w->buf + w->pos, data, sendlen);
+    *putlen = sendlen;
+    return LIBMTP_HANDLER_RETURN_OK;
+}
+
+uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
+{
+    LIBMTP_mtpdevice_t *device;
+    LIBMTP_raw_device_t *rawdevices;
+
+    uint32_t busLocation;
+    uint8_t devNum;
+    MTPDeviceInfo deviceInfo;
+
+    uint8_t *output = NULL;
+    *size = 0;
+
+    if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
+    {
+        char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
+        strcpy(pathCopy, path);
+        int copyOffset = 0;
+
+        if (strlen(pathCopy) && pathCopy[0] == '/')
+        {
+            pathCopy++;
+            copyOffset = 1;
+        }
+
+        char *slash = strchr(pathCopy, '/');
+        LIBMTP_file_t *foundFile = NULL;
+        if (slash != NULL)
+        {
+            *slash = '\0';
+            char *storageDescription = pathCopy;
+            char *restOfPath = slash + 1;
+        
+            for (LIBMTP_devicestorage_t *storage = device->storage; storage != 0 && storageDescription != NULL; storage = storage->next)
+            {
+                if (strcmp(storage->StorageDescription, storageDescription) == 0)
+                {
+                    foundFile = getFile(device, storage, LIBMTP_FILES_AND_FOLDERS_ROOT, restOfPath);
+                    break;
+                }
+            }
+        }
+
+        if (foundFile != NULL)
+        {
+            if (foundFile->filetype == LIBMTP_FILETYPE_FOLDER)
+            {
+                printf("%s is a directory", path);
+            }
+            else
+            {
+                output = malloc(foundFile->filesize);
+                // struct FileContentWrapper outputWrapper;
+                // outputWrapper.pos = 0;
+                // outputWrapper.buf = output;
+                // int ret = LIBMTP_Get_File_To_Handler(device, foundFile->item_id, copyFileContent, &outputWrapper, NULL, NULL);
+                char buffer[L_tmpnam];
+                tmpnam(buffer);
+                int ret = LIBMTP_Get_File_To_File(device, foundFile->item_id, buffer, NULL, NULL);
+                FILE *stream = fopen(buffer, "rb");
+                int n = fread(output, 1, foundFile->filesize, stream);
+                // fgets(output, foundFile->filesize, stream);
+                fclose(stream);
+                remove(buffer);
+                // int ret = LIBMTP_Get_File_To_File(device, foundFile->item_id, "/home/meltzg/file.flac", NULL, NULL);
+                *size = foundFile->filesize;
+                if (ret != 0)
+                {
+                    printf("file content retrieval failed");
+                    output = NULL;
+                }
+            }
+            LIBMTP_destroy_file_t(foundFile);
+        }
+
+        LIBMTP_Release_Device(device);
+        pathCopy -= copyOffset;
+        free(pathCopy);
+    }
+
+    if (rawdevices != NULL)
+    {
+        free(rawdevices);
+    }
+
+    return output;
 }

@@ -68,7 +68,7 @@ model {
         gcc(Gcc) {
             eachPlatform {
                 cCompiler.withArguments { args ->
-                    args << "-std=c99"
+                    args << "-std=c11"
                     args << "-g"
                 }
             }

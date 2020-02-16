@@ -3,8 +3,7 @@ package org.meltzg.jmlm.filesystem.mtp;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -13,9 +12,9 @@ import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class MTPFileSystemProviderTest {
 
@@ -77,6 +76,31 @@ public class MTPFileSystemProviderTest {
         var path = Paths.get(uri);
         var fileStore = Files.getFileStore(path);
         assertEquals("0x10001", fileStore.name());
+    }
+
+    @Test
+    public void readFile() throws IOException, URISyntaxException, InterruptedException {
+        var uri = getURI("Internal storage/Contents/Sample/01.Spanish Harlem_Chesky Record.flac");
+        var path = Paths.get(uri);
+        var tmpFile = File.createTempFile("temp", ".flac");
+        var outputStream = new FileOutputStream(tmpFile.getAbsolutePath());
+        outputStream.write(provider.newInputStream(path).readAllBytes());
+        outputStream.close();
+
+        var processBuilder = new ProcessBuilder()
+                .command("bash", "-c", String.format("flac -t %s", tmpFile.getAbsolutePath()))
+                .redirectErrorStream(true);
+        var p = processBuilder.start();
+
+        var stdIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        var stdErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+        var outputLines = new ArrayList<String>();
+        String buffer;
+        while ((buffer = stdIn.readLine()) != null) {
+            outputLines.add(buffer);
+        }
+        assertTrue(outputLines.get(outputLines.size() - 1).strip().endsWith("ok"));
     }
 
     @Test

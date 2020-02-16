@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include "org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider.h"
 #include "jni_helpers.h"
 #include "mtp_helpers.h"
@@ -87,10 +88,20 @@ JNIEXPORT jbyteArray JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemPr
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    jbyteArray content = NULL;
+
+    uint64_t size;
+    uint8_t *fileContent = getFileContent(cDeviceId, cPath, &size);
+    if (fileContent != NULL)
+    {
+        content = (*env)->NewByteArray(env, size);
+        (*env)->SetByteArrayRegion(env, content, 0, size, fileContent);
+        free(fileContent);
+    }
 
     (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
     (*env)->ReleaseStringUTFChars(env, path, cPath);
-    return NULL;
+    return content;
 }
 
 /*

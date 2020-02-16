@@ -2,6 +2,7 @@
 #define MTP_HELPERS_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "mtp_models.h"
 
 static const unsigned int NUM_OBJECTS_TO_REQUEST = 100;
@@ -14,5 +15,7 @@ void initMTP();
 
 char *getStorageDeviceId(const char *device_id, const char *path);
 bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, const char *storage_id);
+
+uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size);
 
 #endif
