@@ -252,7 +252,7 @@ uint16_t copyFileContent(void *params, void *output, uint32_t sendlen, unsigned 
 {
     // fwrite(data, sizeof(char), sendlen, output);
     // memcpy(output, data, sendlen);
-    struct FileContentWrapper *w = (struct FileContentWrapper *) output;
+    struct FileContentWrapper *w = (struct FileContentWrapper *)output;
     memcpy(w->buf + w->pos, data, sendlen);
     *putlen = sendlen;
     return LIBMTP_HANDLER_RETURN_OK;
@@ -289,7 +289,7 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
             *slash = '\0';
             char *storageDescription = pathCopy;
             char *restOfPath = slash + 1;
-        
+
             for (LIBMTP_devicestorage_t *storage = device->storage; storage != 0 && storageDescription != NULL; storage = storage->next)
             {
                 if (strcmp(storage->StorageDescription, storageDescription) == 0)
@@ -309,24 +309,21 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
             else
             {
                 output = malloc(foundFile->filesize);
-                // struct FileContentWrapper outputWrapper;
-                // outputWrapper.pos = 0;
-                // outputWrapper.buf = output;
-                // int ret = LIBMTP_Get_File_To_Handler(device, foundFile->item_id, copyFileContent, &outputWrapper, NULL, NULL);
                 char buffer[L_tmpnam];
                 tmpnam(buffer);
                 int ret = LIBMTP_Get_File_To_File(device, foundFile->item_id, buffer, NULL, NULL);
-                FILE *stream = fopen(buffer, "rb");
-                int n = fread(output, 1, foundFile->filesize, stream);
-                // fgets(output, foundFile->filesize, stream);
-                fclose(stream);
-                remove(buffer);
-                // int ret = LIBMTP_Get_File_To_File(device, foundFile->item_id, "/home/meltzg/file.flac", NULL, NULL);
-                *size = foundFile->filesize;
                 if (ret != 0)
                 {
                     printf("file content retrieval failed");
                     output = NULL;
+                }
+                else
+                {
+                    FILE *stream = fopen(buffer, "rb");
+                    fread(output, 1, foundFile->filesize, stream);
+                    fclose(stream);
+                    remove(buffer);
+                    *size = foundFile->filesize;
                 }
             }
             LIBMTP_destroy_file_t(foundFile);

@@ -86,6 +86,7 @@ public class MTPFileSystemProviderTest {
         var outputStream = new FileOutputStream(tmpFile.getAbsolutePath());
         outputStream.write(provider.newInputStream(path).readAllBytes());
         outputStream.close();
+        tmpFile.deleteOnExit();
 
         var processBuilder = new ProcessBuilder()
                 .command("bash", "-c", String.format("flac -t %s", tmpFile.getAbsolutePath()))
@@ -93,7 +94,6 @@ public class MTPFileSystemProviderTest {
         var p = processBuilder.start();
 
         var stdIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        var stdErr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
         var outputLines = new ArrayList<String>();
         String buffer;
