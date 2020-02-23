@@ -314,7 +314,7 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
                 int ret = LIBMTP_Get_File_To_File(device, foundFile->item_id, buffer, NULL, NULL);
                 if (ret != 0)
                 {
-                    printf("file content retrieval failed");
+                    printf("file content retrieval failed: %04x\n", ret);
                     output = NULL;
                 }
                 else

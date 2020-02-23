@@ -84,7 +84,7 @@ public class MTPFileSystemProviderTest {
         var path = Paths.get(uri);
         var tmpFile = File.createTempFile("temp", ".flac");
         var outputStream = new FileOutputStream(tmpFile.getAbsolutePath());
-        outputStream.write(provider.newInputStream(path).readAllBytes());
+        outputStream.write(Files.readAllBytes(path));
         outputStream.close();
         tmpFile.deleteOnExit();
 

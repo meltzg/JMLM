@@ -93,13 +93,4 @@ public class MTPFileSystem extends FileSystem {
     public WatchService newWatchService() throws IOException {
         return null;
     }
-
-    public <A extends BasicFileAttributes> SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>[] attrs) throws IOException {
-        return null;
-    }
-
-    public DirectoryStream<Path> newDirectoryStream(final Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-        return null;
-    }
-
 }

@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -116,13 +117,63 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     @Override
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
         validatePathProvider(path);
-        return ((MTPPath) path).getFileSystem().newByteChannel(path, options, attrs);
+        var deviceIdentifier = getDeviceIdentifier(path.toUri());
+        var content = getFileContent(path.toString(), deviceIdentifier.toString());
+        if (content == null) {
+            throw new IOException(String.format("%s is not a valid file", path));
+        }
+        return new SeekableByteChannel() {
+            long position;
+
+            @Override
+            public int read(ByteBuffer byteBuffer) throws IOException {
+                int l = (int) Math.min(byteBuffer.remaining(), size() - position);
+                byteBuffer.put(content, (int) position, l);
+                position += l;
+                return l;
+            }
+
+            @Override
+            public int write(ByteBuffer byteBuffer) throws IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public long position() throws IOException {
+                return position;
+            }
+
+            @Override
+            public SeekableByteChannel position(long l) throws IOException {
+                position = l;
+                return this;
+            }
+
+            @Override
+            public long size() throws IOException {
+                return content.length;
+            }
+
+            @Override
+            public SeekableByteChannel truncate(long l) throws IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean isOpen() {
+                return true;
+            }
+
+            @Override
+            public void close() throws IOException {
+
+            }
+        };
     }
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-        validatePathProvider(dir);
-        return ((MTPPath) dir).getFileSystem().newDirectoryStream(dir, filter);
+        return null;
     }
 
     @Override
