@@ -106,6 +106,49 @@ JNIEXPORT jbyteArray JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemPr
 
 /*
  * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
+ * Method:    getPathChildren
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
+ */
+JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_getPathChildren(JNIEnv *env, jobject obj, jstring path, jstring deviceId)
+{
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
+    const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, path, cPath);
+    return NULL;
+}
+
+/*
+ * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
+ * Method:    isDirectory
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_isDirectory(JNIEnv *env, jobject obj, jstring path, jstring deviceId)
+{
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
+    const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    bool isDir = isDirectory(cDeviceId, cPath);
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, path, cPath);
+    return isDir;
+}
+
+/*
+ * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
+ * Method:    size
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_size(JNIEnv *env, jobject obj, jstring path, jstring deviceId)
+{
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
+    const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, path, cPath);
+    return 0;
+}
+
+/*
+ * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
  * Method:    getFileStoreProperties
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Lorg/meltzg/jmlm/device/storage/StorageDevice;
  */
@@ -115,13 +158,14 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
     const char *cStorageId = (*env)->GetStringUTFChars(env, storageId, NULL);
     MTPStorageDevice storageDevice;
     jobject jstorage = NULL;
-    
-    if (getStorageDevice(&storageDevice, cDeviceId, cStorageId)) {
+
+    if (getStorageDevice(&storageDevice, cDeviceId, cStorageId))
+    {
         jstorage = toJMTPStorageDevice(env, storageDevice);
         freeMTPStorageDevice(storageDevice);
     }
     (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
     (*env)->ReleaseStringUTFChars(env, storageId, cStorageId);
-    
+
     return jstorage;
 }

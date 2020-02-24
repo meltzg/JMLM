@@ -14,11 +14,9 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.meltzg.jmlm.filesystem.mtp.MTPFileSystemProvider.MountProperties.*;
 
@@ -44,6 +42,12 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     private native String getFileStoreId(String path, String deviceId);
 
     private native byte[] getFileContent(String path, String deviceId);
+
+    private native List<String> getPathChildren(String path, String deviceId);
+
+    private native boolean isDirectory(String path, String deviceId);
+
+    private native long size(String path, String deviceId);
 
     native StorageDevice getFileStoreProperties(String storageId, String deviceId);
 
@@ -173,7 +177,22 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-        return null;
+        validatePathProvider(dir);
+        if (!Files.isDirectory(dir)) {
+            throw new IOException(String.format("%s is not a directory", dir.toUri()));
+        }
+        var deviceIdentifier = getDeviceIdentifier(dir.toUri());
+        return new DirectoryStream<Path>() {
+            @Override
+            public Iterator<Path> iterator() {
+                return null;
+            }
+
+            @Override
+            public void close() throws IOException {
+
+            }
+        };
     }
 
     @Override
@@ -226,7 +245,18 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
-        return null;
+        validatePathProvider(path);
+        var deviceIdentifier = getDeviceIdentifier(path.toUri());
+        String fileType;
+        long size;
+        if (isDirectory(path.toString(), deviceIdentifier.toString())) {
+            fileType = "directory";
+            size = 0;
+        } else {
+            fileType = "file";
+            size = size(path.toString(), deviceIdentifier.toString());
+        }
+        return (A) new MTPFileAttribute(fileType, size);
     }
 
     @Override
@@ -317,6 +347,57 @@ public class MTPFileSystemProvider extends FileSystemProvider {
             map.put(DEV_NUM.toString(), Long.toString(devNum));
 
             return map;
+        }
+    }
+
+    @Value
+    private static class MTPFileAttribute implements BasicFileAttributes {
+        private final String type;
+        private final long size;
+
+        @Override
+        public FileTime lastModifiedTime() {
+            return null;
+        }
+
+        @Override
+        public FileTime lastAccessTime() {
+            return null;
+        }
+
+        @Override
+        public FileTime creationTime() {
+            return null;
+        }
+
+        @Override
+        public boolean isRegularFile() {
+            return "file".equals(type);
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return "directory".equals(type);
+        }
+
+        @Override
+        public boolean isSymbolicLink() {
+            return false;
+        }
+
+        @Override
+        public boolean isOther() {
+            return false;
+        }
+
+        @Override
+        public long size() {
+            return size;
+        }
+
+        @Override
+        public Object fileKey() {
+            return null;
         }
     }
 }

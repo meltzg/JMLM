@@ -80,27 +80,36 @@ public class MTPFileSystemProviderTest {
 
     @Test
     public void readFile() throws IOException, URISyntaxException, InterruptedException {
-        var uri = getURI("Internal storage/Contents/Sample/01.Spanish Harlem_Chesky Record.flac");
+        var uri = getURI("Internal storage/Contents/Sample");
         var path = Paths.get(uri);
-        var tmpFile = File.createTempFile("temp", ".flac");
-        var outputStream = new FileOutputStream(tmpFile.getAbsolutePath());
-        outputStream.write(Files.readAllBytes(path));
-        outputStream.close();
-        tmpFile.deleteOnExit();
+        try (var stream = Files.newDirectoryStream(path)) {
+            var validated = 0;
+            for (var child : stream) {
+                if (Files.isRegularFile(child) && child.endsWith(".flac")) {
+                    validated++;
+                    var tmpFile = File.createTempFile("temp", ".flac");
+                    var outputStream = new FileOutputStream(tmpFile.getAbsolutePath());
+                    outputStream.write(Files.readAllBytes(child));
+                    outputStream.close();
+                    tmpFile.deleteOnExit();
 
-        var processBuilder = new ProcessBuilder()
-                .command("bash", "-c", String.format("flac -t %s", tmpFile.getAbsolutePath()))
-                .redirectErrorStream(true);
-        var p = processBuilder.start();
+                    var processBuilder = new ProcessBuilder()
+                            .command("bash", "-c", String.format("flac -t %s", tmpFile.getAbsolutePath()))
+                            .redirectErrorStream(true);
+                    var p = processBuilder.start();
 
-        var stdIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    var stdIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-        var outputLines = new ArrayList<String>();
-        String buffer;
-        while ((buffer = stdIn.readLine()) != null) {
-            outputLines.add(buffer);
+                    var outputLines = new ArrayList<String>();
+                    String buffer;
+                    while ((buffer = stdIn.readLine()) != null) {
+                        outputLines.add(buffer);
+                    }
+                    assertTrue(outputLines.get(outputLines.size() - 1).strip().endsWith("ok"));
+                }
+            }
+            assertTrue("validated at least 1 file", validated > 0);
         }
-        assertTrue(outputLines.get(outputLines.size() - 1).strip().endsWith("ok"));
     }
 
     @Test

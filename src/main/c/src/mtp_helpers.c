@@ -242,6 +242,42 @@ LIBMTP_file_t *getFile(const LIBMTP_mtpdevice_t *device, LIBMTP_devicestorage_t 
     return foundFile;
 }
 
+LIBMTP_file_t *findFile(const LIBMTP_mtpdevice_t *device, const char *path)
+{
+    char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
+    strcpy(pathCopy, path);
+    int copyOffset = 0;
+
+    if (strlen(pathCopy) && pathCopy[0] == '/')
+    {
+        pathCopy++;
+        copyOffset = 1;
+    }
+
+    char *slash = strchr(pathCopy, '/');
+    LIBMTP_file_t *foundFile = NULL;
+    if (slash != NULL)
+    {
+        *slash = '\0';
+        char *storageDescription = pathCopy;
+        char *restOfPath = slash + 1;
+
+        for (LIBMTP_devicestorage_t *storage = device->storage; storage != 0 && storageDescription != NULL; storage = storage->next)
+        {
+            if (strcmp(storage->StorageDescription, storageDescription) == 0)
+            {
+                foundFile = getFile(device, storage, LIBMTP_FILES_AND_FOLDERS_ROOT, restOfPath);
+                break;
+            }
+        }
+    }
+
+    pathCopy -= copyOffset;
+    free(pathCopy);
+
+    return foundFile;
+}
+
 struct FileContentWrapper
 {
     uint64_t pos;
@@ -272,33 +308,7 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
-        strcpy(pathCopy, path);
-        int copyOffset = 0;
-
-        if (strlen(pathCopy) && pathCopy[0] == '/')
-        {
-            pathCopy++;
-            copyOffset = 1;
-        }
-
-        char *slash = strchr(pathCopy, '/');
-        LIBMTP_file_t *foundFile = NULL;
-        if (slash != NULL)
-        {
-            *slash = '\0';
-            char *storageDescription = pathCopy;
-            char *restOfPath = slash + 1;
-
-            for (LIBMTP_devicestorage_t *storage = device->storage; storage != 0 && storageDescription != NULL; storage = storage->next)
-            {
-                if (strcmp(storage->StorageDescription, storageDescription) == 0)
-                {
-                    foundFile = getFile(device, storage, LIBMTP_FILES_AND_FOLDERS_ROOT, restOfPath);
-                    break;
-                }
-            }
-        }
+        LIBMTP_file_t *foundFile = findFile(device, path);
 
         if (foundFile != NULL)
         {
@@ -330,8 +340,6 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
         }
 
         LIBMTP_Release_Device(device);
-        pathCopy -= copyOffset;
-        free(pathCopy);
     }
 
     if (rawdevices != NULL)
@@ -340,4 +348,29 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
     }
 
     return output;
+}
+
+bool isDirectory(const char *device_id, const char *path)
+{
+    LIBMTP_mtpdevice_t *device;
+    LIBMTP_raw_device_t *rawdevices;
+
+    uint32_t busLocation;
+    uint8_t devNum;
+    MTPDeviceInfo deviceInfo;
+
+    bool isDir = false;
+
+    if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
+    {
+        LIBMTP_file_t *foundFile = findFile(device, path);
+        if (foundFile != NULL && foundFile->filetype == LIBMTP_FILETYPE_FOLDER)
+        {
+            isDir = true;
+            LIBMTP_destroy_file_t(foundFile);
+        }
+        LIBMTP_Release_Device(device);
+    }
+
+    return isDir;
 }
