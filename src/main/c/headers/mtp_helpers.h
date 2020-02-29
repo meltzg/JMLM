@@ -19,5 +19,7 @@ bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, co
 uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size);
 
 bool isDirectory(const char *device_id, const char *path);
+long fileSize(const char *device_id, const char *path);
+char **getPathChildren(const char *device_id, const char *path);
 
 #endif

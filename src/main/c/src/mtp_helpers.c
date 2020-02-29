@@ -369,8 +369,73 @@ bool isDirectory(const char *device_id, const char *path)
             isDir = true;
             LIBMTP_destroy_file_t(foundFile);
         }
+        else if (foundFile == NULL)
+        {
+            // if its not a directory, it might be storage
+            char *storageId = getStorageDeviceId(device_id, path);
+            if (storageId != NULL)
+            {
+                isDir = true;
+                free(storageId);
+            }
+        }
+
         LIBMTP_Release_Device(device);
     }
 
     return isDir;
+}
+
+long fileSize(const char *device_id, const char *path)
+{
+    if (isDirectory(device_id, path))
+    {
+        return 0;
+    }
+
+    LIBMTP_mtpdevice_t *device;
+    LIBMTP_raw_device_t *rawdevices;
+
+    uint32_t busLocation;
+    uint8_t devNum;
+    MTPDeviceInfo deviceInfo;
+
+    long size = 0;
+
+    if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
+    {
+        LIBMTP_file_t *foundFile = findFile(device, path);
+        if (foundFile != NULL)
+        {
+            size = foundFile->filesize;
+            LIBMTP_destroy_file_t(foundFile);
+        }
+
+        LIBMTP_Release_Device(device);
+    }
+
+    return size;
+}
+
+char **getPathChildren(const char *device_id, const char *path)
+{
+    if (!isDirectory(device_id, path))
+    {
+        return NULL;
+    }
+
+    LIBMTP_mtpdevice_t *device;
+    LIBMTP_raw_device_t *rawdevices;
+
+    uint32_t busLocation;
+    uint8_t devNum;
+    MTPDeviceInfo deviceInfo;
+
+    if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
+    {
+        LIBMTP_file_t *foundDir = findFile(device, path);
+        
+        LIBMTP_destroy_file_t(foundDir);
+        LIBMTP_Release_Device(device);
+    }
 }

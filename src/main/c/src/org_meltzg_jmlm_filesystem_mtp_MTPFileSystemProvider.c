@@ -142,9 +142,10 @@ JNIEXPORT jlong JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvide
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    long size = fileSize(cDeviceId, cPath);
     (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
     (*env)->ReleaseStringUTFChars(env, path, cPath);
-    return 0;
+    return size;
 }
 
 /*
