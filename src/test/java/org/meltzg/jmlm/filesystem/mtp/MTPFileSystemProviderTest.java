@@ -142,9 +142,11 @@ public class MTPFileSystemProviderTest {
         var dirPath = Paths.get(getURI("Internal storage/Contents/Sample"));
         var storePath = Paths.get(getURI("Internal storage"));
         var filePath = Paths.get(getURI("Internal storage/Contents/Sample/01.Spanish Harlem_Chesky Record.flac"));
+        var rootPath = Paths.get(getURI(""));
         assertTrue(Files.isDirectory(dirPath));
         assertTrue(Files.isDirectory(storePath));
         assertFalse(Files.isDirectory(filePath));
+        assertTrue(Files.isDirectory(rootPath));
     }
 
     @Test
@@ -152,9 +154,11 @@ public class MTPFileSystemProviderTest {
         var dirPath = Paths.get(getURI("Internal storage/Contents/Sample"));
         var storePath = Paths.get(getURI("Internal storage"));
         var filePath = Paths.get(getURI("Internal storage/Contents/Sample/01.Spanish Harlem_Chesky Record.flac"));
+        var rootPath = Paths.get(getURI(""));
         assertEquals(0, Files.size(dirPath));
         assertEquals(0, Files.size(storePath));
         assertEquals(149637081, Files.size(filePath));
+        assertEquals(0, Files.size(rootPath));
     }
 
     static URI getURI(String path) throws URISyntaxException, UnsupportedEncodingException {
