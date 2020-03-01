@@ -7,9 +7,13 @@ import org.meltzg.jmlm.device.storage.StorageDevice;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -17,6 +21,7 @@ import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.meltzg.jmlm.filesystem.mtp.MTPFileSystemProvider.MountProperties.*;
 
@@ -182,15 +187,38 @@ public class MTPFileSystemProvider extends FileSystemProvider {
             throw new IOException(String.format("%s is not a directory", dir.toUri()));
         }
         var deviceIdentifier = getDeviceIdentifier(dir.toUri());
+        var children = getPathChildren(dir.toString(), deviceIdentifier.toString());
+        var childPaths = children
+                .stream()
+                .map(child -> {
+                    try {
+                        return getPath(new URI(String.format("%s/%s", dir.toUri(), URLEncoder.encode(child, StandardCharsets.UTF_8.toString()))));
+                    } catch (URISyntaxException | UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
+                .collect(Collectors.toList());
         return new DirectoryStream<Path>() {
             @Override
             public Iterator<Path> iterator() {
-                return null;
+                return new Iterator<Path>() {
+                    final Iterator<Path> delegate = childPaths.iterator();
+
+                    @Override
+                    public boolean hasNext() {
+                        return delegate.hasNext();
+                    }
+
+                    @Override
+                    public Path next() {
+                        return delegate.next();
+                    }
+                };
             }
 
             @Override
             public void close() throws IOException {
-
             }
         };
     }
@@ -217,7 +245,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public boolean isSameFile(Path path, Path path2) throws IOException {
-        return path.toAbsolutePath().equals(path2.toAbsolutePath());
+        return path.toUri().equals(path2.toUri());
     }
 
     @Override

@@ -113,9 +113,22 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    int numChildren;
+    char **pathChildren = getPathChildren(cDeviceId, cPath, &numChildren);
+    jobject childList = NULL;
+    if (pathChildren != NULL)
+    {
+        childList = getNewArrayList(env);
+        for (int i = 0; i < numChildren; i++)
+        {
+            arrayListAdd(env, childList, (*env)->NewStringUTF(env, pathChildren[i]));
+            free(pathChildren[i]);
+        }
+        free(pathChildren);
+    }
     (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
     (*env)->ReleaseStringUTFChars(env, path, cPath);
-    return NULL;
+    return childList;
 }
 
 /*

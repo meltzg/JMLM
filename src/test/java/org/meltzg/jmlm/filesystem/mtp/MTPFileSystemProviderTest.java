@@ -83,10 +83,10 @@ public class MTPFileSystemProviderTest {
         var uri = getURI("Internal storage/Contents/Sample");
         var path = Paths.get(uri);
         try (var stream = Files.newDirectoryStream(path)) {
-            var validated = 0;
+            var validated = false;
             for (var child : stream) {
-                if (Files.isRegularFile(child) && child.endsWith(".flac")) {
-                    validated++;
+                if (Files.isRegularFile(child) && child.toString().endsWith(".flac")) {
+                    validated = true;
                     var tmpFile = File.createTempFile("temp", ".flac");
                     var outputStream = new FileOutputStream(tmpFile.getAbsolutePath());
                     outputStream.write(Files.readAllBytes(child));
@@ -106,9 +106,10 @@ public class MTPFileSystemProviderTest {
                         outputLines.add(buffer);
                     }
                     assertTrue(outputLines.get(outputLines.size() - 1).strip().endsWith("ok"));
+                    break;
                 }
             }
-            assertTrue("validated at least 1 file", validated > 0);
+            assertTrue("validated at least 1 file", validated);
         }
     }
 

@@ -417,7 +417,7 @@ long fileSize(const char *device_id, const char *path)
     return size;
 }
 
-char **getPathChildren(const char *device_id, const char *path)
+char **getPathChildren(const char *device_id, const char *path, int *numChildren)
 {
     if (!isDirectory(device_id, path))
     {
@@ -431,11 +431,44 @@ char **getPathChildren(const char *device_id, const char *path)
     uint8_t devNum;
     MTPDeviceInfo deviceInfo;
 
+    char **childNames = NULL;
+
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
         LIBMTP_file_t *foundDir = findFile(device, path);
+
+        LIBMTP_file_t *children = LIBMTP_Get_Files_And_Folders(device, foundDir->storage_id, foundDir->item_id);
+        
+        if (children != NULL)
+        {
+            LIBMTP_file_t *child = children;
+            *numChildren = 0;
+            while (child != NULL)
+            {
+                (*numChildren)++;
+                child = child->next;
+            }
+            childNames = (char*) malloc(sizeof(char*) * (*numChildren));
+            child = children;
+            for(int i = 0; i < (*numChildren) && child != NULL; i++)
+            {
+                childNames[i] = malloc(sizeof(char) * strlen(child->filename) + 1);
+                strcpy(childNames[i], child->filename);
+                LIBMTP_file_t *oldChild = child;
+                child = child->next;
+                LIBMTP_destroy_file_t(oldChild);
+            }
+            
+        }
+        else
+        {
+            childNames = (char*) malloc(0);
+        }
+        
         
         LIBMTP_destroy_file_t(foundDir);
         LIBMTP_Release_Device(device);
+
+        return childNames;
     }
 }
