@@ -442,36 +442,63 @@ char **getPathChildren(const char *device_id, const char *path, int *numChildren
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        LIBMTP_file_t *foundDir = findFile(device, path);
-
-        LIBMTP_file_t *children = LIBMTP_Get_Files_And_Folders(device, foundDir->storage_id, foundDir->item_id);
-
-        if (children != NULL)
+        LIBMTP_file_t *children = NULL;
+        *numChildren = 0;
+        
+        if (strcmp(path, "/") == 0)
         {
-            LIBMTP_file_t *child = children;
-            *numChildren = 0;
-            while (child != NULL)
+            // This is the root, children are storage devices
+            LIBMTP_devicestorage_t *storage = device->storage;
+            while (storage != NULL)
             {
                 (*numChildren)++;
-                child = child->next;
+                storage = storage->next;
             }
             childNames = (char *)malloc(sizeof(char *) * (*numChildren));
-            child = children;
-            for (int i = 0; i < (*numChildren) && child != NULL; i++)
+            
+            storage = device->storage;
+            for (int i = 0; i < (*numChildren) && storage != NULL; i++)
             {
-                childNames[i] = malloc(sizeof(char) * strlen(child->filename) + 1);
-                strcpy(childNames[i], child->filename);
-                LIBMTP_file_t *oldChild = child;
-                child = child->next;
-                LIBMTP_destroy_file_t(oldChild);
+                childNames[i] = malloc(sizeof(char) * strlen(storage->StorageDescription) + 1);
+                strcpy(childNames[i], storage->StorageDescription);
+                storage = storage->next;
             }
         }
         else
         {
-            childNames = (char *)malloc(0);
-        }
+            LIBMTP_file_t *foundDir = findFile(device, path);
 
-        LIBMTP_destroy_file_t(foundDir);
+            if (foundDir != NULL)
+            {
+                children = LIBMTP_Get_Files_And_Folders(device, foundDir->storage_id, foundDir->item_id);
+            }
+            else if (children != NULL)
+            {
+                LIBMTP_file_t *child = children;
+                while (child != NULL)
+                {
+                    (*numChildren)++;
+                    child = child->next;
+                }
+                childNames = (char *)malloc(sizeof(char *) * (*numChildren));
+                child = children;
+                for (int i = 0; i < (*numChildren) && child != NULL; i++)
+                {
+                    childNames[i] = malloc(sizeof(char) * strlen(child->filename) + 1);
+                    strcpy(childNames[i], child->filename);
+                    LIBMTP_file_t *oldChild = child;
+                    child = child->next;
+                    LIBMTP_destroy_file_t(oldChild);
+                }
+            }
+            else
+            {
+                childNames = (char *)malloc(0);
+            }
+
+            LIBMTP_destroy_file_t(foundDir);
+        }
+        
         LIBMTP_Release_Device(device);
 
         return childNames;

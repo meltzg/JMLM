@@ -13,6 +13,7 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -111,6 +112,24 @@ public class MTPFileSystemProviderTest {
             }
             assertTrue("validated at least 1 file", validated);
         }
+    }
+
+    @Test
+    public void walkFileSystem() throws IOException, URISyntaxException {
+        var rootPath = Paths.get(getURI(""));
+        var storagePath = Paths.get(getURI("Internal storage/"));
+        var dirPath = Paths.get(getURI("Internal storage/Contents/"));
+
+        var rootSet = Files.walk(rootPath).collect(Collectors.toSet());
+        var storageSet = Files.walk(storagePath).collect(Collectors.toSet());
+        var dirSet = Files.walk(dirPath).collect(Collectors.toSet());
+
+        assertTrue(rootSet.size() > 1);
+        assertTrue(storageSet.size() > 1);
+        assertTrue(dirSet.size() > 1);
+
+        assertTrue(storageSet.containsAll(dirSet));
+        assertTrue(rootSet.containsAll(storageSet));
     }
 
     @Test

@@ -116,7 +116,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     public InputStream newInputStream(Path path, OpenOption... options) throws IOException {
         validatePathProvider(path);
         var deviceIdentifier = getDeviceIdentifier(path.toUri());
-        var content = getFileContent(path.toString(), deviceIdentifier.toString());
+        var content = getFileContent(toDevicePath(path), deviceIdentifier.toString());
         if (content == null) {
             throw new IOException(String.format("%s is not a valid file", path));
         }
@@ -127,7 +127,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
         validatePathProvider(path);
         var deviceIdentifier = getDeviceIdentifier(path.toUri());
-        var content = getFileContent(path.toString(), deviceIdentifier.toString());
+        var content = getFileContent(toDevicePath(path), deviceIdentifier.toString());
         if (content == null) {
             throw new IOException(String.format("%s is not a valid file", path));
         }
@@ -187,12 +187,14 @@ public class MTPFileSystemProvider extends FileSystemProvider {
             throw new IOException(String.format("%s is not a directory", dir.toUri()));
         }
         var deviceIdentifier = getDeviceIdentifier(dir.toUri());
-        var children = getPathChildren(dir.toString(), deviceIdentifier.toString());
+        var children = getPathChildren(toDevicePath(dir), deviceIdentifier.toString());
         var childPaths = children
                 .stream()
                 .map(child -> {
                     try {
-                        return getPath(new URI(String.format("%s/%s", dir.toUri(), URLEncoder.encode(child, StandardCharsets.UTF_8.toString()))));
+                        var strUri = String.format("%s/%s", dir.toUri(), URLEncoder.encode(child, StandardCharsets.UTF_8.toString()));
+                        strUri = strUri.replaceAll("/+", "/");
+                        return getPath(new URI(strUri));
                     } catch (URISyntaxException | UnsupportedEncodingException e) {
                         e.printStackTrace();
                         return null;
@@ -257,7 +259,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     public MTPFileStore getFileStore(Path path) throws IOException {
         validatePathProvider(path);
         var deviceIdentifier = getDeviceIdentifier(path.toUri());
-        var fileStoreId = getFileStoreId(path.toString(), deviceIdentifier.toString());
+        var fileStoreId = getFileStoreId(toDevicePath(path), deviceIdentifier.toString());
         return new MTPFileStore(this, deviceIdentifier, fileStoreId);
     }
 
@@ -277,12 +279,12 @@ public class MTPFileSystemProvider extends FileSystemProvider {
         var deviceIdentifier = getDeviceIdentifier(path.toUri());
         String fileType;
         long size;
-        if (isDirectory(path.toString(), deviceIdentifier.toString())) {
+        if (isDirectory(toDevicePath(path), deviceIdentifier.toString())) {
             fileType = "directory";
             size = 0;
         } else {
             fileType = "file";
-            size = size(path.toString(), deviceIdentifier.toString());
+            size = size(toDevicePath(path), deviceIdentifier.toString());
         }
         return (A) new MTPFileAttribute(fileType, size);
     }
@@ -325,6 +327,15 @@ public class MTPFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException(String.format("Invalid device schema %s", schemeSpecificPart));
         }
         return new DeviceIdentifier(Integer.parseInt(deviceSchema[0]), Integer.parseInt(deviceSchema[1]), deviceSchema[2]);
+    }
+
+    private String toDevicePath(Path path) {
+        validatePathProvider(path);
+        var strPath = path.toString();
+        if (strPath.length() > 1) {
+            return strPath.replaceAll("(/+$)", "");  // remove trailing slashes
+        }
+        return strPath;
     }
 
     @AllArgsConstructor
