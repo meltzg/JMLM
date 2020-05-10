@@ -173,7 +173,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
     MTPStorageDevice storageDevice;
     jobject jstorage = NULL;
 
-    if (getStorageDevice(&storageDevice, cDeviceId, cStorageId))
+    if (getStorageDeviceMetadata(&storageDevice, cDeviceId, cStorageId))
     {
         jstorage = toJMTPStorageDevice(env, storageDevice);
         freeMTPStorageDevice(storageDevice);

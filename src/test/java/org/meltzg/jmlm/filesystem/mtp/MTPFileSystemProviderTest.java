@@ -117,8 +117,8 @@ public class MTPFileSystemProviderTest {
     @Test
     public void walkFileSystem() throws IOException, URISyntaxException {
         var rootPath = Paths.get(getURI(""));
-        var storagePath = Paths.get(getURI("Internal storage/"));
-        var dirPath = Paths.get(getURI("Internal storage/Contents/"));
+        var storagePath = Paths.get(getURI("Internal storage"));
+        var dirPath = Paths.get(getURI("Internal storage/Contents"));
 
         var rootSet = Files.walk(rootPath).collect(Collectors.toSet());
         var storageSet = Files.walk(storagePath).collect(Collectors.toSet());

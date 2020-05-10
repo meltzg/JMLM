@@ -14,7 +14,7 @@ bool getDeviceInfo(MTPDeviceInfo *deviceInfo, const char *id);
 void initMTP();
 
 char *getStorageDeviceId(const char *device_id, const char *path);
-bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, const char *storage_id);
+bool getStorageDeviceMetadata(MTPStorageDevice *storageDevice, const char *device_id, const char *storage_id);
 
 uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size);
 

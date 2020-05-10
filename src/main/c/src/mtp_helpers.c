@@ -123,6 +123,29 @@ void initMTP()
     LIBMTP_Init();
 }
 
+LIBMTP_devicestorage_t *getStorageDevice(const LIBMTP_mtpdevice_t *device, const char *path)
+{
+    LIBMTP_devicestorage_t *storage;
+    LIBMTP_devicestorage_t *foundStorage;
+
+    char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
+    strcpy(pathCopy, path);
+    char *pathPart = strtok(pathCopy, "/");
+
+    for (storage = device->storage; storage != 0 && pathPart != NULL; storage = storage->next)
+    {
+        if (strcmp(storage->StorageDescription, pathPart) == 0)
+        {
+            foundStorage = storage;
+            break;
+        }
+    }
+
+    free(pathCopy);
+
+    return foundStorage;
+}
+
 char *getStorageDeviceId(const char *device_id, const char *path)
 {
     LIBMTP_mtpdevice_t *device;
@@ -135,24 +158,15 @@ char *getStorageDeviceId(const char *device_id, const char *path)
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        LIBMTP_devicestorage_t *storage;
+        LIBMTP_devicestorage_t *storage = getStorageDevice(device, path);
 
-        char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
-        strcpy(pathCopy, path);
-        char *pathPart = strtok(pathCopy, "/");
-
-        for (storage = device->storage; storage != 0 && pathPart != NULL; storage = storage->next)
+        if (storage != NULL)
         {
-            if (strcmp(storage->StorageDescription, pathPart) == 0)
-            {
-                storage_id = malloc(sizeof(char) * 20);
-                sprintf(storage_id, "%#lx", storage->id);
-                break;
-            }
+            storage_id = malloc(sizeof(char) * 20);
+            sprintf(storage_id, "%#lx", storage->id);
         }
 
         LIBMTP_Release_Device(device);
-        free(pathCopy);
     }
 
     if (rawdevices != NULL)
@@ -163,7 +177,7 @@ char *getStorageDeviceId(const char *device_id, const char *path)
     return storage_id;
 }
 
-bool getStorageDevice(MTPStorageDevice *storageDevice, const char *device_id, const char *storage_id)
+bool getStorageDeviceMetadata(MTPStorageDevice *storageDevice, const char *device_id, const char *storage_id)
 {
     LIBMTP_mtpdevice_t *device;
     LIBMTP_raw_device_t *rawdevices;
@@ -442,7 +456,6 @@ char **getPathChildren(const char *device_id, const char *path, int *numChildren
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        LIBMTP_file_t *children = NULL;
         *numChildren = 0;
         
         if (strcmp(path, "/") == 0)
@@ -467,12 +480,23 @@ char **getPathChildren(const char *device_id, const char *path, int *numChildren
         else
         {
             LIBMTP_file_t *foundDir = findFile(device, path);
+            LIBMTP_file_t *children = NULL;
 
             if (foundDir != NULL)
             {
                 children = LIBMTP_Get_Files_And_Folders(device, foundDir->storage_id, foundDir->item_id);
             }
-            else if (children != NULL)
+            else
+            {
+                // could be storage isntead of an actual directory
+                LIBMTP_devicestorage_t *storage = getStorageDevice(device, path);
+                if (storage != NULL)
+                {
+                    children = LIBMTP_Get_Files_And_Folders(device, storage->id, LIBMTP_FILES_AND_FOLDERS_ROOT);
+                }
+            }
+            
+            if (children != NULL)
             {
                 LIBMTP_file_t *child = children;
                 while (child != NULL)
