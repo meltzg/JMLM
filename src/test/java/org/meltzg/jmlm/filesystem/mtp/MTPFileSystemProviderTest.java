@@ -8,10 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -120,9 +117,9 @@ public class MTPFileSystemProviderTest {
         var storagePath = Paths.get(getURI("Internal storage"));
         var dirPath = Paths.get(getURI("Internal storage/Contents"));
 
-        var rootSet = Files.walk(rootPath).collect(Collectors.toSet());
-        var storageSet = Files.walk(storagePath).collect(Collectors.toSet());
-        var dirSet = Files.walk(dirPath).collect(Collectors.toSet());
+        var rootSet = Files.walk(rootPath).map(Path::toUri).collect(Collectors.toSet());
+        var storageSet = Files.walk(storagePath).map(Path::toUri).collect(Collectors.toSet());
+        var dirSet = Files.walk(dirPath).map(Path::toUri).collect(Collectors.toSet());
 
         assertTrue(rootSet.size() > 1);
         assertTrue(storageSet.size() > 1);
