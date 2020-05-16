@@ -106,6 +106,16 @@ JNIEXPORT jbyteArray JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemPr
 
 /*
  * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
+ * Method:    writeFileContent
+ * Signature: (Ljava/lang/String;Ljava/lang/String;[BJI)I
+ */
+JNIEXPORT jint JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_writeFileContent(JNIEnv *env, jclass obj, jstring path, jstring device, jbyteArray bytes, jlong start, jint length)
+{
+    return -1;
+}
+
+/*
+ * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
  * Method:    getPathChildren
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
  */

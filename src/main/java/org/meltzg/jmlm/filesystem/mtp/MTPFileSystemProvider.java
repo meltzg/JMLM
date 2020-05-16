@@ -42,17 +42,19 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     private static native MTPDeviceInfo getDeviceInfo(String id);
 
-    private native String getFileStoreId(String path, String deviceId);
+    private static native String getFileStoreId(String path, String deviceId);
 
-    private native byte[] getFileContent(String path, String deviceId);
+    private static native byte[] getFileContent(String path, String deviceId);
 
-    private native List<String> getPathChildren(String path, String deviceId);
+    private static native int writeFileContent(String toDevicePath, String toString, byte[] bytes, long position, int length);
 
-    private native boolean isDirectory(String path, String deviceId);
+    private static native List<String> getPathChildren(String path, String deviceId);
 
-    private native long size(String path, String deviceId);
+    private static native boolean isDirectory(String path, String deviceId);
 
-    native StorageDevice getFileStoreProperties(String storageId, String deviceId);
+    private static native long size(String path, String deviceId);
+
+    static native StorageDevice getFileStoreProperties(String storageId, String deviceId);
 
     @Override
     public String getScheme() {
@@ -113,16 +115,15 @@ public class MTPFileSystemProvider extends FileSystemProvider {
     @Override
     public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
         validatePathProvider(path);
+        var devicePath = toDevicePath(path);
         var deviceIdentifier = getDeviceIdentifier(path.toUri());
-        var content = getFileContent(toDevicePath(path), deviceIdentifier.toString());
-        if (content == null) {
-            throw new IOException(String.format("%s is not a valid file", path));
-        }
         return new SeekableByteChannel() {
             long position;
 
             @Override
             public int read(ByteBuffer byteBuffer) throws IOException {
+                var content = getFileContent(devicePath, deviceIdentifier.toString());
+
                 int l = (int) Math.min(byteBuffer.remaining(), size() - position);
                 byteBuffer.put(content, (int) position, l);
                 position += l;
@@ -131,7 +132,10 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
             @Override
             public int write(ByteBuffer byteBuffer) throws IOException {
-                throw new UnsupportedOperationException();
+                var deviceIdentifier = getDeviceIdentifier(path.toUri());
+
+                var bytes = byteBuffer.array();
+                return writeFileContent(devicePath, deviceIdentifier.toString(), bytes, position, bytes.length);
             }
 
             @Override
@@ -147,7 +151,14 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
             @Override
             public long size() throws IOException {
-                return content.length;
+                var size = MTPFileSystemProvider.size(toDevicePath(path), deviceIdentifier.toString());
+                if (isDirectory(devicePath, deviceIdentifier.toString())) {
+                    throw new IOException(String.format("%s is a directory", path.toUri().toString()));
+                }
+                if (size < 0) {
+                    throw new IOException(String.format("Could not retrieve size of %s", path.toUri().toString()));
+                }
+                return size;
             }
 
             @Override
