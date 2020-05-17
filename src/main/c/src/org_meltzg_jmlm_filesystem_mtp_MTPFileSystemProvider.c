@@ -109,9 +109,18 @@ JNIEXPORT jbyteArray JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemPr
  * Method:    writeFileContent
  * Signature: (Ljava/lang/String;Ljava/lang/String;[BJI)I
  */
-JNIEXPORT jint JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_writeFileContent(JNIEnv *env, jclass obj, jstring path, jstring device, jbyteArray bytes, jlong start, jint length)
+JNIEXPORT jint JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_writeFileContent(JNIEnv *env, jclass obj, jstring path, jstring deviceId, jbyteArray byteArray, jlong offset, jint length)
 {
-    return -1;
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
+    const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    
+    bool isCopy;
+    jbyte *bytes = (*env)->GetByteArrayElements(env, byteArray, &isCopy);
+    int bytesWritten = writeFileContent(cDeviceId, cPath, bytes, offset, length);
+
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, path, cPath);
+    return bytesWritten;
 }
 
 /*

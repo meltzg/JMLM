@@ -1,8 +1,9 @@
+#define _GNU_SOURCE
 #include <libmtp.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include "mtp_helpers.h"
 
 char *toIDStr(MTPDeviceIdInfo info)
@@ -126,7 +127,7 @@ void initMTP()
 LIBMTP_devicestorage_t *getStorageDevice(const LIBMTP_mtpdevice_t *device, const char *path)
 {
     LIBMTP_devicestorage_t *storage;
-    LIBMTP_devicestorage_t *foundStorage;
+    LIBMTP_devicestorage_t *foundStorage = NULL;
 
     char *pathCopy = malloc(sizeof(char) * (strlen(path) + 1));
     strcpy(pathCopy, path);
@@ -292,20 +293,34 @@ LIBMTP_file_t *findFile(const LIBMTP_mtpdevice_t *device, const char *path)
     return foundFile;
 }
 
-struct FileContentWrapper
+bool _isDirectory(const LIBMTP_mtpdevice_t *device, const char *path)
 {
-    uint64_t pos;
-    uint8_t *buf;
-};
+    bool isDir = false;
 
-uint16_t copyFileContent(void *params, void *output, uint32_t sendlen, unsigned char *data, uint32_t *putlen)
-{
-    // fwrite(data, sizeof(char), sendlen, output);
-    // memcpy(output, data, sendlen);
-    struct FileContentWrapper *w = (struct FileContentWrapper *)output;
-    memcpy(w->buf + w->pos, data, sendlen);
-    *putlen = sendlen;
-    return LIBMTP_HANDLER_RETURN_OK;
+    if (strcmp(path, "/") == 0)
+    {
+        isDir = true;
+    }
+    else
+    {
+        LIBMTP_file_t *foundFile = findFile(device, path);
+        if (foundFile != NULL && foundFile->filetype == LIBMTP_FILETYPE_FOLDER)
+        {
+            isDir = true;
+            LIBMTP_destroy_file_t(foundFile);
+        }
+        else if (foundFile == NULL)
+        {
+            // if its not a directory, it might be storage
+            LIBMTP_devicestorage_t *storage = getStorageDevice(device, path);
+            if (storage != NULL && strcmp(path + 1, storage->StorageDescription) == 0)
+            {
+                isDir = true;
+            }
+        }
+    }
+
+    return isDir;
 }
 
 uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
@@ -333,9 +348,8 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
             else
             {
                 output = malloc(foundFile->filesize);
-                char buffer[L_tmpnam];
-                tmpnam(buffer);
-                int ret = LIBMTP_Get_File_To_File(device, foundFile->item_id, buffer, NULL, NULL);
+                int fd = memfd_create("mem_fd", MFD_CLOEXEC);
+                int ret = LIBMTP_Get_File_To_File_Descriptor(device, foundFile->item_id, fd, NULL, NULL);
                 if (ret != 0)
                 {
                     printf("file content retrieval failed: %04x\n", ret);
@@ -343,10 +357,9 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
                 }
                 else
                 {
-                    FILE *stream = fopen(buffer, "rb");
-                    fread(output, 1, foundFile->filesize, stream);
-                    fclose(stream);
-                    remove(buffer);
+                    lseek(fd, 0, SEEK_SET);
+                    read(fd, output, foundFile->filesize);
+                    close(fd);
                     *size = foundFile->filesize;
                 }
             }
@@ -364,6 +377,115 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
     return output;
 }
 
+int writeFileContent(const char *device_id, const char *path, const char *content, long offset, int size)
+{
+    LIBMTP_mtpdevice_t *device;
+    LIBMTP_raw_device_t *rawdevices;
+
+    uint32_t busLocation;
+    uint8_t devNum;
+    MTPDeviceInfo deviceInfo;
+
+    int bytesWritten = -1;
+    bool success = getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum);
+    char *lastSlash = NULL;
+    LIBMTP_devicestorage_t *storageDevice = NULL;
+    char *fileName = NULL;
+    LIBMTP_file_t *existingFile = NULL;
+    LIBMTP_file_t *parentDir = NULL;
+    bool isStorage = false;
+
+    if (success)
+    {
+        lastSlash = strrchr(path, '/');
+        if (lastSlash == NULL)
+        {
+            printf("%s is not a valid path for file writing. Cannot write to device root", path);
+            success = false;
+        }
+    }
+    if (success)
+    {
+        storageDevice = getStorageDevice(device, path);
+        if (storageDevice == NULL)
+        {
+            printf("%s is not a valid path for file writing. Cannot find valid storage device", path);
+            success = false;
+        }
+        else if (_isDirectory(device, path))
+        {
+            printf("%s is not a valid path for file writing. Path is a directory", path);
+            success = false;
+        }
+    }
+    if (success)
+    {
+        existingFile = findFile(device, path);
+        fileName = lastSlash + 1;
+        *lastSlash = '\0';
+        parentDir = findFile(device, path);
+
+        isStorage = (strcmp(path, storageDevice->StorageDescription) == 0 || strcmp(path + 1, storageDevice->StorageDescription) == 0);
+
+        if (parentDir == NULL && !isStorage)
+        {
+            printf("%s parent directory not found", path);
+            success = false;
+        }
+    }
+    if (success)
+    {
+        uint32_t storageId = storageDevice->id;
+        u_int32_t parentId = isStorage ? LIBMTP_FILES_AND_FOLDERS_ROOT : parentDir->item_id;
+
+        LIBMTP_file_t fileData;
+        fileData.filename = fileName;
+        fileData.parent_id = parentId;
+        fileData.storage_id = storageId;
+        fileData.item_id = 0;
+        fileData.filesize = size;
+        fileData.next = NULL;
+        fileData.filetype = LIBMTP_FILETYPE_UNKNOWN;
+        int fd = memfd_create("mem_fd", MFD_CLOEXEC);
+        int ret = LIBMTP_ERROR_NONE;
+
+        if (existingFile != NULL)
+        {
+            ret = LIBMTP_Get_File_To_File_Descriptor(device, existingFile->item_id, fd, NULL, NULL);
+            LIBMTP_Delete_Object(device, existingFile->item_id);
+        }
+        if (ret == LIBMTP_ERROR_NONE)
+        {
+            lseek(fd, offset, SEEK_SET);
+            write(fd, content, size);
+            lseek(fd, 0, SEEK_SET);
+            ret = LIBMTP_Send_File_From_File_Descriptor(device, fd, &fileData, NULL, NULL);
+        }
+        if (ret != LIBMTP_ERROR_NONE)
+        {
+            printf("could not write file to device");
+            LIBMTP_Dump_Errorstack(device);
+        }
+        else
+        {
+            bytesWritten = size;
+        }
+        close(fd);
+    }
+
+    LIBMTP_destroy_file_t(existingFile);
+    LIBMTP_destroy_file_t(parentDir);
+
+    LIBMTP_Release_Device(device);
+
+    if (rawdevices != NULL)
+    {
+        free(rawdevices);
+    }
+
+    return bytesWritten;
+}
+
 bool isDirectory(const char *device_id, const char *path)
 {
     LIBMTP_mtpdevice_t *device;
@@ -377,43 +499,17 @@ bool isDirectory(const char *device_id, const char *path)
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        if (strcmp(path, "/") == 0)
-        {
-            isDir = true;
-        }
-        else
-        {
-            LIBMTP_file_t *foundFile = findFile(device, path);
-            if (foundFile != NULL && foundFile->filetype == LIBMTP_FILETYPE_FOLDER)
-            {
-                isDir = true;
-                LIBMTP_destroy_file_t(foundFile);
-            }
-            else if (foundFile == NULL)
-            {
-                // if its not a directory, it might be storage
-                char *storageId = getStorageDeviceId(device_id, path);
-                if (storageId != NULL)
-                {
-                    isDir = true;
-                    free(storageId);
-                }
-            }
-        }
-
-        LIBMTP_Release_Device(device);
+        isDir = _isDirectory(device, path);
     }
-
+    if (rawdevices != NULL)
+    {
+        free(rawdevices);
+    }
     return isDir;
 }
 
 long fileSize(const char *device_id, const char *path)
 {
-    if (isDirectory(device_id, path))
-    {
-        return 0;
-    }
-
     LIBMTP_mtpdevice_t *device;
     LIBMTP_raw_device_t *rawdevices;
 
@@ -425,11 +521,14 @@ long fileSize(const char *device_id, const char *path)
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        LIBMTP_file_t *foundFile = findFile(device, path);
-        if (foundFile != NULL)
+        if (!_isDirectory(device, path))
         {
-            size = foundFile->filesize;
-            LIBMTP_destroy_file_t(foundFile);
+            LIBMTP_file_t *foundFile = findFile(device, path);
+            if (foundFile != NULL)
+            {
+                size = foundFile->filesize;
+                LIBMTP_destroy_file_t(foundFile);
+            }
         }
 
         LIBMTP_Release_Device(device);
@@ -440,11 +539,6 @@ long fileSize(const char *device_id, const char *path)
 
 char **getPathChildren(const char *device_id, const char *path, int *numChildren)
 {
-    if (!isDirectory(device_id, path))
-    {
-        return NULL;
-    }
-
     LIBMTP_mtpdevice_t *device;
     LIBMTP_raw_device_t *rawdevices;
 
@@ -456,73 +550,75 @@ char **getPathChildren(const char *device_id, const char *path, int *numChildren
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
     {
-        *numChildren = 0;
-        
-        if (strcmp(path, "/") == 0)
+        if (_isDirectory(device, path))
         {
-            // This is the root, children are storage devices
-            LIBMTP_devicestorage_t *storage = device->storage;
-            while (storage != NULL)
-            {
-                (*numChildren)++;
-                storage = storage->next;
-            }
-            childNames = (char *)malloc(sizeof(char *) * (*numChildren));
-            
-            storage = device->storage;
-            for (int i = 0; i < (*numChildren) && storage != NULL; i++)
-            {
-                childNames[i] = malloc(sizeof(char) * strlen(storage->StorageDescription) + 1);
-                strcpy(childNames[i], storage->StorageDescription);
-                storage = storage->next;
-            }
-        }
-        else
-        {
-            LIBMTP_file_t *foundDir = findFile(device, path);
-            LIBMTP_file_t *children = NULL;
+            *numChildren = 0;
 
-            if (foundDir != NULL)
+            if (strcmp(path, "/") == 0)
             {
-                children = LIBMTP_Get_Files_And_Folders(device, foundDir->storage_id, foundDir->item_id);
-            }
-            else
-            {
-                // could be storage isntead of an actual directory
-                LIBMTP_devicestorage_t *storage = getStorageDevice(device, path);
-                if (storage != NULL)
-                {
-                    children = LIBMTP_Get_Files_And_Folders(device, storage->id, LIBMTP_FILES_AND_FOLDERS_ROOT);
-                }
-            }
-            
-            if (children != NULL)
-            {
-                LIBMTP_file_t *child = children;
-                while (child != NULL)
+                // This is the root, children are storage devices
+                LIBMTP_devicestorage_t *storage = device->storage;
+                while (storage != NULL)
                 {
                     (*numChildren)++;
-                    child = child->next;
+                    storage = storage->next;
                 }
                 childNames = (char *)malloc(sizeof(char *) * (*numChildren));
-                child = children;
-                for (int i = 0; i < (*numChildren) && child != NULL; i++)
+
+                storage = device->storage;
+                for (int i = 0; i < (*numChildren) && storage != NULL; i++)
                 {
-                    childNames[i] = malloc(sizeof(char) * strlen(child->filename) + 1);
-                    strcpy(childNames[i], child->filename);
-                    LIBMTP_file_t *oldChild = child;
-                    child = child->next;
-                    LIBMTP_destroy_file_t(oldChild);
+                    childNames[i] = malloc(sizeof(char) * strlen(storage->StorageDescription) + 1);
+                    strcpy(childNames[i], storage->StorageDescription);
+                    storage = storage->next;
                 }
             }
             else
             {
-                childNames = (char *)malloc(0);
-            }
+                LIBMTP_file_t *foundDir = findFile(device, path);
+                LIBMTP_file_t *children = NULL;
 
-            LIBMTP_destroy_file_t(foundDir);
+                if (foundDir != NULL)
+                {
+                    children = LIBMTP_Get_Files_And_Folders(device, foundDir->storage_id, foundDir->item_id);
+                }
+                else
+                {
+                    // could be storage isntead of an actual directory
+                    LIBMTP_devicestorage_t *storage = getStorageDevice(device, path);
+                    if (storage != NULL)
+                    {
+                        children = LIBMTP_Get_Files_And_Folders(device, storage->id, LIBMTP_FILES_AND_FOLDERS_ROOT);
+                    }
+                }
+
+                if (children != NULL)
+                {
+                    LIBMTP_file_t *child = children;
+                    while (child != NULL)
+                    {
+                        (*numChildren)++;
+                        child = child->next;
+                    }
+                    childNames = (char *)malloc(sizeof(char *) * (*numChildren));
+                    child = children;
+                    for (int i = 0; i < (*numChildren) && child != NULL; i++)
+                    {
+                        childNames[i] = malloc(sizeof(char) * strlen(child->filename) + 1);
+                        strcpy(childNames[i], child->filename);
+                        LIBMTP_file_t *oldChild = child;
+                        child = child->next;
+                        LIBMTP_destroy_file_t(oldChild);
+                    }
+                }
+                else
+                {
+                    childNames = (char *)malloc(0);
+                }
+
+                LIBMTP_destroy_file_t(foundDir);
+            }
         }
-        
         LIBMTP_Release_Device(device);
 
         return childNames;

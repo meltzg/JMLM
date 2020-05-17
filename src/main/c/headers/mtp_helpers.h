@@ -17,6 +17,7 @@ char *getStorageDeviceId(const char *device_id, const char *path);
 bool getStorageDeviceMetadata(MTPStorageDevice *storageDevice, const char *device_id, const char *storage_id);
 
 uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size);
+int writeFileContent(const char *device_id, const char *path, const char *content, long offset, int size);
 
 bool isDirectory(const char *device_id, const char *path);
 long fileSize(const char *device_id, const char *path);

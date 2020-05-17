@@ -85,25 +85,25 @@ public class MTPFileSystemProviderTest {
             for (var child : stream) {
                 if (Files.isRegularFile(child) && child.toString().endsWith(".flac")) {
                     validated = true;
-                    var tmpFile = File.createTempFile("temp", ".flac");
-                    var outputStream = new FileOutputStream(tmpFile.getAbsolutePath());
-                    outputStream.write(Files.readAllBytes(child));
-                    outputStream.close();
-                    tmpFile.deleteOnExit();
+                    validateFLAC(child);
+                    break;
+                }
+            }
+            assertTrue("validated at least 1 file", validated);
+        }
+    }
 
-                    var processBuilder = new ProcessBuilder()
-                            .command("bash", "-c", String.format("flac -t %s", tmpFile.getAbsolutePath()))
-                            .redirectErrorStream(true);
-                    var p = processBuilder.start();
-
-                    var stdIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-                    var outputLines = new ArrayList<String>();
-                    String buffer;
-                    while ((buffer = stdIn.readLine()) != null) {
-                        outputLines.add(buffer);
-                    }
-                    assertTrue(outputLines.get(outputLines.size() - 1).strip().endsWith("ok"));
+    @Test
+    public void writeFile() throws IOException, URISyntaxException, InterruptedException {
+        var sourcePath = Paths.get(getURI("Internal storage/Contents/Sample"));
+        var sinkPath = Paths.get(getURI("SD card/file.flac"));
+        try (var stream = Files.newDirectoryStream(sourcePath)) {
+            var validated = false;
+            for (var child : stream) {
+                if (Files.isRegularFile(child) && child.toString().endsWith(".flac")) {
+                    validated = true;
+                    Files.write(sinkPath, Files.readAllBytes(child));
+                    validateFLAC(sinkPath);
                     break;
                 }
             }
@@ -175,6 +175,28 @@ public class MTPFileSystemProviderTest {
         assertEquals(0, Files.size(storePath));
         assertEquals(149637081, Files.size(filePath));
         assertEquals(0, Files.size(rootPath));
+    }
+
+    private void validateFLAC(Path path) throws IOException {
+        var tmpFile = File.createTempFile("temp", ".flac");
+        var outputStream = new FileOutputStream(tmpFile.getAbsolutePath());
+        outputStream.write(Files.readAllBytes(path));
+        outputStream.close();
+        tmpFile.deleteOnExit();
+
+        var processBuilder = new ProcessBuilder()
+                .command("bash", "-c", String.format("flac -t %s", tmpFile.getAbsolutePath()))
+                .redirectErrorStream(true);
+        var p = processBuilder.start();
+
+        var stdIn = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        var outputLines = new ArrayList<String>();
+        String buffer;
+        while ((buffer = stdIn.readLine()) != null) {
+            outputLines.add(buffer);
+        }
+        assertTrue(outputLines.get(outputLines.size() - 1).strip().endsWith("ok"));
     }
 
     static URI getURI(String path) throws URISyntaxException, UnsupportedEncodingException {

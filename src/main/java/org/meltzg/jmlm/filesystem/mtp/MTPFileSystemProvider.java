@@ -46,7 +46,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     private static native byte[] getFileContent(String path, String deviceId);
 
-    private static native int writeFileContent(String toDevicePath, String toString, byte[] bytes, long position, int length);
+    private static native int writeFileContent(String toDevicePath, String toString, byte[] bytes, long offset, int length);
 
     private static native List<String> getPathChildren(String path, String deviceId);
 
@@ -132,10 +132,21 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
             @Override
             public int write(ByteBuffer byteBuffer) throws IOException {
-                var deviceIdentifier = getDeviceIdentifier(path.toUri());
+                var bytes = new ArrayList<Byte>();
+                while (byteBuffer.hasRemaining()) {
+                    bytes.add(byteBuffer.get());
+                }
+                var bytesArr = new byte[bytes.size()];
+                for (int i = 0; i < bytes.size(); i++) {
+                    bytesArr[i] = bytes.get(i);
+                }
 
-                var bytes = byteBuffer.array();
-                return writeFileContent(devicePath, deviceIdentifier.toString(), bytes, position, bytes.length);
+                var ret = writeFileContent(devicePath, deviceIdentifier.toString(), bytesArr, position, bytesArr.length);
+                if (ret < 0) {
+                    throw new IOException("Could not write to file");
+                }
+                position += ret;
+                return ret;
             }
 
             @Override
