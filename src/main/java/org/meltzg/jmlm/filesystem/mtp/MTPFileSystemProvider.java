@@ -46,7 +46,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     private static native byte[] getFileContent(String path, String deviceId);
 
-    private static native int writeFileContent(String toDevicePath, String toString, byte[] bytes, long offset, int length);
+    private static native int writeFileContent(String path, String deviceId, byte[] bytes, long offset, int length);
 
     private static native List<String> getPathChildren(String path, String deviceId);
 
@@ -117,6 +117,11 @@ public class MTPFileSystemProvider extends FileSystemProvider {
         validatePathProvider(path);
         var devicePath = toDevicePath(path);
         var deviceIdentifier = getDeviceIdentifier(path.toUri());
+        var bufferOptions = new HashSet<OpenOption>();
+        bufferOptions.add(StandardOpenOption.WRITE);
+        bufferOptions.add(StandardOpenOption.READ);
+        var writeBuffer = Files.newByteChannel(Files.createTempFile("write-buffer-", ".tmp"), bufferOptions, attrs);
+        var isWrite = options.contains(StandardOpenOption.WRITE);
         return new SeekableByteChannel() {
             long position;
 
@@ -132,21 +137,13 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
             @Override
             public int write(ByteBuffer byteBuffer) throws IOException {
-                var bytes = new ArrayList<Byte>();
-                while (byteBuffer.hasRemaining()) {
-                    bytes.add(byteBuffer.get());
+                if (!isWrite) {
+                    throw new IOException("Channel is not open for write");
                 }
-                var bytesArr = new byte[bytes.size()];
-                for (int i = 0; i < bytes.size(); i++) {
-                    bytesArr[i] = bytes.get(i);
-                }
-
-                var ret = writeFileContent(devicePath, deviceIdentifier.toString(), bytesArr, position, bytesArr.length);
-                if (ret < 0) {
-                    throw new IOException("Could not write to file");
-                }
-                position += ret;
-                return ret;
+                writeBuffer.position(position);
+                var written = writeBuffer.write(byteBuffer);
+                position += written;
+                return written;
             }
 
             @Override
@@ -184,7 +181,14 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
             @Override
             public void close() throws IOException {
-
+                if (isWrite) {
+                    writeBuffer.position(0);
+                    var byteBuffer = ByteBuffer.allocate(Math.toIntExact(writeBuffer.size()));
+                    writeBuffer.read(byteBuffer);
+                    if (writeFileContent(devicePath, deviceIdentifier.toString(), byteBuffer.array(), 0, byteBuffer.remaining()) < 0) {
+                        throw new IOException("Could not write write buffer to device on close");
+                    }
+                }
             }
         };
     }
