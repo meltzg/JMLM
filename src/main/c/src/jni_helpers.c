@@ -15,7 +15,7 @@ void arrayListAdd(JNIEnv *env, jobject list, jobject element)
     jboolean val = (*env)->CallBooleanMethod(env, list, array_list_add, element);
 }
 
-jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
+jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo_t info)
 {
     jclass device_info_class = (*env)->FindClass(env, JMTPDEVICEINFO);
     char sig[1024];
@@ -42,7 +42,7 @@ jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info)
     return jinfo;
 }
 
-jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo *info, int numDevices)
+jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo_t *info, int numDevices)
 {
     jobject jlist = getNewArrayList(env);
     for (int i = 0; i < numDevices; i++)
@@ -53,7 +53,7 @@ jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo *info, int 
     return jlist;
 }
 
-jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice storage_device)
+jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice_t storage_device)
 {
     jclass storage_info_class = (*env)->FindClass(env, JMTPSTORAGEDEVICE);
     char sig[1024];

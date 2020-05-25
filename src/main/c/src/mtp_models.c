@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "mtp_models.h"
 
-void freeMTPDeviceIdInfo(MTPDeviceIdInfo deviceIdInfo)
+void freeMTPDeviceIdInfo(MTPDeviceIdInfo_t deviceIdInfo)
 {
     if (deviceIdInfo.serial != NULL)
     {
@@ -9,7 +9,7 @@ void freeMTPDeviceIdInfo(MTPDeviceIdInfo deviceIdInfo)
     }
 }
 
-void freeMTPDeviceInfo(MTPDeviceInfo deviceInfo)
+void freeMTPDeviceInfo(MTPDeviceInfo_t deviceInfo)
 {
     if (deviceInfo.device_id != NULL)
     {
@@ -31,7 +31,7 @@ void freeMTPDeviceInfo(MTPDeviceInfo deviceInfo)
     freeMTPDeviceIdInfo(deviceInfo.id_info);
 }
 
-void freeMTPStorageDevice(MTPStorageDevice storageDevice)
+void freeMTPStorageDevice(MTPStorageDevice_t storageDevice)
 {
     if (storageDevice.storage_id != NULL)
     {

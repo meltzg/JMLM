@@ -94,7 +94,7 @@ public class MTPFileSystemProviderTest {
     }
 
     @Test
-    public void writeFile() throws IOException, URISyntaxException, InterruptedException {
+    public void fileCRUD() throws IOException, URISyntaxException, InterruptedException {
         var sourcePath = Paths.get(getURI("Internal storage/Contents/Sample"));
         var sinkPath = Paths.get(getURI("SD card/file.flac"));
         try (var stream = Files.newDirectoryStream(sourcePath)) {
@@ -108,6 +108,8 @@ public class MTPFileSystemProviderTest {
                 }
             }
             assertTrue("validated at least 1 file", validated);
+            Files.delete(sinkPath);
+            assertFalse(Files.exists(sinkPath));
         }
     }
 

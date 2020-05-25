@@ -48,6 +48,8 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     private static native int writeFileContent(String path, String deviceId, byte[] bytes, long offset, int length);
 
+    private static native boolean deleteFile(String path, String deviceId);
+
     private static native List<String> getPathChildren(String path, String deviceId);
 
     private static native boolean isDirectory(String path, String deviceId);
@@ -117,22 +119,27 @@ public class MTPFileSystemProvider extends FileSystemProvider {
         validatePathProvider(path);
         var devicePath = toDevicePath(path);
         var deviceIdentifier = getDeviceIdentifier(path.toUri());
+        var isWrite = options.contains(StandardOpenOption.WRITE);
+
         var bufferOptions = new HashSet<OpenOption>();
         bufferOptions.add(StandardOpenOption.WRITE);
         bufferOptions.add(StandardOpenOption.READ);
-        var writeBuffer = Files.newByteChannel(Files.createTempFile("write-buffer-", ".tmp"), bufferOptions, attrs);
-        var isWrite = options.contains(StandardOpenOption.WRITE);
+        var surrogateChannel = Files.newByteChannel(Files.createTempFile("write-buffer-", ".tmp"), bufferOptions, attrs);
+        var content = getFileContent(devicePath, deviceIdentifier.toString());
+        if (content != null) {
+            surrogateChannel.write(ByteBuffer.allocate(content.length).put(content).position(0));
+            surrogateChannel.position(0);
+        }
+
         return new SeekableByteChannel() {
             long position;
 
             @Override
             public int read(ByteBuffer byteBuffer) throws IOException {
-                var content = getFileContent(devicePath, deviceIdentifier.toString());
-
-                int l = (int) Math.min(byteBuffer.remaining(), size() - position);
-                byteBuffer.put(content, (int) position, l);
-                position += l;
-                return l;
+                surrogateChannel.position(position);
+                var read = surrogateChannel.read(byteBuffer);
+                position += read;
+                return read;
             }
 
             @Override
@@ -140,8 +147,8 @@ public class MTPFileSystemProvider extends FileSystemProvider {
                 if (!isWrite) {
                     throw new IOException("Channel is not open for write");
                 }
-                writeBuffer.position(position);
-                var written = writeBuffer.write(byteBuffer);
+                surrogateChannel.position(position);
+                var written = surrogateChannel.write(byteBuffer);
                 position += written;
                 return written;
             }
@@ -182,9 +189,10 @@ public class MTPFileSystemProvider extends FileSystemProvider {
             @Override
             public void close() throws IOException {
                 if (isWrite) {
-                    writeBuffer.position(0);
-                    var byteBuffer = ByteBuffer.allocate(Math.toIntExact(writeBuffer.size()));
-                    writeBuffer.read(byteBuffer);
+                    surrogateChannel.position(0);
+                    var byteBuffer = ByteBuffer.allocate(Math.toIntExact(surrogateChannel.size()));
+                    surrogateChannel.read(byteBuffer);
+                    byteBuffer.position(0);
                     if (writeFileContent(devicePath, deviceIdentifier.toString(), byteBuffer.array(), 0, byteBuffer.remaining()) < 0) {
                         throw new IOException("Could not write write buffer to device on close");
                     }
@@ -245,7 +253,14 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void delete(Path path) throws IOException {
-        throw new ReadOnlyFileSystemException();
+        validatePathProvider(path);
+        var deviceIdentifier = getDeviceIdentifier(path.toUri());
+        if (Files.isDirectory(path)) {
+            throw new IOException(String.format("Cannot delete directories. (%s)", path.toUri()));
+        }
+        if (!deleteFile(toDevicePath(path), deviceIdentifier.toString())) {
+            throw new IOException(String.format("Could not delete %s", path.toUri()));
+        }
     }
 
     @Override

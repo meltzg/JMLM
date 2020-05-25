@@ -6,7 +6,7 @@
 #include <sys/mman.h>
 #include "mtp_helpers.h"
 
-char *toIDStr(MTPDeviceIdInfo info)
+char *toIDStr(MTPDeviceIdInfo_t info)
 {
     char buffer[1024];
     sprintf(buffer, "%d:%d:%s", info.vendor_id, info.product_id, info.serial);
@@ -17,7 +17,7 @@ char *toIDStr(MTPDeviceIdInfo info)
     return idStr;
 }
 
-void toMTPDeviceInfo(MTPDeviceInfo *device_info, LIBMTP_mtpdevice_t *device, uint32_t busLocation, uint8_t devNum, uint16_t vendor_id, uint16_t product_id)
+void toMTPDeviceInfo(MTPDeviceInfo_t *device_info, LIBMTP_mtpdevice_t *device, uint32_t busLocation, uint8_t devNum, uint16_t vendor_id, uint16_t product_id)
 {
     char *serial = LIBMTP_Get_Serialnumber(device);
     char *friendly = LIBMTP_Get_Friendlyname(device);
@@ -37,7 +37,7 @@ void toMTPDeviceInfo(MTPDeviceInfo *device_info, LIBMTP_mtpdevice_t *device, uin
     device_info->devNum = devNum;
 }
 
-bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpdevice_t **device, LIBMTP_raw_device_t **raw_devs, uint32_t *busLocation, uint8_t *devNum)
+bool getOpenDevice(MTPDeviceInfo_t *deviceInfo, const char *deviceId, LIBMTP_mtpdevice_t **device, LIBMTP_raw_device_t **raw_devs, uint32_t *busLocation, uint8_t *devNum)
 {
     *device = NULL;
     *raw_devs = NULL;
@@ -52,7 +52,7 @@ bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpde
         {
             LIBMTP_mtpdevice_t *found_device = LIBMTP_Open_Raw_Device_Uncached(raw_devs[i]);
             char *serial = LIBMTP_Get_Serialnumber(found_device);
-            MTPDeviceIdInfo id_info;
+            MTPDeviceIdInfo_t id_info;
             id_info.vendor_id = (*raw_devs)[i].device_entry.vendor_id;
             id_info.product_id = (*raw_devs)[i].device_entry.product_id;
             id_info.serial = serial;
@@ -71,7 +71,7 @@ bool getOpenDevice(MTPDeviceInfo *deviceInfo, const char *deviceId, LIBMTP_mtpde
     return false;
 }
 
-int getDevicesInfo(MTPDeviceInfo **devices)
+int getDevicesInfo(MTPDeviceInfo_t **devices)
 {
     LIBMTP_raw_device_t *raw_devs = NULL;
     LIBMTP_error_number_t ret;
@@ -81,7 +81,7 @@ int getDevicesInfo(MTPDeviceInfo **devices)
 
     if (ret == LIBMTP_ERROR_NONE && numdevs > 0)
     {
-        *devices = malloc(numdevs * sizeof(MTPDeviceInfo));
+        *devices = malloc(numdevs * sizeof(MTPDeviceInfo_t));
         for (int i = 0; i < numdevs; i++)
         {
             LIBMTP_mtpdevice_t *device = LIBMTP_Open_Raw_Device_Uncached(&raw_devs[i]);
@@ -99,7 +99,7 @@ int getDevicesInfo(MTPDeviceInfo **devices)
     return numdevs;
 }
 
-bool getDeviceInfo(MTPDeviceInfo *deviceInfo, const char *deviceId)
+bool getDeviceInfo(MTPDeviceInfo_t *deviceInfo, const char *deviceId)
 {
     LIBMTP_mtpdevice_t *device = NULL;
     LIBMTP_raw_device_t *rawdevices = NULL;
@@ -154,7 +154,7 @@ char *getStorageDeviceId(const char *device_id, const char *path)
 
     uint32_t busLocation;
     uint8_t devNum;
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo_t deviceInfo;
     char *storage_id = NULL;
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
@@ -178,14 +178,14 @@ char *getStorageDeviceId(const char *device_id, const char *path)
     return storage_id;
 }
 
-bool getStorageDeviceMetadata(MTPStorageDevice *storageDevice, const char *device_id, const char *storage_id)
+bool getStorageDeviceMetadata(MTPStorageDevice_t *storageDevice, const char *device_id, const char *storage_id)
 {
     LIBMTP_mtpdevice_t *device;
     LIBMTP_raw_device_t *rawdevices;
 
     uint32_t busLocation;
     uint8_t devNum;
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo_t deviceInfo;
     bool ret = false;
 
     if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
@@ -330,7 +330,7 @@ uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
 
     uint32_t busLocation;
     uint8_t devNum;
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo_t deviceInfo;
 
     uint8_t *output = NULL;
     *size = 0;
@@ -384,7 +384,7 @@ int writeFileContent(const char *device_id, const char *path, const char *conten
 
     uint32_t busLocation;
     uint8_t devNum;
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo_t deviceInfo;
 
     int bytesWritten = -1;
     bool success = getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum);
@@ -493,7 +493,7 @@ bool isDirectory(const char *device_id, const char *path)
 
     uint32_t busLocation;
     uint8_t devNum;
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo_t deviceInfo;
 
     bool isDir = false;
 
@@ -515,7 +515,7 @@ long fileSize(const char *device_id, const char *path)
 
     uint32_t busLocation;
     uint8_t devNum;
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo_t deviceInfo;
 
     long size = 0;
 
@@ -544,7 +544,7 @@ char **getPathChildren(const char *device_id, const char *path, int *numChildren
 
     uint32_t busLocation;
     uint8_t devNum;
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo_t deviceInfo;
 
     char **childNames = NULL;
 

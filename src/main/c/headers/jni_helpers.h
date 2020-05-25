@@ -16,8 +16,8 @@ static const char *const JMTPSTORAGEDEVICE = "Lorg/meltzg/jmlm/device/storage/St
 jobject getNewArrayList(JNIEnv *env);
 void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 
-jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo info);
-jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo *info, int numDevices);
-jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice storage_device);
+jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo_t info);
+jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo_t *info, int numDevices);
+jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice_t storage_device);
 
 #endif

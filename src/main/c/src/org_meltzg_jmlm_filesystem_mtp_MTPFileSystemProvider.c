@@ -21,7 +21,7 @@ JNIEXPORT void JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
 */
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_getDevicesInfo(JNIEnv *env, jclass cls)
 {
-    MTPDeviceInfo *deviceList = NULL;
+    MTPDeviceInfo_t *deviceList = NULL;
     int numDevices = getDevicesInfo(&deviceList);
 
     jobject newList = toJMTPDeviceInfoList(env, cls, deviceList, numDevices);
@@ -44,7 +44,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
 JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_getDeviceInfo(JNIEnv *env, jclass cls, jstring deviceId)
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
-    MTPDeviceInfo deviceInfo;
+    MTPDeviceInfo_t deviceInfo;
     jobject jdevice = NULL;
     if (getDeviceInfo(&deviceInfo, cDeviceId))
     {
@@ -189,7 +189,7 @@ JNIEXPORT jobject JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvi
 {
     const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
     const char *cStorageId = (*env)->GetStringUTFChars(env, storageId, NULL);
-    MTPStorageDevice storageDevice;
+    MTPStorageDevice_t storageDevice;
     jobject jstorage = NULL;
 
     if (getStorageDeviceMetadata(&storageDevice, cDeviceId, cStorageId))

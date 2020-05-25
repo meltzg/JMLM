@@ -3,9 +3,9 @@
 
 #include <libmtp.h>
 
-typedef struct MTPDeviceIdInfo_struct MTPDeviceIdInfo;
-typedef struct MTPDeviceInfo_struct MTPDeviceInfo;
-typedef struct MTPStorageDevice_struct MTPStorageDevice;
+typedef struct MTPDeviceIdInfo_struct MTPDeviceIdInfo_t;
+typedef struct MTPDeviceInfo_struct MTPDeviceInfo_t;
+typedef struct MTPStorageDevice_struct MTPStorageDevice_t;
 
 struct MTPDeviceIdInfo_struct
 {
@@ -21,7 +21,7 @@ struct MTPDeviceInfo_struct
     char *description;
     char *manufacturer;
 
-    MTPDeviceIdInfo id_info;
+    MTPDeviceIdInfo_t id_info;
 
     uint32_t busLocation;
     uint8_t devNum;
@@ -34,8 +34,8 @@ struct MTPStorageDevice_struct
     uint64_t free_space;
 };
 
-void freeMTPDeviceIdInfo(MTPDeviceIdInfo deviceIdInfo);
-void freeMTPDeviceInfo(MTPDeviceInfo deviceInfo);
-void freeMTPStorageDevice(MTPStorageDevice storageDevice);
+void freeMTPDeviceIdInfo(MTPDeviceIdInfo_t deviceIdInfo);
+void freeMTPDeviceInfo(MTPDeviceInfo_t deviceInfo);
+void freeMTPStorageDevice(MTPStorageDevice_t storageDevice);
 
 #endif
