@@ -323,6 +323,48 @@ bool _isDirectory(const LIBMTP_mtpdevice_t *device, const char *path)
     return isDir;
 }
 
+bool _deleteMtpFileRecursive(const LIBMTP_mtpdevice_t *device, LIBMTP_file_t *file)
+{
+    bool success = false;
+
+    LIBMTP_file_t *children = LIBMTP_Get_Files_And_Folders(device, file->storage_id, file->item_id);
+    if (children != NULL)
+    {
+        LIBMTP_file_t *child = children;
+        while (child != NULL)
+        {
+            LIBMTP_file_t *oldChild = child;
+            child = child->next;
+            _deleteMtpFileRecursive(device, oldChild);
+        }
+    }
+
+    int ret = LIBMTP_Delete_Object(device, file->item_id);
+    LIBMTP_destroy_file_t(file);
+
+    return ret == 0;
+}
+
+bool _deletePath(const LIBMTP_mtpdevice_t *device, const char *path)
+{
+    bool success = false;
+    LIBMTP_devicestorage_t *storage = getStorageDevice(device, path);
+    if (strcmp(path, "/") == 0)
+    {
+        printf("Cannot delete root path");
+    }
+    else if (storage != NULL && strcmp(path + 1, storage->StorageDescription) == 0)
+    {
+        printf("Cannot delete storage device");
+    }
+    else
+    {
+        LIBMTP_file_t *foundFile = findFile(device, path);
+        success = _deleteMtpFileRecursive(device, foundFile);
+    }
+    return success;
+}
+
 uint8_t *getFileContent(const char *device_id, const char *path, uint64_t *size)
 {
     LIBMTP_mtpdevice_t *device;
@@ -486,6 +528,32 @@ int writeFileContent(const char *device_id, const char *path, const char *conten
     return bytesWritten;
 }
 
+bool deletePath(const char *device_id, const char *path)
+{
+    LIBMTP_mtpdevice_t *device;
+    LIBMTP_raw_device_t *rawdevices;
+
+    uint32_t busLocation;
+    uint8_t devNum;
+    MTPDeviceInfo_t deviceInfo;
+
+    bool success = false;
+
+    if (getOpenDevice(&deviceInfo, device_id, &device, &rawdevices, &busLocation, &devNum))
+    {
+        success = _deletePath(device, path);
+
+        LIBMTP_Release_Device(device);
+    }
+
+    if (rawdevices != NULL)
+    {
+        free(rawdevices);
+    }
+
+    return success;
+}
+
 bool isDirectory(const char *device_id, const char *path)
 {
     LIBMTP_mtpdevice_t *device;
@@ -529,6 +597,11 @@ long fileSize(const char *device_id, const char *path)
                 size = foundFile->filesize;
                 LIBMTP_destroy_file_t(foundFile);
             }
+            else
+            {
+                size = -1;
+            }
+            
         }
 
         LIBMTP_Release_Device(device);

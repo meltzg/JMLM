@@ -70,3 +70,9 @@ jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice_t storage_device)
                                          0);
     return jstorage;
 }
+
+jint throwIOException(JNIEnv *env, const char *message)
+{
+    jclass ioexception_class = (*env)->FindClass(env, JIOEXCEPTION);
+    return (*env)->ThrowNew(env, ioexception_class, message);
+}

@@ -8,6 +8,7 @@ static const char *const JCONSTRUCTOR = "<init>";
 static const char *const JSTRING = "Ljava/lang/String;";
 static const char *const JARRLIST = "Ljava/util/ArrayList;";
 static const char *const JLIST = "Ljava/util/List;";
+static const char *const JIOEXCEPTION = "Ljava/io/IOException;";
 
 static const char *const JMTPDEVICEINFO = "Lorg/meltzg/jmlm/filesystem/mtp/MTPFileSystemProvider$MTPDeviceInfo;";
 static const char *const JMTPCONTENTNODE = "Lorg/meltzg/jmlm/device/content/MTPContentNode;";
@@ -19,5 +20,7 @@ void arrayListAdd(JNIEnv *env, jobject list, jobject element);
 jobject toJMTPDeviceInfo(JNIEnv *env, jobject obj, MTPDeviceInfo_t info);
 jobject toJMTPDeviceInfoList(JNIEnv *env, jobject obj, MTPDeviceInfo_t *info, int numDevices);
 jobject toJMTPStorageDevice(JNIEnv *env, MTPStorageDevice_t storage_device);
+
+jint throwIOException(JNIEnv *env, const char *message);
 
 #endif

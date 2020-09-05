@@ -54,7 +54,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     private static native boolean isDirectory(String path, String deviceId);
 
-    private static native long size(String path, String deviceId);
+    private static native long size(String path, String deviceId) throws IOException;
 
     static native StorageDevice getFileStoreProperties(String storageId, String deviceId);
 
@@ -293,7 +293,7 @@ public class MTPFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void checkAccess(Path path, AccessMode... modes) throws IOException {
-
+        readAttributes(path, MTPFileAttribute.class);
     }
 
     @Override

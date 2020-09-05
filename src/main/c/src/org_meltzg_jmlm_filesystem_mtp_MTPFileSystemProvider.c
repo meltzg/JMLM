@@ -125,6 +125,23 @@ JNIEXPORT jint JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
 
 /*
  * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
+ * Method:    deleteFile
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider_deleteFile(JNIEnv *env, jclass obj, jstring path, jstring deviceId)
+{
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, NULL);
+    const char *cPath = (*env)->GetStringUTFChars(env, path, NULL);
+    
+    bool isDeleted = deletePath(cDeviceId, cPath);
+
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, path, cPath);
+    return isDeleted;
+}
+
+/*
+ * Class:     org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvider
  * Method:    getPathChildren
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
  */
@@ -177,6 +194,10 @@ JNIEXPORT jlong JNICALL Java_org_meltzg_jmlm_filesystem_mtp_MTPFileSystemProvide
     long size = fileSize(cDeviceId, cPath);
     (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
     (*env)->ReleaseStringUTFChars(env, path, cPath);
+    if (size < 0)
+    {
+        throwIOException(env, "File not found");
+    }
     return size;
 }
 
